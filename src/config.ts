@@ -295,7 +295,7 @@ export const config: SiteConfig = {
   enablePopovers: true,
   analytics: null,
   locale: "en-US",
-  baseUrl: undefined, // Set this to enable RSS feed, OG images, and sitemap
+  baseUrl: "https://brickfrog.github.io/ametrine",
   ignorePatterns: ["private", "templates", ".obsidian"],
   defaultDateType: "modified",
   footer: {

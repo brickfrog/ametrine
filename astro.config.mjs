@@ -25,6 +25,7 @@ import { config } from './src/config.ts';
 // https://astro.build/config
 export default defineConfig({
   site: config.baseUrl,
+  base: '/ametrine',
   integrations: [
     expressiveCode({
       themes: ['github-light', 'github-dark'],
