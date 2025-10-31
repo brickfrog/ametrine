@@ -86,7 +86,7 @@ function Card({ note, view }: { note: Note; view: BaseView }) {
             return (
               <div key={propertyName}>
                 <a
-                  href={`/${note.slug}`}
+                  href={`${import.meta.env.BASE_URL}/${note.slug}`}
                   className="text-lg font-semibold no-underline hover:underline block"
                   style={{ color: "var(--color-secondary)" }}
                   onMouseEnter={(e) =>

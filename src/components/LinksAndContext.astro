@@ -235,7 +235,7 @@ const totalItems = externalLinks.length + backlinks.length + relatedNotes.length
               {backlinks.map((backlink) => (
                 <li class="list-none">
                   <a
-                    href={`/${backlink.slug}`}
+                    href={`${import.meta.env.BASE_URL}/${backlink.slug}`}
                     class="text-theme-secondary hover:text-theme-tertiary font-medium"
                     aria-label={backlink.data.title || backlink.slug}
                   >
@@ -285,7 +285,7 @@ const totalItems = externalLinks.length + backlinks.length + relatedNotes.length
                 <li class="list-none">
                   <div class="flex items-baseline gap-2">
                     <a
-                      href={`/${related.note.slug}`}
+                      href={`${import.meta.env.BASE_URL}/${related.note.slug}`}
                       class="text-theme-secondary hover:text-theme-tertiary font-medium"
                       aria-label={related.note.data.title || related.note.slug}
                     >

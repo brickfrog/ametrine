@@ -18,7 +18,7 @@ const isSidebar = variant === 'sidebar';
     <div class="flex flex-wrap gap-2">
       {tags.map((tag) => (
         <a
-          href={`/tags/${tag}`}
+          href={`${import.meta.env.BASE_URL}/tags/${tag}`}
           class="px-2 py-1 text-xs rounded bg-theme-highlight text-theme-secondary hover:bg-theme-gray transition-colors"
         >
           #{tag}
@@ -30,7 +30,7 @@ const isSidebar = variant === 'sidebar';
   <div class="inline-tags flex flex-wrap gap-2 items-center">
     {tags.map((tag) => (
       <a
-        href={`/tags/${tag}`}
+        href={`${import.meta.env.BASE_URL}/tags/${tag}`}
         class="px-2 py-1 text-xs rounded bg-theme-highlight text-theme-secondary hover:bg-theme-gray transition-colors"
       >
         #{tag}

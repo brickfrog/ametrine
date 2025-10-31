@@ -328,7 +328,7 @@ export function LinkPreviewPanel({
                     {tags.slice(0, 5).map((tag, i) => (
                       <span key={i}>
                         {i > 0 && ", "}
-                        <a href={`/tags/${tag}`}>{tag}</a>
+                        <a href={`${import.meta.env.BASE_URL}/tags/${tag}`}>{tag}</a>
                       </span>
                     ))}
                   </span>

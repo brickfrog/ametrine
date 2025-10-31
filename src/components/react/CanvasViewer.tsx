@@ -68,7 +68,7 @@ function NotePreview({ slug }: { slug: string }) {
   useEffect(() => {
     async function fetchContent() {
       try {
-        const response = await fetch(`/${slug}`);
+        const response = await fetch(`${import.meta.env.BASE_URL}/${slug}`);
         if (response.ok) {
           const htmlText = await response.text();
           const parser = new DOMParser();

@@ -57,7 +57,7 @@ function getColumnName(propertyName: string): string {
             if (column === 'file.name') {
               return (
                 <td class="cell-name">
-                  <a href={`/${note.slug}`} class="note-link">
+                  <a href={`${import.meta.env.BASE_URL}/${note.slug}`} class="note-link">
                     {formatted || note.data.title || note.slug}
                   </a>
                 </td>

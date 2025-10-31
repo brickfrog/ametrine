@@ -51,7 +51,7 @@ export function TableView({
           if (column === "file.name") {
             return (
               <a
-                href={`/${note.slug}`}
+                href={`${import.meta.env.BASE_URL}/${note.slug}`}
                 className="font-medium no-underline hover:underline"
                 style={{ color: "var(--color-secondary)" }}
                 onMouseEnter={(e) =>

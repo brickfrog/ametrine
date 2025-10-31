@@ -84,7 +84,7 @@ function formatDate(date: Date | undefined) {
             <div class="flex-1 min-w-0">
               <div class="desc mb-2">
                 <h3 class="text-lg font-semibold font-header m-0">
-                  <a href={`/${note.slug}`} class="text-theme-dark hover:text-theme-secondary transition-colors">
+                  <a href={`${import.meta.env.BASE_URL}/${note.slug}`} class="text-theme-dark hover:text-theme-secondary transition-colors">
                     {note.data.title}
                   </a>
                 </h3>
@@ -99,7 +99,7 @@ function formatDate(date: Date | undefined) {
                   {note.data.tags.map((noteTag) => (
                     <li class="list-none">
                       <a
-                        href={`/tags/${noteTag}`}
+                        href={`${import.meta.env.BASE_URL}/tags/${noteTag}`}
                         class="px-2 py-1 text-xs rounded bg-theme-highlight text-theme-secondary hover:bg-theme-gray transition-colors"
                       >
                         #{noteTag}

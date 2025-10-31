@@ -31,7 +31,7 @@ const sortedTags = Array.from(tagMap.entries()).sort((a, b) =>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {sortedTags.map(([tag, count]) => (
         <a
-          href={`/tags/${tag}`}
+          href={`${import.meta.env.BASE_URL}/tags/${tag}`}
           class="block p-4 rounded-lg border border-theme-gray hover:border-theme-secondary hover:bg-theme-highlight transition-all"
         >
           <div class="flex items-center justify-between">

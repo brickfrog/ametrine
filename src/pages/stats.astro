@@ -100,7 +100,7 @@ const notesWithUpdates = contentNotes.filter((n) => n.updated).length;
                 <tr class="border-b border-theme-gray hover:bg-theme-lightgray transition-colors">
                   <td class="py-3 px-4 text-theme-darkgray">{index + 1}</td>
                   <td class="py-3 px-4">
-                    <a href={`/${note.slug}`} class="text-theme-secondary hover:text-theme-tertiary transition-colors hover:underline">
+                    <a href={`${import.meta.env.BASE_URL}/${note.slug}`} class="text-theme-secondary hover:text-theme-tertiary transition-colors hover:underline">
                       {note.title}
                     </a>
                   </td>
@@ -146,7 +146,7 @@ const notesWithUpdates = contentNotes.filter((n) => n.updated).length;
           <div class="space-y-2 max-h-64 overflow-y-auto pr-2">
             {metrics.orphanNotes.slice(0, 15).map((note) => (
               <div class="text-sm">
-                <a href={`/${note.slug}`} class="text-theme-secondary hover:text-theme-tertiary transition-colors hover:underline">
+                <a href={`${import.meta.env.BASE_URL}/${note.slug}`} class="text-theme-secondary hover:text-theme-tertiary transition-colors hover:underline">
                   {note.title}
                 </a>
               </div>

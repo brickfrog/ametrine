@@ -131,7 +131,7 @@ export function Search() {
           {results.map((note) => (
             <a
               key={note.slug}
-              href={`/${note.slug}`}
+              href={`${import.meta.env.BASE_URL}/${note.slug}`}
               className="block p-4 hover:bg-theme-highlight border-b border-theme-lightgray last:border-b-0"
               onClick={() => setIsOpen(false)}
             >

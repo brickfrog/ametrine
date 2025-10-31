@@ -238,7 +238,7 @@ export function LinkPreviewManager() {
       id: slug,
       data: {
         title: content.title,
-        url: `/${slug}`,
+        url: `${import.meta.env.BASE_URL}/${slug}`,
         excerpt: content.excerpt,
         description: content.description,
         author: content.author,
