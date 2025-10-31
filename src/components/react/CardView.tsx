@@ -9,6 +9,7 @@ interface CardViewProps {
   notes: Note[];
   view: BaseView;
   baseName: string;
+  imageUrlMap?: Record<string, string>;
 }
 
 function getPropertyLabel(propertyName: string): string {
@@ -22,20 +23,19 @@ function getPropertyLabel(propertyName: string): string {
   return propertyName.charAt(0).toUpperCase() + propertyName.slice(1);
 }
 
-function Card({ note, view }: { note: Note; view: BaseView }) {
+function Card({
+  note,
+  view,
+  imageUrl,
+}: {
+  note: Note;
+  view: BaseView;
+  imageUrl?: string;
+}) {
   const propertyOrder = view.order || ["file.name"];
 
-  // Get image if specified
-  const imageProperty = view.image;
-  let imageValue = imageProperty ? getPropertyValue(note, imageProperty) : null;
-
-  // Handle wikilink syntax: [[filename.png]] -> /src/content/vault/filename.png
-  if (imageValue && typeof imageValue === "string") {
-    const wikilinkMatch = imageValue.match(/^\[\[(.+?)\]\]$/);
-    if (wikilinkMatch) {
-      imageValue = `/src/content/vault/${wikilinkMatch[1]}`;
-    }
-  }
+  // Use the pre-processed image URL if available
+  const imageValue = imageUrl || null;
 
   const imageFit = view.imageFit || "cover";
   const imageAspectRatio = view.imageAspectRatio || 0.75; // Default 4:3
@@ -159,7 +159,7 @@ function Card({ note, view }: { note: Note; view: BaseView }) {
   );
 }
 
-export function CardView({ notes, view }: CardViewProps) {
+export function CardView({ notes, view, imageUrlMap = {} }: CardViewProps) {
   const cardSize = view.cardSize || 250; // Default 250px card width
 
   if (notes.length === 0) {
@@ -181,7 +181,12 @@ export function CardView({ notes, view }: CardViewProps) {
       }}
     >
       {notes.map((note) => (
-        <Card key={note.slug} note={note} view={view} />
+        <Card
+          key={note.slug}
+          note={note}
+          view={view}
+          imageUrl={imageUrlMap[note.slug]}
+        />
       ))}
     </div>
   );

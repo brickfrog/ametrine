@@ -10,6 +10,8 @@ import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { parse as parseYaml } from 'yaml';
 import { config as siteConfig } from '../../config';
+import { imageMap } from '../../utils/imageMap';
+import { getImage } from 'astro:assets';
 
 export async function getStaticPaths() {
   // Check if base feature is enabled
@@ -61,6 +63,27 @@ const combinedFilters = combineFilters(config.filters, view.filters);
 // Apply filters
 const filterResult = filterNotes(allNotes, combinedFilters, view.limit);
 
+// Process image URLs for notes if view has image property
+const imageProperty = view.image;
+const imageUrlMap = new Map<string, string>();
+
+if (imageProperty) {
+  for (const note of filterResult.notes) {
+    const imageValue = note.data[imageProperty];
+    if (imageValue && typeof imageValue === 'string') {
+      const wikilinkMatch = imageValue.match(/^\[\[(.+?)\]\]$/);
+      if (wikilinkMatch) {
+        const fileName = wikilinkMatch[1];
+        const imageMetadata = imageMap.get(fileName);
+        if (imageMetadata) {
+          const optimized = await getImage({ src: imageMetadata });
+          imageUrlMap.set(note.slug, optimized.src);
+        }
+      }
+    }
+  }
+}
+
 // Extract base name from baseId (remove .base extension)
 const baseName = baseId.replace(/\.base$/, '');
 const pageTitle = `${view.name} | ${baseName}`;
@@ -91,7 +114,7 @@ const pageDescription = `Base view: ${view.name}`;
 
     {view.type === 'cards' && (
       <div class="cards-wrapper">
-        <CardView notes={filterResult.notes} view={view} baseName={baseName} client:load />
+        <CardView notes={filterResult.notes} view={view} baseName={baseName} imageUrlMap={Object.fromEntries(imageUrlMap)} client:load />
       </div>
     )}
 

@@ -3,6 +3,7 @@ import ContentLayout from '../../layouts/ContentLayout.astro';
 import { readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { config } from '../../config';
+import { getImage } from 'astro:assets';
 
 export async function getStaticPaths() {
   // Check if image feature is enabled
@@ -19,9 +20,14 @@ export async function getStaticPaths() {
     imageExtensions.some((ext) => f.toLowerCase().endsWith(ext))
   );
 
-  const paths = imageFiles.map((file) => {
+  const paths = await Promise.all(imageFiles.map(async (file) => {
     const nameWithoutExt = file.replace(/\.[^.]+$/, '');
     const extension = file.split('.').pop()?.toLowerCase() || '';
+
+    // Import the image
+    const images = import.meta.glob('/src/content/vault/*.{png,jpg,jpeg,webp,gif,svg,avif}');
+    const imagePath = `/src/content/vault/${file}`;
+    const imageModule = await images[imagePath]();
 
     return {
       params: {
@@ -31,18 +37,21 @@ export async function getStaticPaths() {
         fileName: file,
         nameWithoutExt,
         extension,
+        imageModule,
       },
     };
-  });
+  }));
 
   return paths;
 }
 
-const { fileName, nameWithoutExt, extension } = Astro.props;
+const { fileName, nameWithoutExt, extension, imageModule } = Astro.props;
 
 const pageTitle = nameWithoutExt;
 const pageDescription = `Image: ${fileName}`;
-const imagePath = `/src/content/vault/${fileName}`;
+
+// Get optimized image
+const optimizedImage = await getImage({ src: imageModule.default });
 ---
 
 <ContentLayout
@@ -59,7 +68,7 @@ const imagePath = `/src/content/vault/${fileName}`;
 
     <div class="image-container">
       <img
-        src={imagePath}
+        src={optimizedImage.src}
         alt={nameWithoutExt}
         class="displayed-image"
       />
