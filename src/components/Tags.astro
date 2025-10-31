@@ -1,0 +1,40 @@
+---
+interface Props {
+  tags: string[];
+  variant?: 'sidebar' | 'inline';
+}
+
+const { tags, variant = 'sidebar' } = Astro.props;
+
+// Don't render if no tags
+if (!tags || tags.length === 0) return null;
+
+const isSidebar = variant === 'sidebar';
+---
+
+{isSidebar ? (
+  <div class="p-4 rounded-lg bg-theme-lightgray border border-theme-gray">
+    <h3 class="text-sm font-semibold mb-2 text-theme-dark">Tags</h3>
+    <div class="flex flex-wrap gap-2">
+      {tags.map((tag) => (
+        <a
+          href={`/tags/${tag}`}
+          class="px-2 py-1 text-xs rounded bg-theme-highlight text-theme-secondary hover:bg-theme-gray transition-colors"
+        >
+          #{tag}
+        </a>
+      ))}
+    </div>
+  </div>
+) : (
+  <div class="inline-tags flex flex-wrap gap-2 items-center">
+    {tags.map((tag) => (
+      <a
+        href={`/tags/${tag}`}
+        class="px-2 py-1 text-xs rounded bg-theme-highlight text-theme-secondary hover:bg-theme-gray transition-colors"
+      >
+        #{tag}
+      </a>
+    ))}
+  </div>
+)}

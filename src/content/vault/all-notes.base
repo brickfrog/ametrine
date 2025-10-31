@@ -1,0 +1,28 @@
+# All Notes Base
+# Simple base showing all notes in the garden
+
+views:
+  - type: table
+    name: All Notes
+    order:
+      - file.name
+      - file.tags
+      - file.mtime
+
+  - type: table
+    name: Recent Updates
+    limit: 20
+    order:
+      - file.name
+      - file.mtime
+      - file.tags
+
+  - type: table
+    name: Guides Only
+    filters:
+      and:
+        - file.hasTag("guide")
+    order:
+      - file.name
+      - description
+      - file.mtime

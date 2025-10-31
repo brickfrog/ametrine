@@ -1,0 +1,140 @@
+---
+import BasesLayout from '../../layouts/BasesLayout.astro';
+import { TableView } from '../../components/react/TableView';
+import { CardView } from '../../components/react/CardView';
+import BaseToolbar from '../../components/base/BaseToolbar.astro';
+import { getPublishedNotes } from '../../utils/filterNotes';
+import { filterNotes } from '../../utils/bases/filter';
+import { combineFilters } from '../../utils/bases/parser';
+import { readdir, readFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { parse as parseYaml } from 'yaml';
+import { config as siteConfig } from '../../config';
+
+export async function getStaticPaths() {
+  // Check if base feature is enabled
+  if (siteConfig.features?.enableBases === false) {
+    return [];
+  }
+
+  // Load .base files from vault directory
+  const contentPath = join(process.cwd(), 'src/content/vault');
+  const files = await readdir(contentPath);
+  const baseFiles = files.filter((f) => f.endsWith('.base'));
+
+  const bases = await Promise.all(
+    baseFiles.map(async (file) => {
+      const content = await readFile(join(contentPath, file), 'utf-8');
+      const data = parseYaml(content);
+      return { id: file, data };
+    })
+  );
+
+  const paths = bases.flatMap((base) => {
+    const config = base.data;
+
+    // Create a path for each view in the base
+    return config.views.map((view: any, index: number) => ({
+      params: {
+        base: `${base.id.replace(/\.base$/, '')}/${view.name.toLowerCase().replace(/\s+/g, '-')}`
+      },
+      props: {
+        baseId: base.id,
+        config: config,
+        view: view,
+        viewIndex: index,
+      },
+    }));
+  });
+
+  return paths;
+}
+
+const { baseId, config, view, viewIndex: _viewIndex } = Astro.props;
+
+// Get all published notes
+const allNotes = await getPublishedNotes();
+
+// Combine global and view-specific filters
+const combinedFilters = combineFilters(config.filters, view.filters);
+
+// Apply filters
+const filterResult = filterNotes(allNotes, combinedFilters, view.limit);
+
+// Extract base name from baseId (remove .base extension)
+const baseName = baseId.replace(/\.base$/, '');
+const pageTitle = `${view.name} | ${baseName}`;
+const pageDescription = `Base view: ${view.name}`;
+---
+
+<BasesLayout
+  title={pageTitle}
+  description={pageDescription}
+  slug={`base/${baseName}/${view.name}`}
+  hideBreadcrumbs={true}
+>
+  <div class="base-page px-4 sm:px-6 lg:px-8">
+    <!-- Base Toolbar -->
+    <BaseToolbar
+      views={config.views}
+      currentView={view}
+      baseName={baseName}
+      resultCount={filterResult.filteredCount}
+    />
+
+    <!-- Render appropriate view component -->
+    {view.type === 'table' && (
+      <div class="table-wrapper">
+        <TableView notes={filterResult.notes} view={view} baseName={baseName} client:load />
+      </div>
+    )}
+
+    {view.type === 'cards' && (
+      <div class="cards-wrapper">
+        <CardView notes={filterResult.notes} view={view} baseName={baseName} client:load />
+      </div>
+    )}
+
+    {view.type !== 'table' && view.type !== 'cards' && (
+      <div class="unsupported-view">
+        <p>View type "{view.type}" is not yet supported. Only "table" and "cards" views are currently available.</p>
+        <p>Filtered {filterResult.filteredCount} of {filterResult.totalCount} notes.</p>
+      </div>
+    )}
+  </div>
+</BasesLayout>
+
+<style>
+  .table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .cards-wrapper {
+    padding: 1rem 0;
+  }
+
+  .unsupported-view {
+    padding: 3rem 2rem;
+    text-align: center;
+    background: var(--color-lightgray);
+    border-radius: 8px;
+    color: var(--color-darkgray);
+  }
+
+  .unsupported-view p {
+    margin: 0.5rem 0;
+  }
+
+  /* Responsive table adjustments */
+  @media (max-width: 768px) {
+    :global(table th),
+    :global(table td) {
+      padding: 6px 8px;
+    }
+
+    :global(table) {
+      font-size: 0.8125rem;
+    }
+  }
+</style>

@@ -1,0 +1,369 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import config from '../config';
+import '../styles/global.css';
+import '../styles/marginalia.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+  slug?: string;
+  socialImage?: string;
+}
+
+const { title, description, slug, socialImage } = Astro.props;
+const pageTitle = title
+  ? `${title}${config.pageTitleSuffix ? ' ' + config.pageTitleSuffix : ''} | ${config.pageTitle}`
+  : config.pageTitle;
+const pageDescription = description || config.defaultDescription;
+
+// Determine OG image URL
+let ogImageUrl: string | undefined;
+if (socialImage) {
+  // Use custom social image from frontmatter
+  ogImageUrl = socialImage.startsWith('http')
+    ? socialImage
+    : `${Astro.site ? Astro.site.href : ''}${socialImage}`;
+} else if (slug && config.baseUrl) {
+  // Use generated OG image
+  ogImageUrl = `${config.baseUrl}/og/${slug}.png`;
+} else if (config.baseUrl) {
+  // Fallback to default OG image
+  ogImageUrl = `${config.baseUrl}/og-default.png`;
+}
+---
+
+<!doctype html>
+<html lang={config.locale} class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{pageTitle}</title>
+    {pageDescription && <meta name="description" content={pageDescription} />}
+
+    <!-- Open Graph / Social Media Meta Tags -->
+    <meta property="og:title" content={pageTitle} />
+    {pageDescription && <meta property="og:description" content={pageDescription} />}
+    {ogImageUrl && (
+      <>
+        <meta property="og:image" content={ogImageUrl} />
+        <meta property="og:image:url" content={ogImageUrl} />
+        <meta property="og:image:width" content={config.ogImage?.width.toString() || '1200'} />
+        <meta property="og:image:height" content={config.ogImage?.height.toString() || '630'} />
+        <meta name="twitter:image" content={ogImageUrl} />
+        <meta name="twitter:card" content="summary_large_image" />
+      </>
+    )}
+    <meta property="og:type" content="website" />
+    {config.baseUrl && <meta property="og:url" content={`${config.baseUrl}${Astro.url.pathname}`} />}
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href={config.baseUrl ? `${config.baseUrl}${Astro.url.pathname}` : Astro.url.pathname} />
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/favicon-512.png" />
+    <link rel="apple-touch-icon" sizes="512x512" href="/favicon-512.png" />
+
+    <!-- RSS Feed -->
+    <link rel="alternate" type="application/rss+xml" title={`${config.pageTitle} RSS Feed`} href="/rss.xml" />
+
+    <!-- View Transitions for SPA-like navigation -->
+    <ClientRouter />
+
+    <!-- Prevent dark mode flash - MUST be first script, before ANY styles -->
+    <script is:inline define:vars={{
+      darkBg: config.theme.colors.darkMode.dark,
+      darkFg: config.theme.colors.darkMode.light,
+      lightBg: config.theme.colors.lightMode.light,
+      lightFg: config.theme.colors.lightMode.dark,
+    }}>
+      (function() {
+        const theme = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+        if (theme === 'dark' || (!theme && prefersDark)) {
+          document.documentElement.classList.add('dark');
+          document.documentElement.setAttribute('data-theme', 'dark');
+          // Set background immediately via inline style to prevent any flash
+          document.documentElement.style.backgroundColor = darkBg;
+          document.documentElement.style.color = darkFg;
+        } else {
+          document.documentElement.setAttribute('data-theme', 'light');
+          document.documentElement.style.backgroundColor = lightBg;
+          document.documentElement.style.color = lightFg;
+        }
+      })();
+    </script>
+
+    <!-- Persist dark mode across view transitions -->
+    <script is:inline define:vars={{
+      darkBg: config.theme.colors.darkMode.dark,
+      darkFg: config.theme.colors.darkMode.light,
+      lightBg: config.theme.colors.lightMode.light,
+      lightFg: config.theme.colors.lightMode.dark,
+    }}>
+      // Function to apply theme state
+      function applyTheme() {
+        const theme = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const shouldBeDark = theme === 'dark' || (!theme && prefersDark);
+
+        if (shouldBeDark) {
+          document.documentElement.classList.add('dark');
+          document.documentElement.setAttribute('data-theme', 'dark');
+          document.documentElement.style.backgroundColor = darkBg;
+          document.documentElement.style.color = darkFg;
+        } else {
+          document.documentElement.classList.remove('dark');
+          document.documentElement.setAttribute('data-theme', 'light');
+          document.documentElement.style.backgroundColor = lightBg;
+          document.documentElement.style.color = lightFg;
+        }
+      }
+
+      // Listen for Astro view transition events
+      document.addEventListener('astro:page-load', applyTheme);
+      document.addEventListener('astro:after-swap', applyTheme);
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&family=Source+Sans+Pro:wght@300;400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+    <!-- KaTeX CSS for LaTeX math rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous" />
+
+    <!-- KaTeX copy-tex for better copy/paste behavior -->
+    <script is:inline defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/copy-tex.min.js" crossorigin="anonymous"></script>
+
+    <!-- Mermaid -->
+    <script is:inline type="module">
+      import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+      window.mermaid = mermaid;
+    </script>
+
+    <style is:global>
+      h1, h2, h3, h4, h5, h6 {
+        font-family: 'Schibsted Grotesk', sans-serif;
+      }
+
+      code, pre {
+        font-family: 'IBM Plex Mono', monospace;
+      }
+    </style>
+
+    <style is:global define:vars={{
+      'color-light-light': config.theme.colors.lightMode.light,
+      'color-light-lightgray': config.theme.colors.lightMode.lightgray,
+      'color-light-gray': config.theme.colors.lightMode.gray,
+      'color-light-darkgray': config.theme.colors.lightMode.darkgray,
+      'color-light-dark': config.theme.colors.lightMode.dark,
+      'color-light-secondary': config.theme.colors.lightMode.secondary,
+      'color-light-tertiary': config.theme.colors.lightMode.tertiary,
+      'color-light-highlight': config.theme.colors.lightMode.highlight,
+      'color-light-text-highlight': config.theme.colors.lightMode.textHighlight,
+      'color-dark-light': config.theme.colors.darkMode.light,
+      'color-dark-lightgray': config.theme.colors.darkMode.lightgray,
+      'color-dark-gray': config.theme.colors.darkMode.gray,
+      'color-dark-darkgray': config.theme.colors.darkMode.darkgray,
+      'color-dark-dark': config.theme.colors.darkMode.dark,
+      'color-dark-secondary': config.theme.colors.darkMode.secondary,
+      'color-dark-tertiary': config.theme.colors.darkMode.tertiary,
+      'color-dark-highlight': config.theme.colors.darkMode.highlight,
+      'color-dark-text-highlight': config.theme.colors.darkMode.textHighlight,
+    }}>
+      :root {
+        --color-light: var(--color-light-light);
+        --color-lightgray: var(--color-light-lightgray);
+        --color-gray: var(--color-light-gray);
+        --color-darkgray: var(--color-light-darkgray);
+        --color-dark: var(--color-light-dark);
+        --color-secondary: var(--color-light-secondary);
+        --color-tertiary: var(--color-light-tertiary);
+        --color-highlight: var(--color-light-highlight);
+        --color-text-highlight: var(--color-light-text-highlight);
+      }
+
+      .dark {
+        --color-light: var(--color-dark-light);
+        --color-lightgray: var(--color-dark-lightgray);
+        --color-gray: var(--color-dark-gray);
+        --color-darkgray: var(--color-dark-darkgray);
+        --color-dark: var(--color-dark-dark);
+        --color-secondary: var(--color-dark-secondary);
+        --color-tertiary: var(--color-dark-tertiary);
+        --color-highlight: var(--color-dark-highlight);
+        --color-text-highlight: var(--color-dark-text-highlight);
+      }
+    </style>
+  </head>
+  <body class="h-full bg-theme-light text-theme-dark flex flex-col">
+    <div class="flex-1">
+      <slot />
+    </div>
+
+    <!-- Mermaid diagrams - client-side rendering -->
+    <script>
+      // Type declarations for mermaid
+      declare global {
+        interface Window {
+          mermaid: any;
+        }
+      }
+
+      // Robust Mermaid rendering with view transitions and theme support
+      async function renderAllMermaid() {
+        // Wait for mermaid to be available
+        if (!window.mermaid) {
+          console.warn('Mermaid not loaded yet');
+          return;
+        }
+
+        const isDark = document.documentElement.classList.contains('dark');
+
+        // Initialize mermaid with current theme
+        window.mermaid.initialize({
+          startOnLoad: false,
+          theme: isDark ? 'dark' : 'default',
+        });
+
+        // Find all unprocessed mermaid code blocks
+        const mermaidBlocks = document.querySelectorAll('pre[data-language="mermaid"]:not([data-mermaid-processed])');
+
+        for (let i = 0; i < mermaidBlocks.length; i++) {
+          const block = mermaidBlocks[i];
+          const code = block.querySelector('code');
+
+          if (!code) continue;
+
+          // Extract raw code from expressive-code structure
+          const lines = code.querySelectorAll('.ec-line .code');
+          const mermaidCode = Array.from(lines).map(line => line.textContent).join('\n').trim();
+          const id = `mermaid-${Date.now()}-${i}`;
+
+          try {
+            // Render the mermaid diagram
+            const { svg } = await window.mermaid.render(id, mermaidCode);
+
+            // Create a div to hold the rendered diagram
+            const div = document.createElement('div');
+            div.className = 'mermaid';
+            div.innerHTML = svg;
+            div.dataset.mermaidSource = mermaidCode; // Store source for re-rendering
+            div.dataset.mermaidProcessed = 'true';
+
+            // Find the expressive-code wrapper (if it exists)
+            const figure = block.parentElement;
+            const expressiveCodeWrapper = figure?.parentElement;
+
+            if (expressiveCodeWrapper && expressiveCodeWrapper.classList.contains('expressive-code')) {
+              // Check if this wrapper has CSS/JS injected (link/script tags)
+              const linkTag = expressiveCodeWrapper.querySelector('link[rel="stylesheet"]');
+              const scriptTag = expressiveCodeWrapper.querySelector('script[type="module"]');
+
+              if (linkTag || scriptTag) {
+                // Clone the tags before we modify the DOM
+                const linkClone = linkTag?.cloneNode(true);
+                const scriptClone = scriptTag?.cloneNode(true);
+
+                // Clear the wrapper
+                while (expressiveCodeWrapper.firstChild) {
+                  expressiveCodeWrapper.removeChild(expressiveCodeWrapper.firstChild);
+                }
+
+                // Re-add the assets plus the mermaid
+                if (linkClone) expressiveCodeWrapper.appendChild(linkClone);
+                if (scriptClone) expressiveCodeWrapper.appendChild(scriptClone);
+                expressiveCodeWrapper.appendChild(div);
+              } else {
+                // No injected assets, safe to replace the entire wrapper
+                expressiveCodeWrapper.parentNode?.replaceChild(div, expressiveCodeWrapper);
+              }
+            } else if (figure && figure.tagName === 'FIGURE' && figure.parentNode) {
+              // No expressive-code wrapper, just replace the figure
+              figure.parentNode.replaceChild(div, figure);
+            } else if (block.parentNode) {
+              // Fallback: replace just the pre element
+              block.parentNode.replaceChild(div, block);
+            }
+          } catch (error) {
+            console.error('Mermaid rendering error:', error);
+            (block as HTMLElement).dataset.mermaidProcessed = 'error';
+          }
+        }
+      }
+
+      // Re-render all existing diagrams with new theme
+      async function reRenderMermaidForTheme() {
+        if (!window.mermaid) return;
+
+        const isDark = document.documentElement.classList.contains('dark');
+
+        // Re-initialize with new theme
+        window.mermaid.initialize({
+          startOnLoad: false,
+          theme: isDark ? 'dark' : 'default',
+        });
+
+        // Find all already-rendered mermaid diagrams
+        const renderedDiagrams = document.querySelectorAll('div.mermaid[data-mermaid-source]');
+
+        for (let i = 0; i < renderedDiagrams.length; i++) {
+          const div = renderedDiagrams[i] as HTMLElement;
+          const mermaidCode = div.dataset.mermaidSource;
+
+          if (!mermaidCode) continue;
+
+          const id = `mermaid-rerender-${Date.now()}-${i}`;
+
+          try {
+            // Re-render with new theme
+            const { svg } = await window.mermaid.render(id, mermaidCode);
+            div.innerHTML = svg;
+          } catch (error) {
+            console.error('Mermaid re-render error:', error);
+          }
+        }
+      }
+
+      // Wait for mermaid library to load
+      async function waitForMermaid() {
+        let attempts = 0;
+        while (!window.mermaid && attempts < 50) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+          attempts++;
+        }
+        return !!window.mermaid;
+      }
+
+      // Initial render on page load
+      async function initMermaid() {
+        const loaded = await waitForMermaid();
+        if (loaded) {
+          await renderAllMermaid();
+        }
+      }
+
+      // Handle Astro view transitions
+      document.addEventListener('astro:page-load', initMermaid);
+
+      // Handle theme changes
+      const themeObserver = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          if (mutation.attributeName === 'class' && mutation.target === document.documentElement) {
+            reRenderMermaidForTheme();
+          }
+        });
+      });
+
+      themeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class'],
+      });
+    </script>
+  </body>
+</html>

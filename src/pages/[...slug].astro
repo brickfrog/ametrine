@@ -1,0 +1,228 @@
+---
+import { getPublishedNotes, type Note } from '../utils/filterNotes';
+import ContentLayout from '../layouts/ContentLayout.astro';
+import Graph from '../components/Graph.astro';
+import TableOfContents from '../components/TableOfContents.astro';
+import ContentMeta from '../components/ContentMeta.astro';
+import Marginalia from '../components/Marginalia.astro';
+import Tags from '../components/Tags.astro';
+import LinksAndContext from '../components/LinksAndContext.astro';
+import {
+  getAllFolders,
+  getNotesInFolder,
+  getSubfolders,
+  getFolderDisplayName,
+} from '../utils/folders';
+import { config } from '../config';
+
+export async function getStaticPaths() {
+  const notes = await getPublishedNotes();
+
+  // Generate paths for notes
+  const notePaths = notes.map((note) => ({
+    params: { slug: note.slug },
+    props: { note, isFolder: false },
+  }));
+
+  // Generate paths for folders
+  const folders = getAllFolders(notes);
+  const folderPaths = folders.map((folder) => ({
+    params: { slug: folder },
+    props: { note: undefined, isFolder: true, folderPath: folder },
+  }));
+
+  return [...notePaths, ...folderPaths];
+}
+
+interface Props {
+  note?: Note;
+  isFolder: boolean;
+  folderPath?: string;
+}
+
+const { note, isFolder, folderPath } = Astro.props;
+
+// Fetch data for folder view if needed
+let allNotes: Note[] = [];
+let notesInFolder: Note[] = [];
+let subfolders: string[] = [];
+let sortedNotes: Note[] = [];
+let folderName = '';
+let totalItems = 0;
+
+if (isFolder) {
+  allNotes = await getPublishedNotes();
+  notesInFolder = getNotesInFolder(folderPath!, allNotes, false);
+  subfolders = getSubfolders(folderPath!, allNotes);
+
+  // Sort notes by date (newest first) then alphabetically
+  sortedNotes = notesInFolder.sort((a, b) => {
+    const aDate = a.data.date;
+    const bDate = b.data.date;
+
+    if (aDate && bDate) {
+      return new Date(bDate).getTime() - new Date(aDate).getTime();
+    }
+    if (aDate && !bDate) return -1;
+    if (!aDate && bDate) return 1;
+
+    return a.data.title.localeCompare(b.data.title);
+  });
+
+  folderName = getFolderDisplayName(folderPath!);
+  totalItems = notesInFolder.length + subfolders.length;
+}
+
+let Content: any, toc: any[] = [], marginalia: any = [];
+if (note) {
+  const rendered = await note.render();
+  Content = rendered.Content;
+  toc = rendered.remarkPluginFrontmatter?.toc || [];
+  marginalia = rendered.remarkPluginFrontmatter?.marginalia || [];
+}
+
+function formatDate(date: Date | undefined) {
+  if (!date) return null;
+  return new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  }).format(new Date(date));
+}
+---
+
+{
+  isFolder ? (
+        <ContentLayout
+          title={`Folder: ${folderName}`}
+          description={`Contents of ${folderPath}`}
+          slug={folderPath!}
+          marginalia={[]}
+          isFolder={true}
+        >
+          <div class="space-y-6">
+            <div class="border-b border-theme-gray pb-4">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="text-3xl font-bold font-header text-theme-dark">
+                  {folderName}
+                </span>
+              </div>
+              <p class="text-theme-darkgray">
+                {totalItems} {totalItems === 1 ? 'item' : 'items'} in this folder
+              </p>
+            </div>
+
+            <ul class="space-y-0">
+              {/* Render subfolders first */}
+              {subfolders.map((subfolder) => {
+                const subfolderName = getFolderDisplayName(subfolder);
+                return (
+                  <li class="list-none border-b border-theme-gray last:border-0">
+                    <div class="section py-4 flex gap-4">
+                      <div class="flex-1 min-w-0">
+                        <div class="desc mb-2">
+                          <h3 class="text-lg font-semibold font-header m-0">
+                            <span class="text-theme-darkgray mr-2">📁</span>
+                            <a
+                              href={`/${subfolder}`}
+                              class="text-theme-dark hover:text-theme-secondary transition-colors"
+                            >
+                              {subfolderName}
+                            </a>
+                          </h3>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+
+              {/* Render notes */}
+              {sortedNotes.map((note) => (
+                <li class="list-none border-b border-theme-gray last:border-0">
+                  <div class="section py-4 flex gap-4">
+                    {note.data.date && (
+                      <div class="meta text-sm text-theme-darkgray whitespace-nowrap min-w-[100px]">
+                        {formatDate(note.data.date)}
+                      </div>
+                    )}
+                    <div class="flex-1 min-w-0">
+                      <div class="desc mb-2">
+                        <h3 class="text-lg font-semibold font-header m-0">
+                          <a
+                            href={`/${note.slug}`}
+                            class="text-theme-dark hover:text-theme-secondary transition-colors"
+                          >
+                            {note.data.title}
+                          </a>
+                        </h3>
+                      </div>
+                      {note.data.description && (
+                        <p class="text-sm text-theme-darkgray mb-2">
+                          {note.data.description}
+                        </p>
+                      )}
+                      {note.data.tags && note.data.tags.length > 0 && (
+                        <ul class="tags flex gap-2 flex-wrap m-0 p-0">
+                          {note.data.tags.map((tag) => (
+                            <li class="list-none">
+                              <a
+                                href={`/tags/${tag}`}
+                                class="px-2 py-1 text-xs rounded bg-theme-highlight text-theme-secondary hover:bg-theme-gray transition-colors"
+                              >
+                                #{tag}
+                              </a>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </ContentLayout>
+  ) : (
+    <ContentLayout title={note!.data.title} description={note!.data.description} slug={note!.slug} marginalia={marginalia}>
+      <!-- Left Sidebar -->
+      <div slot="left" class="space-y-4">
+        <div class="text-sm text-gray-600 dark:text-gray-400">
+          <div>Digital Garden</div>
+        </div>
+        <!-- TODO: Add Explorer/Search here later -->
+      </div>
+
+      <!-- Main Content -->
+      <h1 class="mb-0">{note!.data.title}</h1>
+      <ContentMeta frontmatter={note!.data} content={note!.body} />
+      <div class="markdown-content">
+        <Content />
+      </div>
+
+      <!-- Marginalia (Mobile view - shown at bottom) -->
+      <Marginalia marginalia={marginalia} />
+
+      <!-- Links & Context (Gwern-style mega-section) -->
+      {config.linksAndContext?.enable && (
+        <LinksAndContext note={note!} slug={note!.slug} />
+      )}
+
+      <!-- Right Sidebar -->
+      <div slot="right" class="space-y-6">
+        <!-- Graph -->
+        <div>
+          <Graph currentSlug={note!.slug} />
+        </div>
+
+        <!-- Table of Contents -->
+        <TableOfContents toc={toc} slug={note!.slug} />
+
+        <!-- Tags -->
+        {config.tags?.enable && config.tags?.showInSidebar && (
+          <Tags tags={note!.data.tags} variant="sidebar" />
+        )}
+      </div>
+    </ContentLayout>
+  )
+}

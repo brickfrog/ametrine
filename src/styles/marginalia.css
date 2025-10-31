@@ -1,0 +1,220 @@
+/**
+ * Marginalia styles
+ * Tufte-style side notes for desktop, inline references for mobile
+ */
+
+/* Container for marginalia markers in text */
+.marginalia-marker {
+  position: relative;
+}
+
+.marginalia-marker a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Reference number/superscript */
+.marginalia-ref {
+  color: var(--color-secondary);
+  font-size: 0.75em;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  vertical-align: super;
+  line-height: 0;
+  margin-left: 0.02em;
+  margin-right: 0.02em;
+  transition: color 0.2s ease;
+}
+
+.marginalia-ref:hover,
+.marginalia-ref.highlight {
+  color: var(--color-dark);
+}
+
+/* Desktop: Hide mobile-only reference links */
+@media (min-width: 1280px) {
+  .marginalia-ref {
+    display: none;
+  }
+}
+
+/* Mobile: Hide the side note content, show only references */
+@media (max-width: 1279px) {
+  .marginalia-content {
+    display: none;
+  }
+
+  .marginalia-ref {
+    display: inline;
+  }
+}
+
+/* Desktop: Dedicated marginalia column aligned to text */
+@media (min-width: 1640px) {
+  /* Main content needs wrapper for marginalia column - only when marginalia exists */
+  main:has(.marginalia-column-react:not(:empty)) {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 240px;
+    gap: 2rem;
+    max-width: none !important;
+  }
+
+  main:has(.marginalia-column-react:not(:empty)) > article {
+    max-width: 900px;
+    justify-self: end;
+    position: relative;
+  }
+
+  /* Reading mode adjustments - use flex layout to allow content centering */
+  body.reading-mode main:has(.marginalia-column-react:not(:empty)) {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+  }
+
+  body.reading-mode main:has(.marginalia-column-react:not(:empty)) > article {
+    flex-shrink: 1;
+    justify-self: unset;
+  }
+
+  /* Marginalia column - React managed */
+  .marginalia-column-react {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+  }
+
+  .marginalia-note {
+    position: absolute;
+    width: 240px;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    color: var(--color-darkgray);
+    padding: 0.5rem 0 0.5rem 1rem;
+    font-family: var(--font-body);
+    border-left: none;
+    cursor: pointer;
+  }
+
+  .marginalia-note-num {
+    color: var(--color-secondary);
+    font-weight: 600;
+    margin-right: 0.5rem;
+    transition: color 0.2s ease;
+  }
+
+  .marginalia-note:hover .marginalia-note-num,
+  .marginalia-note-num.highlight {
+    color: var(--color-dark);
+  }
+
+  .marginalia-note-text {
+    color: var(--color-darkgray);
+  }
+
+  /* Markdown content styling in marginalia notes */
+  .marginalia-note-text p {
+    margin: 0;
+    display: inline;
+  }
+
+  .marginalia-note-text p + p {
+    margin-top: 0.5rem;
+    display: block;
+  }
+
+  .marginalia-note-text img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0.5rem 0;
+    border-radius: 2px;
+  }
+
+  .marginalia-note-text a {
+    color: var(--color-secondary);
+    text-decoration: none;
+    border-bottom: 1px solid var(--color-secondary);
+  }
+
+  .marginalia-note-text a:hover {
+    opacity: 0.8;
+  }
+
+  .marginalia-note-text em {
+    font-style: italic;
+  }
+
+  .marginalia-note-text strong {
+    font-weight: 600;
+  }
+
+  .marginalia-note-text code {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.9em;
+    background: var(--color-lightgray);
+    padding: 0.1em 0.3em;
+    border-radius: 2px;
+  }
+
+  /* Hide inline marginalia content on desktop - managed by React */
+  .prose .marginalia-content {
+    display: none;
+  }
+
+  .prose .marginalia-marker {
+    display: inline;
+  }
+
+  /* Show marginalia ref numbers */
+  .prose .marginalia-ref {
+    display: inline;
+  }
+}
+
+/* Hide desktop marginalia on smaller screens */
+@media (max-width: 1639px) {
+  .marginalia-content {
+    display: none !important;
+  }
+
+  .marginalia-column,
+  .marginalia-column-react {
+    display: none !important;
+  }
+}
+
+
+/* Animation for marginalia appearance */
+.marginalia-content {
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Mobile marginalia section styling */
+.marginalia-section a {
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.marginalia-section a:hover {
+  text-decoration: underline;
+}
+
+/* Smooth scroll for anchor links */
+html {
+  scroll-behavior: smooth;
+}
+

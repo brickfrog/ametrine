@@ -1,0 +1,96 @@
+---
+import type { MarginaliaEntry } from '../plugins/marginalia';
+
+interface Props {
+  marginalia: MarginaliaEntry[];
+}
+
+const { marginalia = [] } = Astro.props;
+
+// Don't render if no marginalia
+if (!marginalia || marginalia.length === 0) {
+  return null;
+}
+---
+
+<div class="lg:hidden">
+  <div class="marginalia-section mt-12 pt-8 border-t border-theme-gray">
+    <h3 class="text-lg font-semibold mb-4 text-theme-dark font-header">Notes</h3>
+    <ol class="space-y-4">
+      {marginalia.map((note) => (
+        <li
+          id={`marginalia-${note.id}`}
+          class="text-sm text-theme-darkgray leading-relaxed pl-2"
+        >
+          <a
+            href={`#marginalia-ref-${note.id}`}
+            class="text-theme-secondary hover:text-theme-tertiary no-underline"
+          >
+            {note.id}.
+          </a>
+          <span class="ml-2" set:html={note.html} />
+        </li>
+      ))}
+    </ol>
+  </div>
+</div>
+
+<style>
+  .marginalia-section {
+    max-width: 100%;
+  }
+
+  .marginalia-section ol {
+    list-style: none;
+    padding-left: 0;
+  }
+
+  .marginalia-section li {
+    position: relative;
+  }
+
+  /* Markdown content styling in mobile marginalia */
+  .marginalia-section li span p {
+    margin: 0;
+    display: inline;
+  }
+
+  .marginalia-section li span p + p {
+    margin-top: 0.5rem;
+    display: block;
+  }
+
+  .marginalia-section li span img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0.5rem 0;
+    border-radius: 2px;
+  }
+
+  .marginalia-section li span a {
+    color: var(--color-secondary);
+    text-decoration: none;
+    border-bottom: 1px solid var(--color-secondary);
+  }
+
+  .marginalia-section li span a:hover {
+    opacity: 0.8;
+  }
+
+  .marginalia-section li span em {
+    font-style: italic;
+  }
+
+  .marginalia-section li span strong {
+    font-weight: 600;
+  }
+
+  .marginalia-section li span code {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.9em;
+    background: var(--color-lightgray);
+    padding: 0.1em 0.3em;
+    border-radius: 2px;
+  }
+</style>

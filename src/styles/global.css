@@ -1,0 +1,781 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* CSS Variables are now set in BaseLayout.astro from config.ts */
+@layer base {
+  /* Better defaults */
+  html {
+    @apply antialiased;
+  }
+
+  body {
+    @apply text-base;
+    background-color: var(--color-light);
+    color: var(--color-dark);
+    overflow-x: hidden;
+  }
+
+  /* Scroll margin for anchor links (headings, marginalia, etc.) */
+  h1, h2, h3, h4, h5, h6 {
+    scroll-margin-top: 2rem;
+  }
+}
+
+/* Internal link styles */
+a.internal-link {
+  color: var(--color-secondary);
+  text-decoration: underline;
+}
+
+a.internal-link:hover {
+  color: var(--color-tertiary);
+}
+
+a.external {
+  color: var(--color-secondary);
+  text-decoration: underline;
+}
+
+a.external:hover {
+  color: var(--color-tertiary);
+}
+
+/* Code Block Styles */
+.expressive-code {
+  margin: 1.5rem 0;
+}
+
+/* Inline code */
+:not(pre) > code {
+  background-color: var(--color-lightgray);
+  border: 1px solid var(--color-gray);
+  border-radius: 4px;
+  padding: 0.2em 0.4em;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.9em;
+  word-wrap: break-word;
+}
+
+
+/* Link Preview Panel Styles */
+.lp-panel {
+  position: fixed;
+  background: var(--color-light);
+  border: 1px solid var(--color-gray);
+  border-radius: 8px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.lp-panel.minimized {
+  width: 200px !important;
+  height: auto !important;
+  cursor: pointer;
+}
+
+.lp-titlebar-mini {
+  padding: 8px 12px;
+  background: var(--color-lightgray);
+  color: var(--color-dark);
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.lp-titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--color-lightgray);
+  border-bottom: 1px solid var(--color-gray);
+  user-select: none;
+}
+
+.lp-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-dark);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lp-controls {
+  display: flex;
+  gap: 4px;
+}
+
+.lp-controls button {
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: var(--color-darkgray);
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+  font-weight: 600;
+}
+
+.lp-controls button:hover {
+  background: var(--color-gray);
+}
+
+.lp-controls button.active {
+  background: var(--color-secondary);
+  color: var(--color-light);
+}
+
+.lp-content {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.lp-text h3 {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.lp-text h3 a {
+  color: var(--color-secondary);
+  text-decoration: none;
+}
+
+.lp-text h3 a:hover {
+  text-decoration: underline;
+}
+
+.lp-meta {
+  font-size: 13px;
+  color: var(--color-darkgray);
+  margin-bottom: 12px;
+}
+
+.lp-meta a {
+  color: var(--color-secondary);
+  text-decoration: none;
+}
+
+.lp-meta a:hover {
+  text-decoration: underline;
+}
+
+.lp-excerpt {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--color-dark);
+}
+
+.lp-resizer {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 16px;
+  height: 16px;
+  cursor: nwse-resize;
+}
+
+.lp-resizer::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 0 10px 10px;
+  border-color: transparent transparent var(--color-gray) transparent;
+}
+
+@media (max-width: 1024px) {
+  .lp-panel:not(.minimized) {
+    width: 90vw !important;
+  }
+}
+
+/* Reading Mode */
+body.reading-mode aside {
+  display: none !important;
+}
+
+body.reading-mode main {
+  max-width: 65ch !important;
+  margin: 0 auto !important;
+}
+
+body.reading-mode .prose {
+  font-size: 1.125rem !important;
+  line-height: 1.75 !important;
+}
+
+/* Obsidian-style Highlights */
+mark {
+  background-color: rgba(255, 208, 0, 0.4);
+  color: inherit;
+  padding: 0.1em 0.2em;
+  border-radius: 2px;
+}
+
+body.dark mark {
+  background-color: rgba(255, 208, 0, 0.3);
+}
+
+/* Obsidian-style Callouts */
+.callout {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  border-left: 4px solid;
+  border-radius: 4px;
+  background-color: var(--callout-bg);
+  border-color: var(--callout-border);
+}
+
+.callout-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--callout-title);
+}
+
+.callout-content {
+  color: var(--color-dark);
+}
+
+/* Callout types (Obsidian theme) - using data attribute selectors */
+.callout[data-callout="note"],
+.callout[data-callout="info"] {
+  --callout-bg: rgba(8, 109, 221, 0.1);
+  --callout-border: #086ddd;
+  --callout-title: #086ddd;
+}
+
+.callout[data-callout="tip"],
+.callout[data-callout="hint"] {
+  --callout-bg: rgba(0, 191, 165, 0.1);
+  --callout-border: #00bfa5;
+  --callout-title: #00bfa5;
+}
+
+.callout[data-callout="important"],
+.callout[data-callout="warning"] {
+  --callout-bg: rgba(233, 151, 63, 0.1);
+  --callout-border: #e9973f;
+  --callout-title: #e9973f;
+}
+
+.callout[data-callout="caution"],
+.callout[data-callout="danger"],
+.callout[data-callout="error"] {
+  --callout-bg: rgba(220, 38, 38, 0.1);
+  --callout-border: #dc2626;
+  --callout-title: #dc2626;
+}
+
+.callout[data-callout="abstract"],
+.callout[data-callout="summary"] {
+  --callout-bg: rgba(0, 176, 255, 0.1);
+  --callout-border: #00b0ff;
+  --callout-title: #00b0ff;
+}
+
+.callout[data-callout="todo"] {
+  --callout-bg: rgba(0, 184, 212, 0.1);
+  --callout-border: #00b8d4;
+  --callout-title: #00b8d4;
+}
+
+.callout[data-callout="example"] {
+  --callout-bg: rgba(124, 77, 255, 0.1);
+  --callout-border: #7c4dff;
+  --callout-title: #7c4dff;
+}
+
+.callout[data-callout="question"],
+.callout[data-callout="help"],
+.callout[data-callout="faq"] {
+  --callout-bg: rgba(100, 221, 23, 0.1);
+  --callout-border: #64dd17;
+  --callout-title: #64dd17;
+}
+
+.callout[data-callout="success"],
+.callout[data-callout="check"] {
+  --callout-bg: rgba(0, 200, 83, 0.1);
+  --callout-border: #00c853;
+  --callout-title: #00c853;
+}
+
+.callout[data-callout="quote"] {
+  --callout-bg: rgba(158, 158, 158, 0.1);
+  --callout-border: #9e9e9e;
+  --callout-title: #9e9e9e;
+}
+
+/* Dark mode adjustments for callouts */
+body.dark .callout-content {
+  color: var(--color-light);
+}
+
+/* Mermaid diagram text styling */
+.mermaid .messageText {
+  fill: var(--color-dark) !important;
+}
+
+body.dark .mermaid .messageText {
+  fill: var(--color-light) !important;
+}
+
+/* Citations & Bibliography */
+.csl-entry {
+  margin: 1em 0;
+  line-height: 1.6;
+}
+
+.csl-entry a {
+  color: var(--color-secondary);
+  text-decoration: underline;
+  word-break: break-word;
+}
+
+.csl-entry a:hover {
+  color: var(--color-tertiary);
+}
+
+.csl-left-margin {
+  float: left;
+  padding-right: 0.5em;
+  font-weight: 600;
+}
+
+.csl-right-inline {
+  display: block;
+  margin-left: 2em;
+}
+
+sup.citation {
+  font-weight: 600;
+}
+
+/* Style footnote superscripts only (not marginalia) */
+.prose sup:not(.marginalia-ref) {
+  color: var(--color-tertiary);
+  font-size: 0.75em;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  vertical-align: super;
+  line-height: 0;
+  margin-left: 0.02em;
+  margin-right: 0.02em;
+}
+
+.prose sup:not(.marginalia-ref)::before {
+  content: '[';
+}
+
+.prose sup:not(.marginalia-ref)::after {
+  content: ']';
+}
+
+.prose sup:not(.marginalia-ref) a {
+  text-decoration: none;
+  color: inherit;
+}
+
+a.citation {
+  text-decoration: none;
+  color: var(--color-secondary);
+}
+
+a.citation:hover {
+  text-decoration: underline;
+}
+
+/* Bibliography section */
+h2#bibliography {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--color-gray);
+}
+
+/* Collapsible Bibliography Container */
+.bibliography-container {
+  margin-top: 3rem;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--color-gray);
+  background-color: var(--color-highlight);
+}
+
+.bibliography-summary {
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  padding: 0.5rem 0;
+  color: var(--color-dark);
+}
+
+.bibliography-summary::-webkit-details-marker {
+  display: none;
+}
+
+.bibliography-summary:hover {
+  color: var(--color-secondary);
+}
+
+.bibliography-container[open] .chevron {
+  transform: rotate(180deg);
+}
+
+.bibliography-container #refs {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-gray);
+}
+
+/* Links & Context Section (Gwern-style mega-section with tree structure) */
+
+/* Outer collapsible container */
+.links-and-context-outer {
+  margin-top: 3rem;
+  padding: 1.5rem;
+  background-color: var(--color-light);
+}
+
+.context-summary-outer {
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  padding: 0.5rem 0;
+  color: var(--color-dark);
+  margin-bottom: 1rem;
+}
+
+.context-summary-outer::-webkit-details-marker {
+  display: none;
+}
+
+.context-summary-outer:hover {
+  color: var(--color-secondary);
+}
+
+/* Preview content shown when collapsed */
+.context-preview {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-gray);
+  font-size: 0.875rem;
+  color: var(--color-darkgray);
+}
+
+.links-and-context-outer[open] .context-preview {
+  display: none;
+}
+
+.preview-item {
+  padding: 0.5rem 0;
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.preview-item .preview-icon {
+  color: var(--color-secondary);
+  font-size: 0.75rem;
+}
+
+.preview-more {
+  color: var(--color-secondary);
+  font-style: italic;
+  padding: 0.5rem 0;
+}
+
+.links-and-context-outer[open] .chevron {
+  transform: rotate(180deg);
+}
+
+.context-outer-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Nested sections within outer container */
+.context-section {
+  padding: 1.25rem;
+  background-color: var(--color-light);
+  margin-left: 1rem;
+}
+
+.context-summary {
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  padding: 0.5rem 0;
+  color: var(--color-dark);
+}
+
+.context-summary::-webkit-details-marker {
+  display: none;
+}
+
+.context-summary:hover {
+  color: var(--color-secondary);
+}
+
+.context-summary .flex {
+  display: flex;
+}
+
+.context-summary .items-center {
+  align-items: center;
+}
+
+.context-summary .justify-between {
+  justify-content: space-between;
+}
+
+.context-summary .gap-3 {
+  gap: 0.75rem;
+}
+
+.count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding: 0 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-light);
+  background-color: var(--color-secondary);
+  border-radius: 9999px;
+}
+
+.chevron {
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.context-section[open] .chevron {
+  transform: rotate(180deg);
+}
+
+.context-content {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-gray);
+}
+
+/* External Links Section */
+.domain-group {
+  margin-bottom: 1rem;
+}
+
+.domain-group h3 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-darkgray);
+  margin-bottom: 0.5rem;
+}
+
+.domain-group ul {
+  margin: 0;
+  padding-left: 0;
+}
+
+/* Remove left padding from all lists in context sections for consistent alignment */
+.context-content ul {
+  padding-left: 0;
+}
+
+.domain-group li {
+  list-style: none;
+  margin-bottom: 0.25rem;
+}
+
+.domain-group a {
+  color: var(--color-secondary);
+  text-decoration: none;
+  font-size: 0.875rem;
+}
+
+.domain-group a:hover {
+  color: var(--color-tertiary);
+  text-decoration: underline;
+}
+
+/* Backlinks and Related Notes */
+.context-section .space-y-2 > * + * {
+  margin-top: 0.5rem;
+}
+
+.context-section p.text-sm {
+  font-size: 0.875rem;
+}
+
+.context-section .text-theme-gray {
+  color: var(--color-gray);
+}
+
+.context-section .text-theme-darkgray {
+  color: var(--color-darkgray);
+}
+
+/* Bibliography metadata in External Links */
+.bibliography-metadata {
+  margin-top: 0.25rem;
+  padding-left: 0.5rem;
+  border-left: 2px solid var(--color-secondary);
+  font-style: italic;
+}
+
+.bibliography-metadata .author {
+  font-weight: 500;
+}
+
+.bibliography-metadata .year {
+  color: var(--color-darkgray);
+}
+
+.bibliography-metadata .journal {
+  color: var(--color-darkgray);
+  font-style: italic;
+}
+
+.bibliography-metadata .separator {
+  color: var(--color-gray);
+}
+
+/* GitHub Flavored Markdown - Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  font-family: system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+  display: block;
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+thead {
+  background-color: var(--color-lightgray);
+}
+
+thead th {
+  padding: 0.875rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: var(--color-dark);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-bottom: 2px solid var(--color-gray);
+  vertical-align: middle;
+}
+
+thead th:first-child {
+  padding-left: 1.5rem;
+}
+
+thead th:last-child {
+  padding-right: 1.5rem;
+}
+
+body.dark thead th {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 2px solid var(--color-gray);
+}
+
+tbody td {
+  padding: 0.875rem 1rem;
+  text-align: left;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  vertical-align: middle;
+}
+
+tbody td:first-child {
+  padding-left: 1.5rem;
+}
+
+tbody td:last-child {
+  padding-right: 1.5rem;
+}
+
+body.dark tbody td {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+tbody tr:nth-child(even) {
+  background-color: var(--color-highlight);
+}
+
+tbody tr:hover {
+  background-color: var(--color-lightgray);
+  transition: background-color 0.15s ease;
+}
+
+/* GFM - Task Lists */
+.task-list-item {
+  list-style: none;
+  margin-left: -1.5rem;
+}
+
+.task-list-item input[type='checkbox'] {
+  margin-right: 0.5rem;
+  cursor: pointer;
+}
+
+/* GFM - Strikethrough */
+del {
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+/* GFM - Heading Anchor Links */
+/* Headings are wrapped in links for anchor functionality */
+h1 > a,
+h2 > a,
+h3 > a,
+h4 > a,
+h5 > a,
+h6 > a {
+  color: inherit;
+  text-decoration: none;
+}
+
+h1 > a:hover,
+h2 > a:hover,
+h3 > a:hover,
+h4 > a:hover,
+h5 > a:hover,
+h6 > a:hover {
+  color: var(--color-secondary);
+}
+
+/* Replace footnote return arrow with plain text */
+.prose a[data-footnote-backref] {
+  font-size: 0;
+}
+
+.prose a[data-footnote-backref]::after {
+  content: '[↑]';
+  font-size: 0.875rem;
+}

@@ -1,0 +1,14 @@
+{
+	"nodes":[
+		{"id":"0343d18c7c26c217","x":-240,"y":-100,"width":380,"height":400,"color":"6","type":"file","file":"Polished Ametrine.png"},
+		{"id":"90a7f8c5c96282ce","x":220,"y":-180,"width":250,"height":50,"color":"1","type":"text","text":"Canvas Demo\n"},
+		{"id":"38147f0aad9c026c","x":40,"y":400,"width":400,"height":400,"color":"5","type":"file","file":"all-notes.base"},
+		{"id":"3e2f1e69bf43473d","x":680,"y":220,"width":400,"height":400,"color":"2","type":"file","file":"quick-start.md"}
+	],
+	"edges":[
+		{"id":"96e9e290f3561ca9","fromNode":"0343d18c7c26c217","fromSide":"right","toNode":"38147f0aad9c026c","toSide":"top","label":"Example Connection"},
+		{"id":"421480d08643b2e2","fromNode":"90a7f8c5c96282ce","fromSide":"bottom","toNode":"0343d18c7c26c217","toSide":"top"},
+		{"id":"c6522ee570c99b6e","fromNode":"3e2f1e69bf43473d","fromSide":"top","toNode":"90a7f8c5c96282ce","toSide":"right"},
+		{"id":"203f1396315e38f0","fromNode":"3e2f1e69bf43473d","fromSide":"bottom","toNode":"38147f0aad9c026c","toSide":"bottom"}
+	]
+}

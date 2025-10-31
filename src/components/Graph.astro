@@ -1,0 +1,849 @@
+---
+// Interactive Graph component with pan/zoom and fullscreen modal
+interface Props {
+  currentSlug?: string;
+}
+
+const { currentSlug } = Astro.props;
+---
+
+<div class="graph">
+  <div class="graph-outer">
+    <div id="graph-local" class="graph-container" data-current-slug={currentSlug}></div>
+    <button class="global-graph-icon" aria-label="Open global graph">
+      <svg
+        version="1.1"
+        xmlns="http://www.w3.org/2000/svg"
+        x="0px"
+        y="0px"
+        viewBox="0 0 55 55"
+        fill="currentColor"
+      >
+        <path
+          d="M49,0c-3.309,0-6,2.691-6,6c0,1.035,0.263,2.009,0.726,2.86l-9.829,9.829C32.542,17.634,30.846,17,29,17
+          s-3.542,0.634-4.898,1.688l-7.669-7.669C16.785,10.424,17,9.74,17,9c0-2.206-1.794-4-4-4S9,6.794,9,9s1.794,4,4,4
+          c0.74,0,1.424-0.215,2.019-0.567l7.669,7.669C21.634,21.458,21,23.154,21,25s0.634,3.542,1.688,4.897L10.024,42.562
+          C8.958,41.595,7.549,41,6,41c-3.309,0-6,2.691-6,6s2.691,6,6,6s6-2.691,6-6c0-1.035-0.263-2.009-0.726-2.86l12.829-12.829
+          c1.106,0.86,2.44,1.436,3.898,1.619v10.16c-2.833,0.478-5,2.942-5,5.91c0,3.309,2.691,6,6,6s6-2.691,6-6c0-2.967-2.167-5.431-5-5.91
+          v-10.16c1.458-0.183,2.792-0.759,3.898-1.619l7.669,7.669C41.215,39.576,41,40.26,41,41c0,2.206,1.794,4,4,4s4-1.794,4-4
+          s-1.794-4-4-4c-0.74,0-1.424,0.215-2.019,0.567l-7.669-7.669C36.366,28.542,37,26.846,37,25s-0.634-3.542-1.688-4.897l9.665-9.665
+          C46.042,11.405,47.451,12,49,12c3.309,0,6-2.691,6-6S52.309,0,49,0z M11,9c0-1.103,0.897-2,2-2s2,0.897,2,2s-0.897,2-2,2
+          S11,10.103,11,9z M6,51c-2.206,0-4-1.794-4-4s1.794-4,4-4s4,1.794,4,4S8.206,51,6,51z M33,49c0,2.206-1.794,4-4,4s-4-1.794-4-4
+          s1.794-4,4-4S33,46.794,33,49z M29,31c-3.309,0-6-2.691-6-6s2.691-6,6-6s6,2.691,6,6S32.309,31,29,31z M47,41c0,1.103-0.897,2-2,2
+          s-2-0.897-2-2s0.897-2,2-2S47,39.897,47,41z M49,10c-2.206,0-4-1.794-4-4s1.794-4,4-4s4,1.794,4,4S51.206,10,49,10z"
+        />
+      </svg>
+    </button>
+  </div>
+
+  <div class="global-graph-outer">
+    <div class="global-graph-container">
+      <div id="graph-global" class="graph-canvas"></div>
+      <div class="time-controls">
+        <div class="time-control-row">
+          <label class="time-label">
+            <input type="radio" name="dateField" value="date" checked /> Created
+          </label>
+          <label class="time-label">
+            <input type="radio" name="dateField" value="updated" /> Updated
+          </label>
+          <label class="time-label">
+            <input type="checkbox" id="showUndated" checked /> Show undated
+          </label>
+        </div>
+        <div class="time-slider-row">
+          <span class="time-date-label" id="minDateLabel"></span>
+          <input
+            type="range"
+            id="timeSlider"
+            class="time-slider"
+            min="0"
+            max="100"
+            value="100"
+            step="1"
+          />
+          <span class="time-date-label" id="maxDateLabel"></span>
+        </div>
+        <div class="time-control-row">
+          <button id="playPauseBtn" class="time-button">Play</button>
+          <span class="time-current-date" id="currentDateLabel"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  import * as d3 from 'd3';
+  import { GRAPH } from '../constants/spacing';
+
+  interface Node {
+    id: string;
+    title: string;
+    date?: string;
+    updated?: string;
+  }
+
+  interface Link {
+    source: string | Node;
+    target: string | Node;
+  }
+
+  interface ContentEntry {
+    slug: string;
+    title: string;
+    links: string[];
+    tags: string[];
+    content: string;
+    date?: string;
+    updated?: string;
+  }
+
+  interface GraphData {
+    nodes: Node[];
+    links: Link[];
+  }
+
+  let globalGraphActive = false;
+
+  // Time filter state
+  let animationInterval: number | null = null;
+  let isPlaying = false;
+  let currentDateField: 'date' | 'updated' = 'date';
+  let showUndated = true;
+  let fullGraphData: GraphData | null = null;
+  let dateRange: { min: Date; max: Date } | null = null;
+  let currentMaxDate: Date | null = null;
+
+  // Store event listeners for cleanup
+  let eventListeners: Array<{ element: Element | Document, event: string, handler: EventListener }> = [];
+
+  function cleanup() {
+    // Remove all event listeners
+    eventListeners.forEach(({ element, event, handler }) => {
+      element.removeEventListener(event, handler);
+    });
+    eventListeners = [];
+
+    // Stop animation
+    pauseAnimation();
+
+    // Clear graph containers
+    const localContainer = document.getElementById('graph-local');
+    const globalContainer = document.getElementById('graph-global');
+    if (localContainer) localContainer.innerHTML = '';
+    if (globalContainer) globalContainer.innerHTML = '';
+
+    // Reset state
+    globalGraphActive = false;
+    isPlaying = false;
+    currentDateField = 'date';
+    showUndated = true;
+    fullGraphData = null;
+    dateRange = null;
+    currentMaxDate = null;
+  }
+
+  function addEventListener(element: Element | Document, event: string, handler: EventListener | ((e: any) => void)) {
+    element.addEventListener(event, handler as EventListener);
+    eventListeners.push({ element, event, handler: handler as EventListener });
+  }
+
+  async function loadGraphData(): Promise<GraphData> {
+    try {
+      const response = await fetch('/static/contentIndex.json');
+      if (!response.ok) {
+        console.warn('Content index not found - graph will be empty');
+        return { nodes: [], links: [] };
+      }
+
+      const contentIndex: Record<string, ContentEntry> = await response.json();
+
+      const nodes: Node[] = [];
+      const links: Link[] = [];
+      const nodeSet = new Set<string>();
+
+      for (const [slug, entry] of Object.entries(contentIndex)) {
+        nodes.push({
+          id: slug,
+          title: entry.title,
+          date: entry.date,
+          updated: entry.updated
+        });
+        nodeSet.add(slug);
+      }
+
+      for (const [slug, entry] of Object.entries(contentIndex)) {
+        for (const targetSlug of entry.links) {
+          if (nodeSet.has(targetSlug)) {
+            links.push({ source: slug, target: targetSlug });
+          }
+        }
+      }
+
+      return { nodes, links };
+    } catch (error) {
+      console.error('Error loading graph data:', error);
+      return { nodes: [], links: [] };
+    }
+  }
+
+  function filterLocalGraph(data: GraphData, currentSlug: string | null): GraphData {
+    if (!currentSlug) return data;
+
+    // Find all nodes directly connected to current node (1 hop)
+    const connectedNodeIds = new Set<string>([currentSlug]);
+
+    data.links.forEach(link => {
+      const sourceId = typeof link.source === 'string' ? link.source : link.source.id;
+      const targetId = typeof link.target === 'string' ? link.target : link.target.id;
+
+      if (sourceId === currentSlug) {
+        connectedNodeIds.add(targetId);
+      }
+      if (targetId === currentSlug) {
+        connectedNodeIds.add(sourceId);
+      }
+    });
+
+    // Filter nodes to only include current + connected
+    const filteredNodes = data.nodes.filter(node => connectedNodeIds.has(node.id));
+
+    // Filter links to only include those between filtered nodes
+    const filteredLinks = data.links.filter(link => {
+      const sourceId = typeof link.source === 'string' ? link.source : link.source.id;
+      const targetId = typeof link.target === 'string' ? link.target : link.target.id;
+      return connectedNodeIds.has(sourceId) && connectedNodeIds.has(targetId);
+    });
+
+    return { nodes: filteredNodes, links: filteredLinks };
+  }
+
+  function filterByDate(
+    data: GraphData,
+    maxDate: Date,
+    dateField: 'date' | 'updated',
+    showUndated: boolean
+  ): GraphData {
+    // Filter nodes by date
+    const filteredNodes = data.nodes.filter(node => {
+      const nodeDate = node[dateField];
+
+      // Handle undated nodes
+      if (!nodeDate) {
+        return showUndated;
+      }
+
+      // Compare dates
+      const date = new Date(nodeDate);
+      return date <= maxDate;
+    });
+
+    // Create set of visible node IDs
+    const visibleNodeIds = new Set(filteredNodes.map(n => n.id));
+
+    // Filter links to only connect visible nodes
+    const filteredLinks = data.links.filter(link => {
+      const sourceId = typeof link.source === 'string' ? link.source : link.source.id;
+      const targetId = typeof link.target === 'string' ? link.target : link.target.id;
+      return visibleNodeIds.has(sourceId) && visibleNodeIds.has(targetId);
+    });
+
+    return { nodes: filteredNodes, links: filteredLinks };
+  }
+
+  function getDateRange(nodes: Node[], dateField: 'date' | 'updated'): { min: Date; max: Date } | null {
+    const dates = nodes
+      .map(n => n[dateField])
+      .filter(d => d != null)
+      .map(d => new Date(d as string));
+
+    if (dates.length === 0) return null;
+
+    return {
+      min: new Date(Math.min(...dates.map(d => d.getTime()))),
+      max: new Date(Math.max(...dates.map(d => d.getTime())))
+    };
+  }
+
+  function updateTimeLabels() {
+    if (!dateRange) return;
+
+    const minLabel = document.getElementById('minDateLabel');
+    const maxLabel = document.getElementById('maxDateLabel');
+    const currentLabel = document.getElementById('currentDateLabel');
+
+    if (minLabel) minLabel.textContent = dateRange.min.toLocaleDateString();
+    if (maxLabel) maxLabel.textContent = dateRange.max.toLocaleDateString();
+    if (currentLabel && currentMaxDate) {
+      currentLabel.textContent = currentMaxDate.toLocaleDateString();
+    }
+  }
+
+  function updateGraph(currentSlug: string | null) {
+    if (!fullGraphData || !currentMaxDate) return;
+
+    const filteredData = filterByDate(fullGraphData, currentMaxDate, currentDateField, showUndated);
+    renderGraph('graph-global', filteredData, true, currentSlug);
+    updateTimeLabels();
+  }
+
+  function playAnimation(currentSlug: string | null) {
+    if (!dateRange || isPlaying) return;
+
+    isPlaying = true;
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    if (playPauseBtn) playPauseBtn.textContent = 'Pause';
+
+    const slider = document.getElementById('timeSlider') as HTMLInputElement;
+    if (!slider) return;
+
+    animationInterval = window.setInterval(() => {
+      let currentValue = parseInt(slider.value);
+
+      if (currentValue >= 100) {
+        pauseAnimation();
+        return;
+      }
+
+      currentValue += 1;
+      slider.value = currentValue.toString();
+
+      // Update currentMaxDate based on slider value
+      const progress = currentValue / 100;
+      const timeRange = dateRange!.max.getTime() - dateRange!.min.getTime();
+      currentMaxDate = new Date(dateRange!.min.getTime() + progress * timeRange);
+
+      updateGraph(currentSlug);
+    }, 200); // 200ms per step
+  }
+
+  function pauseAnimation() {
+    isPlaying = false;
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    if (playPauseBtn) playPauseBtn.textContent = 'Play';
+
+    if (animationInterval !== null) {
+      clearInterval(animationInterval);
+      animationInterval = null;
+    }
+  }
+
+  function renderGraph(containerId: string, data: GraphData, isGlobal: boolean = false, currentSlug: string | null = null) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    const width = container.clientWidth || (isGlobal ? GRAPH.GLOBAL_WIDTH_FALLBACK : GRAPH.LOCAL_WIDTH_FALLBACK);
+    const height = isGlobal ? window.innerHeight * GRAPH.GLOBAL_HEIGHT_PERCENT : GRAPH.LOCAL_HEIGHT;
+
+    const svg = d3
+      .select(`#${containerId}`)
+      .append('svg')
+      .attr('width', width)
+      .attr('height', height)
+      .attr('viewBox', [0, 0, width, height]);
+
+    // Create zoom container
+    const g = svg.append('g').attr('class', 'zoom-container');
+
+    // Create force simulation
+    const simulation = d3
+      .forceSimulation(data.nodes as any)
+      .force(
+        'link',
+        d3.forceLink(data.links as any).id((d: any) => d.id).distance(GRAPH.LINK_DISTANCE)
+      )
+      .force('charge', d3.forceManyBody().strength(GRAPH.CHARGE_STRENGTH))
+      .force('center', d3.forceCenter(width / 2, height / 2))
+      .force('collision', d3.forceCollide().radius(GRAPH.COLLISION_RADIUS));
+
+    // Create links
+    const link = g
+      .append('g')
+      .attr('class', 'links')
+      .selectAll('line')
+      .data(data.links)
+      .join('line')
+      .attr('stroke', '#999')
+      .attr('stroke-opacity', 0.6)
+      .attr('stroke-width', 1);
+
+    // Create nodes
+    const node = g
+      .append('g')
+      .attr('class', 'nodes')
+      .selectAll('g')
+      .data(data.nodes)
+      .join('g')
+      .call(
+        d3.drag<any, any>()
+          .on('start', dragstarted)
+          .on('drag', dragged)
+          .on('end', dragended)
+      );
+
+    node
+      .append('circle')
+      .attr('r', (d: any) => d.id === currentSlug ? GRAPH.NODE_RADIUS_CURRENT : GRAPH.NODE_RADIUS)
+      .attr('fill', (d: any) => d.id === currentSlug ? 'var(--color-tertiary)' : 'var(--color-secondary)')
+      .attr('stroke', 'var(--color-light)')
+      .attr('stroke-width', (d: any) => d.id === currentSlug ? GRAPH.NODE_STROKE_WIDTH_CURRENT : GRAPH.NODE_STROKE_WIDTH);
+
+    node
+      .append('text')
+      .text((d: any) => d.title)
+      .attr('x', 10)
+      .attr('y', 3)
+      .attr('font-size', (d: any) => d.id === currentSlug ? '12px' : '10px')
+      .attr('font-weight', (d: any) => d.id === currentSlug ? '600' : '400')
+      .attr('fill', 'currentColor');
+
+    node.append('title').text((d: any) => d.title);
+
+    // Update positions on simulation tick
+    simulation.on('tick', () => {
+      link
+        .attr('x1', (d: any) => d.source.x)
+        .attr('y1', (d: any) => d.source.y)
+        .attr('x2', (d: any) => d.target.x)
+        .attr('y2', (d: any) => d.target.y);
+
+      node.attr('transform', (d: any) => `translate(${d.x},${d.y})`);
+    });
+
+    // Drag functions for nodes
+    let currentTransform = d3.zoomIdentity;
+
+    function dragstarted(event: any) {
+      if (!event.active) simulation.alphaTarget(0.3).restart();
+      event.subject.fx = event.subject.x;
+      event.subject.fy = event.subject.y;
+    }
+
+    function dragged(event: any) {
+      event.subject.fx = event.x / currentTransform.k;
+      event.subject.fy = event.y / currentTransform.k;
+    }
+
+    function dragended(event: any) {
+      if (!event.active) simulation.alphaTarget(0);
+      event.subject.fx = null;
+      event.subject.fy = null;
+    }
+
+    // Make nodes clickable
+    node.on('click', (_event: any, d: any) => {
+      window.location.href = `/${d.id}`;
+    });
+
+    // Add zoom behavior
+    const zoom = d3.zoom<SVGSVGElement, unknown>()
+      .scaleExtent([0.25, 4])
+      .on('zoom', (event) => {
+        currentTransform = event.transform;
+        g.attr('transform', event.transform.toString());
+      });
+
+    svg.call(zoom as any);
+  }
+
+  async function init() {
+    // Clean up previous instance
+    cleanup();
+
+    const data = await loadGraphData();
+
+    // Get current slug from data attribute
+    const container = document.getElementById('graph-local');
+    const currentSlug = container?.getAttribute('data-current-slug') || null;
+
+    // Filter data for local graph view
+    const localData = currentSlug ? filterLocalGraph(data, currentSlug) : data;
+
+    // Render local graph with current node highlighted
+    renderGraph('graph-local', localData, false, currentSlug);
+
+    // Setup fullscreen toggle
+    const toggleButton = document.querySelector('.global-graph-icon');
+    const globalOuter = document.querySelector('.global-graph-outer');
+
+    function showGlobalGraph() {
+      if (!globalGraphActive) {
+        globalGraphActive = true;
+        globalOuter?.classList.add('active');
+
+        // Store full data for filtering
+        fullGraphData = data;
+
+        // Calculate date range
+        dateRange = getDateRange(data.nodes, currentDateField);
+
+        if (dateRange) {
+          // Initialize to show all nodes
+          currentMaxDate = dateRange.max;
+
+          // Set up slider
+          const slider = document.getElementById('timeSlider') as HTMLInputElement;
+          if (slider) {
+            slider.value = '100';
+
+            const sliderHandler = () => {
+              const progress = parseInt(slider.value) / 100;
+              const timeRange = dateRange!.max.getTime() - dateRange!.min.getTime();
+              currentMaxDate = new Date(dateRange!.min.getTime() + progress * timeRange);
+              updateGraph(currentSlug);
+            };
+            addEventListener(slider, 'input', sliderHandler);
+          }
+
+          // Set up date field toggle
+          const dateRadios = document.querySelectorAll('input[name="dateField"]');
+          dateRadios.forEach(radio => {
+            const radioHandler = (e: Event) => {
+              const target = e.target as HTMLInputElement;
+              currentDateField = target.value as 'date' | 'updated';
+
+              // Recalculate date range
+              dateRange = getDateRange(data.nodes, currentDateField);
+              if (dateRange) {
+                currentMaxDate = dateRange.max;
+                const slider = document.getElementById('timeSlider') as HTMLInputElement;
+                if (slider) slider.value = '100';
+                updateGraph(currentSlug);
+              }
+            };
+            addEventListener(radio, 'change', radioHandler);
+          });
+
+          // Set up undated toggle
+          const undatedCheckbox = document.getElementById('showUndated') as HTMLInputElement;
+          if (undatedCheckbox) {
+            const checkboxHandler = () => {
+              showUndated = undatedCheckbox.checked;
+              updateGraph(currentSlug);
+            };
+            addEventListener(undatedCheckbox, 'change', checkboxHandler);
+          }
+
+          // Set up play/pause button
+          const playPauseBtn = document.getElementById('playPauseBtn');
+          if (playPauseBtn) {
+            const playPauseHandler = () => {
+              if (isPlaying) {
+                pauseAnimation();
+              } else {
+                playAnimation(currentSlug);
+              }
+            };
+            addEventListener(playPauseBtn, 'click', playPauseHandler);
+          }
+
+          updateTimeLabels();
+        }
+
+        renderGraph('graph-global', data, true, currentSlug);
+      }
+    }
+
+    function hideGlobalGraph() {
+      globalGraphActive = false;
+      globalOuter?.classList.remove('active');
+      const container = document.getElementById('graph-global');
+      if (container) container.innerHTML = '';
+
+      // Stop animation if playing
+      pauseAnimation();
+    }
+
+    if (toggleButton) {
+      addEventListener(toggleButton, 'click', showGlobalGraph);
+    }
+
+    // Keyboard shortcuts
+    const keydownHandler = (e: KeyboardEvent) => {
+      // Ctrl+G or Cmd+G to toggle
+      if (e.key === 'g' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        if (globalGraphActive) {
+          hideGlobalGraph();
+        } else {
+          showGlobalGraph();
+        }
+      }
+      // Escape to close
+      if (e.key === 'Escape' && globalGraphActive) {
+        hideGlobalGraph();
+      }
+    };
+    addEventListener(document, 'keydown', keydownHandler);
+
+    // Click backdrop to close
+    if (globalOuter) {
+      const backdropClickHandler = (e: Event) => {
+        if (e.target === globalOuter) {
+          hideGlobalGraph();
+        }
+      };
+      addEventListener(globalOuter, 'click', backdropClickHandler);
+    }
+  }
+
+  // Initialize on page load and on Astro view transitions
+  document.addEventListener('astro:page-load', init);
+
+  // Also initialize immediately if already loaded
+  if (document.readyState !== 'loading') {
+    init();
+  }
+</script>
+
+<style>
+  .graph {
+    width: 100%;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .graph-outer {
+    border-radius: var(--tw-border-radius, 5px);
+    border: 1px solid var(--color-gray);
+    box-sizing: border-box;
+    height: 250px; /* Fixed height for embedded view */
+    position: relative;
+    overflow: hidden;
+  }
+
+  .graph-container {
+    width: 100%;
+    height: 100%;
+    cursor: grab;
+  }
+
+  .graph-container:active {
+    cursor: grabbing;
+  }
+
+  .global-graph-icon {
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: var(--color-dark);
+    opacity: 0.5;
+    width: 24px; /* GRAPH.ICON_SIZE */
+    height: 24px; /* GRAPH.ICON_SIZE */
+    position: absolute;
+    padding: 0.2rem; /* GRAPH.ICON_PADDING */
+    margin: 0.3rem; /* GRAPH.ICON_MARGIN */
+    top: 0;
+    right: 0;
+    border-radius: 4px; /* GRAPH.BORDER_RADIUS */
+    background-color: transparent;
+    transition: background-color 0.3s ease, opacity 0.3s ease;
+  }
+
+  .global-graph-icon:hover {
+    background-color: var(--color-lightgray);
+    opacity: 1;
+  }
+
+  .global-graph-outer {
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    backdrop-filter: blur(4px);
+    background-color: rgba(0, 0, 0, 0.3);
+    display: none;
+    overflow: hidden;
+  }
+
+  .global-graph-outer.active {
+    display: block;
+  }
+
+  .global-graph-container {
+    border: 1px solid var(--color-gray);
+    background-color: var(--color-light);
+    border-radius: 5px;
+    box-sizing: border-box;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    height: 80vh; /* GRAPH.GLOBAL_HEIGHT_VW */
+    width: 80vw; /* GRAPH.GLOBAL_WIDTH_VW */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .graph-canvas {
+    flex: 1;
+    width: 100%;
+    cursor: grab;
+    overflow: hidden;
+  }
+
+  .graph-canvas:active {
+    cursor: grabbing;
+  }
+
+  :global(.nodes circle) {
+    cursor: pointer;
+  }
+
+  :global(.nodes circle:hover) {
+    fill: var(--color-tertiary);
+  }
+
+  :global(.nodes text) {
+    pointer-events: none;
+    user-select: none;
+  }
+
+  @media (max-width: 1024px) {
+    .global-graph-container {
+      width: 90vw; /* GRAPH.GLOBAL_WIDTH_VW_MOBILE */
+      height: 90vh; /* GRAPH.GLOBAL_HEIGHT_VW_MOBILE */
+    }
+  }
+
+  /* Time Controls */
+  .time-controls {
+    padding: 8px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    flex-shrink: 0;
+  }
+
+  .time-control-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    justify-content: center;
+  }
+
+  .time-slider-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .time-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--color-darkgray);
+    cursor: pointer;
+    user-select: none;
+    opacity: 0.8;
+  }
+
+  .time-label input[type="radio"],
+  .time-label input[type="checkbox"] {
+    cursor: pointer;
+  }
+
+  .time-slider {
+    flex: 1;
+    height: 6px;
+    background: var(--color-lightgray);
+    border-radius: 3px;
+    outline: none;
+    -webkit-appearance: none;
+  }
+
+  .time-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--color-secondary);
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+
+  .time-slider::-webkit-slider-thumb:hover {
+    background: var(--color-tertiary);
+  }
+
+  .time-slider::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--color-secondary);
+    cursor: pointer;
+    border: none;
+    transition: background 0.2s ease;
+  }
+
+  .time-slider::-moz-range-thumb:hover {
+    background: var(--color-tertiary);
+  }
+
+  .time-date-label {
+    font-size: 11px;
+    color: var(--color-gray);
+    min-width: 80px;
+    text-align: center;
+    opacity: 0.7;
+  }
+
+  .time-current-date {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--color-secondary);
+    min-width: 100px;
+    text-align: center;
+    opacity: 0.9;
+  }
+
+  .time-button {
+    padding: 4px 12px;
+    background-color: transparent;
+    color: var(--color-secondary);
+    border: 1px solid var(--color-secondary);
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    opacity: 0.8;
+  }
+
+  .time-button:hover {
+    background-color: var(--color-secondary);
+    color: var(--color-light);
+    opacity: 1;
+  }
+
+  @media (max-width: 768px) {
+    .time-controls {
+      padding: 10px 16px;
+      gap: 8px;
+    }
+
+    .time-control-row {
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .time-label {
+      font-size: 12px;
+    }
+
+    .time-date-label {
+      min-width: 60px;
+    }
+  }
+</style>

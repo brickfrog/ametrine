@@ -1,0 +1,51 @@
+---
+import type { MarginaliaEntry } from '../plugins/marginalia';
+
+interface Props {
+  marginalia: MarginaliaEntry[];
+}
+
+const { marginalia = [] } = Astro.props;
+
+// Don't render if no marginalia
+if (!marginalia || marginalia.length === 0) {
+  return null;
+}
+---
+
+<div class="hidden lg:block">
+  <div class="marginalia-column-content">
+    {marginalia.map((note) => (
+      <div class="marginalia-note">
+        <span class="marginalia-note-num">{note.id}.</span>
+        <span class="marginalia-note-text">{note.content}</span>
+      </div>
+    ))}
+  </div>
+</div>
+
+<style>
+  .marginalia-column-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .marginalia-note {
+    font-size: 0.8rem;
+    line-height: 1.4;
+    color: var(--color-darkgray);
+    padding: 0.5rem 0 0.5rem 1rem;
+    border-left: 2px solid var(--color-secondary);
+  }
+
+  .marginalia-note-num {
+    color: var(--color-secondary);
+    font-weight: 600;
+    margin-right: 0.5rem;
+  }
+
+  .marginalia-note-text {
+    color: var(--color-darkgray);
+  }
+</style>

@@ -1,0 +1,19 @@
+---
+import { TableOfContents as TableOfContentsReact } from './react/TableOfContents';
+import type { TocEntry } from './react/TableOfContents';
+
+interface Props {
+  toc?: TocEntry[];
+  collapsed?: boolean;
+  slug?: string;
+}
+
+const { toc = [], collapsed = false, slug } = Astro.props;
+
+// If no TOC, don't render
+if (!toc || toc.length === 0) {
+  return null;
+}
+---
+
+<TableOfContentsReact client:load toc={toc} collapsed={collapsed} slug={slug} />

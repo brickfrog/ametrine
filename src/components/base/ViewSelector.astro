@@ -1,0 +1,195 @@
+---
+import type { BaseView } from '../../utils/bases/types';
+
+interface Props {
+  views: BaseView[];
+  currentView: BaseView;
+  baseName: string;
+}
+
+const { views, currentView, baseName } = Astro.props;
+
+// Only show dropdown if there are multiple views
+const hasMultipleViews = views.length > 1;
+
+// Helper to get icon SVG for view type
+function getViewTypeIcon(type: string) {
+  const icons = {
+    table: '<path d="M3 3h18v18H3V3zm0 6h18M9 3v18"/>', // Table grid
+    cards: '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>', // Card grid
+    list: '<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>', // List
+    map: '<polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/>' // Map
+  };
+  return icons[type as keyof typeof icons] || icons.table;
+}
+---
+
+<div class="view-selector" data-view-selector>
+  <button type="button" class="view-selector-button" aria-label="Select view" aria-haspopup="true">
+    <svg class="view-type-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" set:html={getViewTypeIcon(currentView.type)} />
+    <span class="view-name">{currentView.name}</span>
+    {hasMultipleViews && (
+      <svg class="chevron-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="6 9 12 15 18 9"></polyline>
+      </svg>
+    )}
+  </button>
+
+  {hasMultipleViews && (
+    <div class="view-dropdown hidden" role="menu">
+      {views.map(view => {
+        const viewSlug = view.name.toLowerCase().replace(/\s+/g, '-');
+        const isActive = view.name === currentView.name;
+
+        return (
+          <a
+            href={`/base/${baseName}/${viewSlug}`}
+            class={`view-option ${isActive ? 'active' : ''}`}
+            role="menuitem"
+          >
+            <svg class="view-type-icon-dropdown" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" set:html={getViewTypeIcon(view.type)} />
+            <span class="view-option-name">{view.name}</span>
+            {isActive && (
+              <svg class="check-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            )}
+          </a>
+        );
+      })}
+    </div>
+  )}
+</div>
+
+<script>
+  // Client-side dropdown logic
+  function initViewSelector() {
+    const selector = document.querySelector('[data-view-selector]');
+    if (!selector) return;
+
+    const button = selector.querySelector('.view-selector-button');
+    const dropdown = selector.querySelector('.view-dropdown');
+    if (!button || !dropdown) return;
+
+    // Toggle dropdown on button click
+    button.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dropdown.classList.toggle('hidden');
+      button.setAttribute('aria-expanded', !dropdown.classList.contains('hidden') ? 'true' : 'false');
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', () => {
+      dropdown.classList.add('hidden');
+      button.setAttribute('aria-expanded', 'false');
+    });
+
+    // Prevent dropdown clicks from bubbling
+    dropdown.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+  }
+
+  // Initialize on page load
+  initViewSelector();
+
+  // Reinitialize after SPA navigation
+  document.addEventListener('astro:after-swap', initViewSelector);
+</script>
+
+<style>
+  .view-selector {
+    position: relative;
+    display: inline-block;
+  }
+
+  .view-selector-button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 6px;
+    background: transparent;
+    border: none;
+    color: var(--color-dark);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.15s;
+    user-select: none;
+  }
+
+  .view-selector-button:hover {
+    background: var(--color-lightgray);
+  }
+
+  .view-name {
+    white-space: nowrap;
+  }
+
+  .chevron-icon {
+    flex-shrink: 0;
+    opacity: 0.6;
+    transition: transform 0.2s;
+  }
+
+  .view-selector-button[aria-expanded="true"] .chevron-icon {
+    transform: rotate(180deg);
+  }
+
+  .view-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    min-width: 180px;
+    background: var(--color-light);
+    border: 1px solid var(--color-gray);
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 100;
+    overflow: hidden;
+  }
+
+  .view-dropdown.hidden {
+    display: none;
+  }
+
+  .view-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    color: var(--color-dark);
+    text-decoration: none;
+    font-size: 0.875rem;
+    transition: background-color 0.15s;
+    border-bottom: 1px solid var(--color-lightgray);
+  }
+
+  .view-option:last-child {
+    border-bottom: none;
+  }
+
+  .view-option:hover {
+    background: var(--color-highlight);
+  }
+
+  .view-option.active {
+    background: var(--color-lightgray);
+    font-weight: 500;
+  }
+
+  .view-type-icon,
+  .view-type-icon-dropdown {
+    flex-shrink: 0;
+    opacity: 0.7;
+  }
+
+  .view-option-name {
+    flex: 1;
+  }
+
+  .check-icon {
+    flex-shrink: 0;
+    color: var(--color-secondary);
+  }
+</style>

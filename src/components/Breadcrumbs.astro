@@ -1,0 +1,122 @@
+---
+import { config } from '../config';
+import type { Note } from '../utils/filterNotes';
+
+interface Props {
+  slug: string;
+  allNotes: Note[];
+}
+
+const { slug, allNotes } = Astro.props;
+
+// Don't show breadcrumbs on root if configured
+if (config.breadcrumbs?.hideOnRoot && (slug === 'index' || slug === 'index.md')) {
+  return null;
+}
+
+const breadcrumbsConfig = config.breadcrumbs || {
+  spacerSymbol: '❯',
+  rootName: 'Home',
+  resolveFrontmatterTitle: true,
+  showCurrentPage: true,
+  hideOnRoot: true,
+};
+
+interface FolderTitleMap {
+  [key: string]: string;
+}
+
+// Build a map of folder paths to their index file titles
+const folderTitles: FolderTitleMap = {};
+
+if (breadcrumbsConfig.resolveFrontmatterTitle) {
+  for (const note of allNotes) {
+    // Check if this is an index file (folder/index.md or folder/index)
+    if (note.id.endsWith('/index.md') || note.id.endsWith('/index')) {
+      const folderPath = note.id.replace(/\/index(\.md)?$/, '');
+      if (note.data.title) {
+        folderTitles[folderPath] = note.data.title;
+      }
+    }
+    // Also check if the file name matches the folder name (blog/blog.md)
+    const parts = note.id.split('/');
+    if (parts.length >= 2) {
+      const fileName = parts[parts.length - 1].replace('.md', '');
+      const folderName = parts[parts.length - 2];
+      if (fileName === folderName && note.data.title) {
+        folderTitles[parts.slice(0, -1).join('/')] = note.data.title;
+      }
+    }
+  }
+}
+
+interface Crumb {
+  displayName: string;
+  path: string;
+}
+
+// Build breadcrumb path
+const slugParts = slug.replace(/\.md$/, '').split('/');
+const crumbs: Crumb[] = [];
+
+// Add root
+crumbs.push({
+  displayName: breadcrumbsConfig.rootName,
+  path: '/',
+});
+
+// Build intermediate crumbs
+for (let i = 0; i < slugParts.length; i++) {
+  const isLast = i === slugParts.length - 1;
+  const pathSoFar = slugParts.slice(0, i + 1).join('/');
+
+  // Skip if this is the last segment and we don't want to show current page
+  if (isLast && !breadcrumbsConfig.showCurrentPage) {
+    continue;
+  }
+
+  let displayName: string;
+
+  // Try to resolve from folder titles map
+  if (breadcrumbsConfig.resolveFrontmatterTitle && folderTitles[pathSoFar]) {
+    displayName = folderTitles[pathSoFar];
+  } else if (isLast && !breadcrumbsConfig.showCurrentPage) {
+    continue;
+  } else {
+    // Format the slug part: replace - with space, capitalize words
+    displayName = slugParts[i]
+      .replace(/-/g, ' ')
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  }
+
+  // For last crumb (current page), no link
+  const path = isLast ? '' : `/${pathSoFar}`;
+
+  crumbs.push({
+    displayName,
+    path,
+  });
+}
+---
+
+<nav class="flex flex-wrap items-center gap-2 mt-3 mb-4 text-sm text-theme-darkgray" aria-label="breadcrumbs">
+  {crumbs.map((crumb, index) => (
+    <div class="flex items-center gap-2">
+      {crumb.path ? (
+        <a
+          href={crumb.path}
+          class="hover:text-theme-secondary transition-colors"
+        >
+          {crumb.displayName}
+        </a>
+      ) : (
+        <span class="text-theme-dark font-medium">{crumb.displayName}</span>
+      )}
+      {index !== crumbs.length - 1 && (
+        <span class="text-theme-gray select-none">{breadcrumbsConfig.spacerSymbol}</span>
+      )}
+    </div>
+  ))}
+</nav>

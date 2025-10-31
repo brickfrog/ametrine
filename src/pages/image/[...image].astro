@@ -1,0 +1,143 @@
+---
+import ContentLayout from '../../layouts/ContentLayout.astro';
+import { readdir } from 'node:fs/promises';
+import { join } from 'node:path';
+import { config } from '../../config';
+
+export async function getStaticPaths() {
+  // Check if image feature is enabled
+  if (config.features?.enableImages === false) {
+    return [];
+  }
+
+  // Load image files from vault directory
+  const vaultPath = join(process.cwd(), 'src/content/vault');
+  const files = await readdir(vaultPath);
+
+  const imageExtensions = ['.png', '.jpg', '.jpeg', '.webp', '.gif', '.svg', '.avif'];
+  const imageFiles = files.filter((f) =>
+    imageExtensions.some((ext) => f.toLowerCase().endsWith(ext))
+  );
+
+  const paths = imageFiles.map((file) => {
+    const nameWithoutExt = file.replace(/\.[^.]+$/, '');
+    const extension = file.split('.').pop()?.toLowerCase() || '';
+
+    return {
+      params: {
+        image: nameWithoutExt
+      },
+      props: {
+        fileName: file,
+        nameWithoutExt,
+        extension,
+      },
+    };
+  });
+
+  return paths;
+}
+
+const { fileName, nameWithoutExt, extension } = Astro.props;
+
+const pageTitle = nameWithoutExt;
+const pageDescription = `Image: ${fileName}`;
+const imagePath = `/src/content/vault/${fileName}`;
+---
+
+<ContentLayout
+  title={pageTitle}
+  description={pageDescription}
+  slug={`image/${nameWithoutExt}`}
+  hideBreadcrumbs={true}
+>
+  <div class="image-viewer">
+    <div class="image-header">
+      <h1 class="image-title">{nameWithoutExt}</h1>
+      <span class="image-extension">{extension.toUpperCase()}</span>
+    </div>
+
+    <div class="image-container">
+      <img
+        src={imagePath}
+        alt={nameWithoutExt}
+        class="displayed-image"
+      />
+    </div>
+
+    <div class="image-info">
+      <p class="image-filename">{fileName}</p>
+    </div>
+  </div>
+</ContentLayout>
+
+<style>
+  .image-viewer {
+    max-width: 100%;
+    padding: 0;
+  }
+
+  .image-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--color-lightgray);
+  }
+
+  .image-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-dark);
+    margin: 0;
+  }
+
+  .image-extension {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--color-light);
+    background: var(--color-tertiary);
+    border-radius: 0.25rem;
+  }
+
+  .image-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: var(--color-lightgray);
+    border-radius: 0.5rem;
+    padding: 2rem;
+    margin-bottom: 1rem;
+  }
+
+  .displayed-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.375rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .image-info {
+    text-align: center;
+  }
+
+  .image-filename {
+    font-size: 0.8125rem;
+    color: var(--color-gray);
+    margin: 0;
+  }
+
+  @media (max-width: 768px) {
+    .image-title {
+      font-size: 1.125rem;
+    }
+
+    .image-container {
+      padding: 1rem;
+    }
+  }
+</style>

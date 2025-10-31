@@ -1,0 +1,14 @@
+{
+  "$schema": "https://oxc.rs/schema/oxlintrc.json",
+  "env": {
+    "browser": true,
+    "es2022": true,
+    "node": true
+  },
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
+  },
+  "rules": {}
+}

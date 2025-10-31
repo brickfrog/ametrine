@@ -1,0 +1,175 @@
+---
+import ContentLayout from '../../layouts/ContentLayout.astro';
+import { CanvasViewer } from '../../components/react/CanvasViewer';
+import { getPublishedNotes } from '../../utils/filterNotes';
+import { filterNotes } from '../../utils/bases/filter';
+import { readdir, readFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { parse as parseYaml } from 'yaml';
+import type { CanvasData } from '../../pages/static/contentIndex.json';
+import { findNoteByPath, isImageExtension } from '../../utils/canvas';
+import { config } from '../../config';
+
+export async function getStaticPaths() {
+  // Check if canvas feature is enabled
+  if (config.features?.enableCanvas === false) {
+    return [];
+  }
+
+  // Load .canvas files from vault directory
+  const vaultPath = join(process.cwd(), 'src/content/vault');
+  const files = await readdir(vaultPath);
+  const canvasFiles = files.filter((f) => f.endsWith('.canvas'));
+
+  const paths = canvasFiles.map((file) => {
+    const canvasName = file.replace(/\.canvas$/, '');
+
+    return {
+      params: {
+        canvas: canvasName
+      },
+      props: {
+        canvasName,
+        canvasFile: file,
+      },
+    };
+  });
+
+  return paths;
+}
+
+const { canvasName, canvasFile } = Astro.props;
+
+// Load canvas data
+const vaultPath = join(process.cwd(), 'src/content/vault');
+const content = await readFile(join(vaultPath, canvasFile), 'utf-8');
+const canvasData: CanvasData = JSON.parse(content);
+
+// Load all notes for file node lookups
+const allNotes = await getPublishedNotes();
+
+// Pre-load file data for all file nodes
+const fileData: Record<string, any> = {};
+
+for (const node of canvasData.nodes || []) {
+  if (node.type !== 'file' || !node.file) continue;
+
+  const filePath = node.file;
+
+  if (filePath.endsWith('.md')) {
+    // Note file
+    const note = findNoteByPath(filePath, allNotes);
+    if (note) {
+      fileData[node.id] = {
+        type: 'note',
+        note: note, // Pass the full note object
+      };
+    } else {
+      fileData[node.id] = { type: 'not-found', path: filePath };
+    }
+  } else if (filePath.endsWith('.base')) {
+    // Base file
+    try {
+      const baseFilePath = join(vaultPath, filePath);
+      const baseContent = await readFile(baseFilePath, 'utf-8');
+      const baseData = parseYaml(baseContent);
+      const firstView = baseData.views?.[0];
+
+      if (firstView) {
+        // Apply filters to get notes for this view
+        const filterResult = filterNotes(allNotes, firstView.filters || {}, firstView.limit);
+
+        fileData[node.id] = {
+          type: 'base',
+          baseName: filePath.replace('.base', ''),
+          view: firstView,
+          notes: filterResult.notes, // Pass full Note objects for TableView
+        };
+      }
+    } catch (error) {
+      console.error(`Failed to load base file ${filePath}:`, error);
+      fileData[node.id] = { type: 'not-found', path: filePath };
+    }
+  } else if (isImageExtension(filePath)) {
+    // Image file
+    fileData[node.id] = {
+      type: 'image',
+      path: filePath,
+    };
+  } else {
+    // Unknown file type
+    fileData[node.id] = { type: 'not-found', path: filePath };
+  }
+}
+
+const pageTitle = canvasName;
+const pageDescription = `Canvas: ${canvasName}`;
+---
+
+<ContentLayout
+  title={pageTitle}
+  description={pageDescription}
+  slug={`canvas/${canvasName}`}
+  hideBreadcrumbs={true}
+>
+  <div class="canvas-page">
+    <div class="canvas-header">
+      <h1 class="canvas-title">{canvasName}</h1>
+      <div class="canvas-info">
+        <span class="canvas-stat">{canvasData.nodes?.length || 0} nodes</span>
+        <span class="canvas-stat">{canvasData.edges?.length || 0} edges</span>
+      </div>
+    </div>
+    <CanvasViewer
+      canvasData={canvasData}
+      canvasName={canvasName}
+      fileData={fileData}
+      client:load
+    />
+  </div>
+</ContentLayout>
+
+<style>
+  .canvas-page {
+    max-width: 100%;
+    padding: 0;
+  }
+
+  .canvas-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--color-lightgray);
+  }
+
+  .canvas-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-dark);
+    margin: 0;
+  }
+
+  .canvas-info {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .canvas-stat {
+    font-size: 0.8125rem;
+    color: var(--color-gray);
+  }
+
+  @media (max-width: 768px) {
+    .canvas-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+
+    .canvas-title {
+      font-size: 1.125rem;
+    }
+  }
+</style>

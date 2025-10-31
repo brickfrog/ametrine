@@ -1,0 +1,117 @@
+---
+import { getPublishedNotes, type Note } from '../../utils/filterNotes';
+import ContentLayout from '../../layouts/ContentLayout.astro';
+
+export async function getStaticPaths() {
+  const notes = await getPublishedNotes();
+
+  // Build a map of tag -> notes
+  const tagMap = new Map<string, Note[]>();
+
+  notes.forEach((note) => {
+    const tags = note.data.tags || [];
+    tags.forEach((tag) => {
+      if (!tagMap.has(tag)) {
+        tagMap.set(tag, []);
+      }
+      tagMap.get(tag)!.push(note);
+    });
+  });
+
+  // Generate paths for each tag
+  return Array.from(tagMap.entries()).map(([tag, notes]) => ({
+    params: { tag },
+    props: { tag, notes },
+  }));
+}
+
+interface Props {
+  tag: string;
+  notes: Note[];
+}
+
+const { tag, notes } = Astro.props;
+
+// Sort notes by date (newest first) then alphabetically
+const sortedNotes = notes.sort((a, b) => {
+  const aDate = a.data.date;
+  const bDate = b.data.date;
+
+  // If both have dates, sort by date descending
+  if (aDate && bDate) {
+    return new Date(bDate).getTime() - new Date(aDate).getTime();
+  }
+
+  // Prioritize notes with dates
+  if (aDate && !bDate) return -1;
+  if (!aDate && bDate) return 1;
+
+  // Otherwise sort alphabetically
+  return a.data.title.localeCompare(b.data.title);
+});
+
+// Format date helper
+function formatDate(date: Date | undefined) {
+  if (!date) return null;
+  return new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  }).format(new Date(date));
+}
+---
+
+<ContentLayout title={`Tag: ${tag}`} description={`Notes tagged with "${tag}"`} slug={`tags/${tag}`}>
+  <div class="space-y-6">
+    <div class="border-b border-theme-gray pb-4">
+      <div class="flex items-center gap-2 mb-2">
+        <span class="text-3xl font-bold font-header text-theme-dark">#{tag}</span>
+      </div>
+      <p class="text-theme-darkgray">
+        {notes.length} {notes.length === 1 ? 'note' : 'notes'} with this tag
+      </p>
+    </div>
+
+    <ul class="space-y-0">
+      {sortedNotes.map((note) => (
+        <li class="list-none border-b border-theme-gray last:border-0">
+          <div class="section py-4 flex gap-4">
+            {note.data.date && (
+              <div class="meta text-sm text-theme-darkgray whitespace-nowrap min-w-[100px]">
+                {formatDate(note.data.date)}
+              </div>
+            )}
+            <div class="flex-1 min-w-0">
+              <div class="desc mb-2">
+                <h3 class="text-lg font-semibold font-header m-0">
+                  <a href={`/${note.slug}`} class="text-theme-dark hover:text-theme-secondary transition-colors">
+                    {note.data.title}
+                  </a>
+                </h3>
+              </div>
+              {note.data.description && (
+                <p class="text-sm text-theme-darkgray mb-2">
+                  {note.data.description}
+                </p>
+              )}
+              {note.data.tags && note.data.tags.length > 0 && (
+                <ul class="tags flex gap-2 flex-wrap m-0 p-0">
+                  {note.data.tags.map((noteTag) => (
+                    <li class="list-none">
+                      <a
+                        href={`/tags/${noteTag}`}
+                        class="px-2 py-1 text-xs rounded bg-theme-highlight text-theme-secondary hover:bg-theme-gray transition-colors"
+                      >
+                        #{noteTag}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        </li>
+      ))}
+    </ul>
+  </div>
+</ContentLayout>

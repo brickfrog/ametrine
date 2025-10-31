@@ -1,0 +1,10 @@
+---
+import { QuickActions as QuickActionsReact } from './react/QuickActions';
+import { getPublishedNotes } from '../utils/filterNotes';
+
+// Get all content slugs for random article feature
+const allNotes = await getPublishedNotes();
+const allSlugs = allNotes.map(note => note.slug);
+---
+
+<QuickActionsReact client:load allSlugs={allSlugs} transition:persist="quick-actions" />

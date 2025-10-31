@@ -1,0 +1,32 @@
+---
+import BaseLayout from './BaseLayout.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<BaseLayout title={title} description={description}>
+  <div class="flex min-h-screen">
+    <!-- Left Sidebar -->
+    <aside class="w-64 border-r border-theme-lightgray hidden lg:block">
+      <div class="sticky top-0 p-4">
+        <div class="mb-4">
+          <h1 class="text-2xl font-bold">
+            <a href="/" class="hover:text-theme-secondary transition-colors">Ametrine</a>
+          </h1>
+        </div>
+        <slot name="left" />
+      </div>
+    </aside>
+
+    <!-- Main Content (wider for lists) -->
+    <main class="flex-1 max-w-6xl mx-auto px-4 py-8">
+      <h1 class="text-4xl font-bold mb-8">{title}</h1>
+      <slot />
+    </main>
+  </div>
+</BaseLayout>

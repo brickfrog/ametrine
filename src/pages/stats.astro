@@ -1,0 +1,175 @@
+---
+import { getPublishedNotes } from '../utils/filterNotes';
+import ContentLayout from '../layouts/ContentLayout.astro';
+import { ActivityHeatmap } from '../components/react/ActivityHeatmap';
+import { processActivityData } from '../utils/activityData';
+import { calculateReadingMetrics } from '../utils/readingMetrics';
+import type { ContentNote } from '../utils/activityData';
+
+// Get all published notes
+const notes = await getPublishedNotes();
+
+// Transform notes to ContentNote format
+const contentNotes: ContentNote[] = notes.map((note) => ({
+  id: note.id,
+  slug: note.slug,
+  title: note.data.title,
+  date: note.data.date ? new Date(note.data.date).toISOString() : undefined,
+  updated: note.data.updated ? new Date(note.data.updated).toISOString() : undefined,
+}));
+
+// Process activity data for heatmap
+const activityData = processActivityData(contentNotes, 365);
+
+// Calculate reading metrics
+const metrics = calculateReadingMetrics(notes);
+
+// Calculate some stats
+const totalNotes = notes.length;
+const notesWithDates = contentNotes.filter((n) => n.date).length;
+const notesWithUpdates = contentNotes.filter((n) => n.updated).length;
+---
+
+<ContentLayout title="Activity Stats" description="Your writing activity and statistics" slug="stats">
+  <div class="max-w-6xl mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="text-4xl font-bold text-theme-dark mb-4">Activity Stats</h1>
+      <p class="text-lg text-theme-darkgray">
+        Track your writing activity and see patterns in your note creation and updates.
+      </p>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+      <div class="bg-theme-lightgray border border-theme-gray rounded-lg p-6">
+        <div class="text-3xl font-bold text-theme-tertiary mb-2">{totalNotes}</div>
+        <div class="text-sm text-theme-darkgray">Total Notes</div>
+      </div>
+
+      <div class="bg-theme-lightgray border border-theme-gray rounded-lg p-6">
+        <div class="text-3xl font-bold text-theme-tertiary mb-2">{notesWithDates}</div>
+        <div class="text-sm text-theme-darkgray">Notes with Creation Dates</div>
+      </div>
+
+      <div class="bg-theme-lightgray border border-theme-gray rounded-lg p-6">
+        <div class="text-3xl font-bold text-theme-tertiary mb-2">{notesWithUpdates}</div>
+        <div class="text-sm text-theme-darkgray">Notes with Update Dates</div>
+      </div>
+    </div>
+
+    <!-- Reading Metrics -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <div class="bg-theme-lightgray border border-theme-gray rounded-lg p-6">
+        <div class="text-3xl font-bold text-theme-tertiary mb-2">{metrics.totalWords.toLocaleString()}</div>
+        <div class="text-sm text-theme-darkgray">Total Words</div>
+      </div>
+
+      <div class="bg-theme-lightgray border border-theme-gray rounded-lg p-6">
+        <div class="text-3xl font-bold text-theme-tertiary mb-2">{metrics.medianReadingTime} min</div>
+        <div class="text-sm text-theme-darkgray">Median Reading Time</div>
+      </div>
+
+      <div class="bg-theme-lightgray border border-theme-gray rounded-lg p-6">
+        <div class="text-3xl font-bold text-theme-tertiary mb-2">{metrics.linkedNotesPercentage}%</div>
+        <div class="text-sm text-theme-darkgray">Linked Notes</div>
+      </div>
+    </div>
+
+    <!-- Activity Heatmap -->
+    <div class="bg-theme-light border border-theme-gray rounded-lg p-6 shadow-sm mb-8">
+      <ActivityHeatmap client:load data={activityData} />
+    </div>
+
+    <!-- Most Linked Notes -->
+    {metrics.mostLinkedNotes.length > 0 && (
+      <div class="bg-theme-light border border-theme-gray rounded-lg p-6 shadow-sm mb-8">
+        <h2 class="text-2xl font-bold text-theme-dark mb-4">Most Linked Notes</h2>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-theme-gray">
+                <th class="text-left py-3 px-4 font-semibold text-theme-darkgray">Rank</th>
+                <th class="text-left py-3 px-4 font-semibold text-theme-darkgray">Note</th>
+                <th class="text-center py-3 px-4 font-semibold text-theme-darkgray">Incoming</th>
+                <th class="text-center py-3 px-4 font-semibold text-theme-darkgray">Outgoing</th>
+              </tr>
+            </thead>
+            <tbody>
+              {metrics.mostLinkedNotes.map((note, index) => (
+                <tr class="border-b border-theme-gray hover:bg-theme-lightgray transition-colors">
+                  <td class="py-3 px-4 text-theme-darkgray">{index + 1}</td>
+                  <td class="py-3 px-4">
+                    <a href={`/${note.slug}`} class="text-theme-secondary hover:text-theme-tertiary transition-colors hover:underline">
+                      {note.title}
+                    </a>
+                  </td>
+                  <td class="py-3 px-4 text-center text-theme-dark font-medium">{note.incomingCount}</td>
+                  <td class="py-3 px-4 text-center text-theme-darkgray">{note.outgoingCount}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    )}
+
+    <!-- Link Analysis -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+      <!-- Network Stats -->
+      <div class="bg-theme-lightgray border border-theme-gray rounded-lg p-6">
+        <h3 class="text-lg font-semibold text-theme-dark mb-4">Network Statistics</h3>
+        <div class="space-y-3">
+          <div class="flex justify-between items-center">
+            <span class="text-sm text-theme-darkgray">Total Links</span>
+            <span class="text-lg font-bold text-theme-tertiary">{metrics.totalLinks}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-sm text-theme-darkgray">Average Links per Note</span>
+            <span class="text-lg font-bold text-theme-tertiary">{metrics.averageLinksPerNote}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-sm text-theme-darkgray">Orphan Notes</span>
+            <span class="text-lg font-bold text-theme-tertiary">{metrics.orphanNotes.length}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-sm text-theme-darkgray">Hub Notes (5+ links)</span>
+            <span class="text-lg font-bold text-theme-tertiary">{metrics.hubNotes.length}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Orphan Notes -->
+      <div class="bg-theme-lightgray border border-theme-gray rounded-lg p-6">
+        <h3 class="text-lg font-semibold text-theme-dark mb-4">Orphan Notes</h3>
+        {metrics.orphanNotes.length > 0 ? (
+          <div class="space-y-2 max-h-64 overflow-y-auto pr-2">
+            {metrics.orphanNotes.slice(0, 15).map((note) => (
+              <div class="text-sm">
+                <a href={`/${note.slug}`} class="text-theme-secondary hover:text-theme-tertiary transition-colors hover:underline">
+                  {note.title}
+                </a>
+              </div>
+            ))}
+            {metrics.orphanNotes.length > 15 && (
+              <div class="text-xs text-theme-darkgray italic mt-3 pt-2 border-t border-theme-gray">
+                {metrics.orphanNotes.length - 15} more orphan {metrics.orphanNotes.length - 15 === 1 ? 'note' : 'notes'}
+              </div>
+            )}
+          </div>
+        ) : (
+          <p class="text-sm text-theme-darkgray">No orphan notes - all notes are connected!</p>
+        )}
+      </div>
+    </div>
+
+    <!-- Additional info -->
+    <div class="mt-8 text-sm text-theme-darkgray">
+      <p>
+        Activity is tracked based on the <code class="px-2 py-1 bg-theme-lightgray rounded text-xs">date</code> and
+        <code class="px-2 py-1 bg-theme-lightgray rounded text-xs">updated</code> frontmatter fields in your notes.
+        Make sure to include these fields to see accurate activity data.
+      </p>
+    </div>
+  </div>
+</ContentLayout>

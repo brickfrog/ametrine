@@ -1,0 +1,270 @@
+---
+import type { Note } from '../../utils/filterNotes';
+import type { BaseView } from '../../utils/bases/types';
+import { getPropertyValue, formatPropertyValue } from '../../utils/bases/filter';
+
+interface Props {
+  notes: Note[];
+  view: BaseView;
+  baseName: string;
+}
+
+const { notes, view, baseName: _baseName } = Astro.props;
+
+// Get columns to display from view order
+const columns = view.order || ['file.name', 'file.mtime'];
+
+// Helper to get column display name
+function getColumnName(propertyName: string): string {
+  // Remove prefixes for display
+  if (propertyName.startsWith('file.')) {
+    const name = propertyName.substring(5);
+    // Capitalize first letter
+    return name.charAt(0).toUpperCase() + name.slice(1);
+  }
+  if (propertyName.startsWith('formula.')) {
+    return propertyName.substring(8);
+  }
+  // Capitalize first letter
+  return propertyName.charAt(0).toUpperCase() + propertyName.slice(1);
+}
+---
+
+{notes.length === 0 ? (
+  <div class="empty-state">
+    <p>No notes match the current filters.</p>
+  </div>
+) : (
+  <table class="base-table" data-resizable-table>
+    <thead>
+      <tr>
+        {columns.map((column, index) => (
+          <th>
+            {getColumnName(column)}
+            {index < columns.length - 1 && <div class="resize-handle"></div>}
+          </th>
+        ))}
+      </tr>
+    </thead>
+    <tbody>
+      {notes.map(note => (
+        <tr>
+          {columns.map(column => {
+            const value = getPropertyValue(note, column);
+            const formatted = formatPropertyValue(value);
+
+            // Special handling for file.name - make it a link
+            if (column === 'file.name') {
+              return (
+                <td class="cell-name">
+                  <a href={`/${note.slug}`} class="note-link">
+                    {formatted || note.data.title || note.slug}
+                  </a>
+                </td>
+              );
+            }
+
+            // Special handling for tags
+            if (column === 'file.tags' || column === 'tags') {
+              return (
+                <td class="cell-tags">
+                  {Array.isArray(value) && value.length > 0 ? (
+                    <div class="tag-list">
+                      {value.map((tag: string) => (
+                        <span class="tag-badge">{tag}</span>
+                      ))}
+                    </div>
+                  ) : (
+                    <span class="text-muted">—</span>
+                  )}
+                </td>
+              );
+            }
+
+            // Default cell
+            return <td>{formatted || <span class="text-muted">—</span>}</td>;
+          })}
+        </tr>
+      ))}
+    </tbody>
+  </table>
+)}
+
+<style>
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--color-darkgray);
+    font-style: italic;
+  }
+
+  .base-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    table-layout: auto;
+  }
+
+  .base-table thead {
+    background: var(--color-lightgray);
+    border-bottom: 1px solid var(--color-gray);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .base-table th {
+    text-align: left;
+    padding: 8px 12px;
+    font-weight: 600;
+    color: var(--color-dark);
+    white-space: nowrap;
+    font-size: 0.8125rem;
+    position: relative;
+  }
+
+  .base-table th:last-child,
+  .base-table td:last-child {
+    width: 100%;
+  }
+
+  .resize-handle {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 5px;
+    height: 100%;
+    cursor: col-resize;
+    user-select: none;
+  }
+
+  .resize-handle:hover {
+    background: var(--color-secondary);
+    opacity: 0.5;
+  }
+
+  .resize-handle.resizing {
+    background: var(--color-secondary);
+    opacity: 0.7;
+  }
+
+  .base-table tbody tr {
+    border-bottom: 1px solid var(--color-lightgray);
+    transition: background-color 0.1s;
+  }
+
+  .base-table tbody tr:hover {
+    background: var(--color-highlight);
+  }
+
+  .base-table td {
+    padding: 8px 12px;
+    color: var(--color-darkgray);
+    vertical-align: middle;
+  }
+
+  .cell-name {
+    font-weight: 500;
+  }
+
+  .note-link {
+    color: var(--color-secondary);
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .note-link:hover {
+    color: var(--color-tertiary);
+    text-decoration: underline;
+  }
+
+  .cell-tags {
+    max-width: 300px;
+  }
+
+  .tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+  }
+
+  .tag-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--color-light);
+    background: var(--color-tertiary);
+    border-radius: 0.25rem;
+    white-space: nowrap;
+  }
+
+  .text-muted {
+    color: var(--color-gray);
+    font-style: italic;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .base-table th,
+    .base-table td {
+      padding: 6px 8px;
+    }
+
+    .base-table {
+      font-size: 0.8125rem;
+    }
+  }
+</style>
+
+<script>
+  function initResizableTable() {
+    const table = document.querySelector('[data-resizable-table]');
+    if (!table) return;
+
+    const handles = table.querySelectorAll('.resize-handle');
+
+    handles.forEach((handle) => {
+      let startX: number;
+      let startWidth: number;
+      let th: HTMLElement;
+
+      handle.addEventListener('mousedown', (e: Event) => {
+        const mouseEvent = e as MouseEvent;
+        e.preventDefault();
+
+        th = (handle.parentElement as HTMLElement);
+        startX = mouseEvent.pageX;
+        startWidth = th.offsetWidth;
+
+        handle.classList.add('resizing');
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+
+        const onMouseMove = (e: MouseEvent) => {
+          const diff = e.pageX - startX;
+          const newWidth = Math.max(50, startWidth + diff);
+          th.style.width = newWidth + 'px';
+        };
+
+        const onMouseUp = () => {
+          handle.classList.remove('resizing');
+          document.body.style.cursor = '';
+          document.body.style.userSelect = '';
+          document.removeEventListener('mousemove', onMouseMove);
+          document.removeEventListener('mouseup', onMouseUp);
+        };
+
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+      });
+    });
+  }
+
+  // Initialize on page load
+  initResizableTable();
+
+  // Reinitialize after SPA navigation
+  document.addEventListener('astro:after-swap', initResizableTable);
+</script>

@@ -1,0 +1,205 @@
+---
+import * as LucideIcons from 'lucide-react';
+import { config } from '../config';
+
+interface Props {
+  frontmatter: Record<string, any>;
+  content: string;
+}
+
+const { frontmatter, content } = Astro.props;
+
+// Calculate reading time (average 200 words per minute)
+function calculateReadingTime(content: string): number {
+  const words = content.trim().split(/\s+/).length;
+  return Math.ceil(words / 200);
+}
+
+// Calculate word count
+function calculateWordCount(content: string): number {
+  return content.trim().split(/\s+/).length;
+}
+
+// Format date helper
+function formatDate(date: Date | string): string {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const month = months[d.getMonth()];
+  const day = d.getDate();
+  const year = d.getFullYear();
+  return `${month} ${day}, ${year}`;
+}
+
+// Format value based on type
+function formatValue(value: any, format?: string, _content?: string, key?: string): string {
+  if (format === 'date') {
+    return formatDate(value);
+  } else if (format === 'list' && Array.isArray(value)) {
+    return value.join(', ');
+  } else if (format === 'computed') {
+    // Computed values are already calculated, just need formatting
+    if (key === 'readingTime') {
+      return `${value} ${value === 1 ? 'minute' : 'minutes'}`;
+    } else if (key === 'wordCount') {
+      return `${value} ${value === 1 ? 'word' : 'words'}`;
+    }
+    return String(value);
+  } else if (format === 'number') {
+    return String(value);
+  }
+  return String(value);
+}
+
+// Get icon component by name
+function getIcon(iconName?: string) {
+  if (!iconName) return null;
+  const Icon = (LucideIcons as any)[iconName];
+  return Icon || null;
+}
+
+// Check if metadata should be shown
+const metaConfig = config.metadata;
+if (!metaConfig?.show) {
+  return null;
+}
+
+// Build list of fields to display
+const fieldsToDisplay = metaConfig.fields
+  .map(fieldConfig => {
+    let value;
+
+    // Handle computed fields
+    if (fieldConfig.format === 'computed') {
+      if (fieldConfig.key === 'readingTime') {
+        value = calculateReadingTime(content);
+      } else if (fieldConfig.key === 'wordCount') {
+        value = calculateWordCount(content);
+      }
+    } else {
+      value = frontmatter[fieldConfig.key];
+    }
+
+    // Skip if no value or hide condition is true
+    if (value === undefined || value === null) return null;
+    if (fieldConfig.hide && fieldConfig.hide(value)) return null;
+
+    const Icon = getIcon(fieldConfig.icon);
+    const formattedValue = formatValue(value, fieldConfig.format, content, fieldConfig.key);
+
+    return {
+      ...fieldConfig,
+      value: formattedValue,
+      Icon,
+      isLink: false, // Configured fields are not links by default
+    };
+  })
+  .filter((field): field is NonNullable<typeof field> => field !== null);
+
+// Auto-detect unknown frontmatter fields (property inspector)
+const knownFields = new Set([
+  // Core schema fields
+  'title', 'description', 'tags', 'draft', 'publish', 'date', 'updated', 'author', 'links', 'aliases',
+  // Configured fields
+  ...metaConfig.fields.map(f => f.key),
+  // Computed fields that might appear in frontmatter
+  'readingTime', 'wordCount', 'word_count',
+]);
+
+const unknownFields = Object.entries(frontmatter)
+  .filter(([key, value]) => {
+    // Exclude known fields, private fields (starting with _), and null/undefined values
+    return !knownFields.has(key) && !key.startsWith('_') && value !== null && value !== undefined;
+  })
+  .map(([key, value]) => {
+    // Auto-detect type and assign icon
+    let icon = 'Type';
+    let formattedValue = String(value);
+    let isLink = false;
+
+    if (typeof value === 'string' && /^https?:\/\//.test(value)) {
+      // URL
+      icon = 'Link';
+      formattedValue = value;
+      isLink = true;
+    } else if (Array.isArray(value)) {
+      // Array
+      icon = 'List';
+      formattedValue = value.join(', ');
+    } else if (value instanceof Date || (typeof value === 'string' && !isNaN(Date.parse(value)) && value.includes('-'))) {
+      // Date
+      icon = 'Calendar';
+      formattedValue = formatDate(value);
+    } else if (typeof value === 'boolean') {
+      // Boolean
+      icon = value ? 'Check' : 'X';
+      formattedValue = value ? 'Yes' : 'No';
+    } else if (typeof value === 'number') {
+      // Number
+      icon = 'Hash';
+      formattedValue = String(value);
+    }
+
+    // Generate human-readable label from field name
+    const label = key
+      .replace(/[_-]/g, ' ')
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+
+    const Icon = getIcon(icon);
+
+    return {
+      key,
+      label,
+      value: formattedValue,
+      Icon,
+      isLink,
+    };
+  });
+
+const allFieldsToDisplay = [...fieldsToDisplay, ...unknownFields];
+
+if (allFieldsToDisplay.length === 0) {
+  return null;
+}
+---
+
+<div class="not-prose my-6 border border-theme-gray rounded-lg overflow-hidden text-sm">
+  {allFieldsToDisplay.map((field) => (
+    <div class="flex">
+      <span class="bg-theme-darkgray text-theme-light px-3 py-2 font-medium flex items-center gap-1.5 w-40">
+        {field.Icon && <field.Icon className="w-4 h-4" />}
+        {field.label}
+      </span>
+      <span class="bg-theme-lightgray text-theme-dark px-3 py-2 flex-1">
+        {field.isLink ? (
+          <a href={field.value} class="text-theme-secondary hover:text-theme-tertiary transition-colors underline" target="_blank" rel="noopener noreferrer">
+            {field.value}
+          </a>
+        ) : (
+          field.value
+        )}
+      </span>
+    </div>
+  ))}
+  {config.tags?.enable && config.tags?.showWithMetadata && frontmatter.tags && frontmatter.tags.length > 0 && (
+    <div class="flex">
+      <span class="bg-theme-darkgray text-theme-light px-3 py-2 font-medium flex items-center gap-1.5 w-40">
+        <LucideIcons.Tags className="w-4 h-4" />
+        Tags
+      </span>
+      <span class="bg-theme-lightgray text-theme-dark px-3 py-2 flex-1">
+        <div class="flex flex-wrap gap-2">
+          {frontmatter.tags.map((tag: string) => (
+            <a
+              href={`/tags/${tag}`}
+              class="px-2 py-1 text-xs rounded bg-theme-highlight text-theme-secondary hover:bg-theme-gray transition-colors"
+            >
+              #{tag}
+            </a>
+          ))}
+        </div>
+      </span>
+    </div>
+  )}
+</div>

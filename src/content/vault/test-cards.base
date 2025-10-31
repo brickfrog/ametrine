@@ -1,0 +1,45 @@
+# Test Cards Base
+# Demonstrates card view with filter syntax
+
+views:
+  - type: cards
+    name: All Cards
+    order:
+      - file.name
+      - description
+      - file.tags
+      - file.mtime
+    image: image
+    imageFit: cover
+    imageAspectRatio: 0.6
+    cardSize: 280
+
+  - type: cards
+    name: With Guides
+    filters:
+      and:
+        - file.tags.contains("guide")
+    order:
+      - file.name
+      - description
+      - file.tags
+    image: image
+    imageFit: cover
+    imageAspectRatio: 0.75
+    cardSize: 300
+
+  - type: cards
+    name: Advanced Filters
+    filters:
+      and:
+        - file.name.contains("quick")
+        - file.tags.containsAny("guide", "tutorial")
+        - '!file.folder.isEmpty()'
+    order:
+      - file.name
+      - description
+      - file.tags
+    image: image
+    imageFit: cover
+    imageAspectRatio: 0.75
+    cardSize: 300

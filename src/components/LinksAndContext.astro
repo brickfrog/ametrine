@@ -1,0 +1,309 @@
+---
+import { getPublishedNotes, type Note } from '../utils/filterNotes';
+import { extractExternalLinks, groupLinksByDomain } from '../utils/extractExternalLinks';
+import { findRelatedNotes } from '../utils/findRelatedNotes';
+import { getCitedBibliography } from '../utils/parseBibliography';
+import GithubSlugger from 'github-slugger';
+import { config } from '../config';
+
+interface Props {
+  note: Note;
+  slug: string;
+}
+
+const { note, slug } = Astro.props;
+
+// Get all notes for backlinks and related notes
+const allNotes = await getPublishedNotes();
+
+// Get cited bibliography entries
+const bibliographyEntries = config.citations?.enable
+  ? await getCitedBibliography(note.body, './bibliography.bib')
+  : [];
+
+// Extract external links (merged with bibliography)
+const externalLinks = extractExternalLinks(note.body, bibliographyEntries);
+const groupedLinks = groupLinksByDomain(externalLinks);
+
+// Find backlinks
+const wikilinkRegex = /!?\[\[([^[\]|#\\]+)?(#+[^[\]|#\\]+)?(\\?\|[^[\]#]*)?\]\]/g;
+
+function extractWikilinks(content: string): string[] {
+  const links: string[] = [];
+  const slugger = new GithubSlugger();
+
+  const matches = content.matchAll(wikilinkRegex);
+  for (const match of matches) {
+    const [_full, rawFp] = match;
+    if (rawFp) {
+      const pageName = rawFp.split('#')[0].trim();
+      if (pageName) {
+        const linkSlug = slugger.slug(pageName);
+        links.push(linkSlug);
+      }
+    }
+  }
+
+  return [...new Set(links)];
+}
+
+const backlinks = allNotes.filter((n) => {
+  const links = extractWikilinks(n.body);
+  return links.includes(slug) && n.slug !== slug;
+});
+
+// Find related notes
+const relatedNotes = findRelatedNotes(note, allNotes, config.linksAndContext?.relatedLimit || 10);
+
+// Calculate total items for main header
+const totalItems = externalLinks.length + backlinks.length + relatedNotes.length;
+---
+
+<!-- Main collapsible container -->
+{totalItems > 0 && (
+  <details class="links-and-context-outer mt-12" open={totalItems <= 5}>
+    <summary class="context-summary-outer" aria-label={`Links and Context (${totalItems} items)`}>
+      <div class="flex items-center justify-between w-full">
+        <div class="flex items-center gap-3">
+          <span class="text-2xl font-semibold m-0">Links & Context</span>
+          <span class="count-badge">{totalItems}</span>
+        </div>
+        <svg
+          class="chevron transition-transform duration-200"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </div>
+
+      <!-- Preview content shown when collapsed -->
+      <div class="context-preview">
+        {externalLinks.length > 0 && (
+          <>
+            {externalLinks.slice(0, 2).map((link) => (
+              <div class="preview-item">
+                <span class="preview-icon" aria-hidden="true">→</span>
+                <span>{link.title || link.url}</span>
+              </div>
+            ))}
+            {externalLinks.length > 2 && (
+              <div class="preview-more">
+                +{externalLinks.length - 2} more links
+              </div>
+            )}
+          </>
+        )}
+        {backlinks.length > 0 ? (
+          <>
+            {backlinks.slice(0, 2).map((backlink) => (
+              <div class="preview-item">
+                <span class="preview-icon" aria-hidden="true">←</span>
+                <span>{backlink.data.title}</span>
+              </div>
+            ))}
+            {backlinks.length > 2 && (
+              <div class="preview-more">
+                +{backlinks.length - 2} more backlinks
+              </div>
+            )}
+          </>
+        ) : (
+          relatedNotes.length > 0 && (
+            <>
+              {relatedNotes.slice(0, 2).map((related) => (
+                <div class="preview-item">
+                  <span class="preview-icon" aria-hidden="true">~</span>
+                  <span>{related.note.data.title}</span>
+                </div>
+              ))}
+              {relatedNotes.length > 2 && (
+                <div class="preview-more">
+                  +{relatedNotes.length - 2} more related
+                </div>
+              )}
+            </>
+          )
+        )}
+      </div>
+    </summary>
+
+    <div class="context-outer-content">
+      <!-- External Links Section -->
+      {groupedLinks.length > 0 && config.linksAndContext?.showExternalLinks && (
+        <details class="context-section external-links-container" open>
+          <summary class="context-summary" aria-label={`External Links (${externalLinks.length})`}>
+            <div class="flex items-center justify-between w-full">
+              <div class="flex items-center gap-3">
+                <span class="text-xl font-semibold m-0">External Links</span>
+                <span class="count-badge">{externalLinks.length}</span>
+              </div>
+              <svg
+                class="chevron transition-transform duration-200"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </div>
+          </summary>
+
+          <div class="context-content">
+            {groupedLinks.filter(g => g.links && g.links.length > 0 && (g.domain || g.count)).map((group) => (
+              <div class="domain-group mb-4">
+                {(group.domain || group.count) && (
+                  <div class="text-sm font-semibold text-theme-darkgray mb-2">
+                    {group.domain || 'Links'} ({group.count || 0})
+                  </div>
+                )}
+                <ul class="space-y-2">
+                  {group.links.map((link) => (
+                    <li class="list-none">
+                      <a
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="text-theme-secondary hover:text-theme-tertiary font-medium"
+                        aria-label={link.title || link.url || 'External link'}
+                      >
+                        {link.title || link.url || 'Link'}
+                      </a>
+                      {link.source === 'bibliography' && (link.author || link.year) && (
+                        <div class="bibliography-metadata text-xs text-theme-darkgray mt-1">
+                          {link.author && <span class="author">{link.author}</span>}
+                          {link.author && link.year && <span class="separator"> • </span>}
+                          {link.year && <span class="year">{link.year}</span>}
+                          {link.journal && (
+                            <>
+                              <span class="separator"> • </span>
+                              <span class="journal italic">{link.journal}</span>
+                            </>
+                          )}
+                        </div>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </details>
+      )}
+
+      <!-- Backlinks Section -->
+      {backlinks.length > 0 && (
+        <details class="context-section backlinks-container" open>
+          <summary class="context-summary" aria-label={`Backlinks (${backlinks.length})`}>
+            <div class="flex items-center justify-between w-full">
+              <div class="flex items-center gap-3">
+                <span class="text-xl font-semibold m-0">Backlinks</span>
+                <span class="count-badge">{backlinks.length}</span>
+              </div>
+              <svg
+                class="chevron transition-transform duration-200"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </div>
+          </summary>
+
+          <div class="context-content">
+            <ul class="space-y-2">
+              {backlinks.map((backlink) => (
+                <li class="list-none">
+                  <a
+                    href={`/${backlink.slug}`}
+                    class="text-theme-secondary hover:text-theme-tertiary font-medium"
+                    aria-label={backlink.data.title || backlink.slug}
+                  >
+                    {backlink.data.title || backlink.slug}
+                  </a>
+                  {backlink.data.description && (
+                    <p class="text-sm text-theme-darkgray mt-1">
+                      {backlink.data.description}
+                    </p>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </details>
+      )}
+
+      <!-- Related Notes Section -->
+      {relatedNotes.length > 0 && config.linksAndContext?.showRelated && (
+        <details class="context-section related-container" open>
+          <summary class="context-summary" aria-label={`Related Notes (${relatedNotes.length})`}>
+            <div class="flex items-center justify-between w-full">
+              <div class="flex items-center gap-3">
+                <span class="text-xl font-semibold m-0">Related Notes</span>
+                <span class="count-badge">{relatedNotes.length}</span>
+              </div>
+              <svg
+                class="chevron transition-transform duration-200"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </div>
+          </summary>
+
+          <div class="context-content">
+            <ul class="space-y-2">
+              {relatedNotes.map((related) => (
+                <li class="list-none">
+                  <div class="flex items-baseline gap-2">
+                    <a
+                      href={`/${related.note.slug}`}
+                      class="text-theme-secondary hover:text-theme-tertiary font-medium"
+                      aria-label={related.note.data.title || related.note.slug}
+                    >
+                      {related.note.data.title || related.note.slug}
+                    </a>
+                    <span class="text-xs text-theme-darkgray">- {related.reason}</span>
+                  </div>
+                  {related.note.data.description && (
+                    <p class="text-sm text-theme-darkgray mt-1">
+                      {related.note.data.description}
+                    </p>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </details>
+      )}
+    </div>
+  </details>
+)}

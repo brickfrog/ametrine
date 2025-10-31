@@ -1,0 +1,28 @@
+# Build output
+dist/
+.astro/
+
+# Dependencies
+node_modules/
+.bun-install/
+
+# Lock files
+package-lock.json
+bun.lock
+yarn.lock
+pnpm-lock.yaml
+
+# Config files
+*.config.js
+*.config.mjs
+*.config.ts
+
+# Generated files
+.vscode/
+.idea/
+.DS_Store
+
+# Workforce Assistant
+.agent-notes/
+.workspace/
+.serena/

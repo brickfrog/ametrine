@@ -1,0 +1,111 @@
+---
+import { Image } from 'astro:assets';
+import { getPublishedNotes } from '../utils/filterNotes';
+import BaseLayout from './BaseLayout.astro';
+import { Search } from '../components/react/Search';
+import { ScrollToTop } from '../components/react/ScrollToTop';
+import { MobileNav } from '../components/react/MobileNav';
+import { LinkPreviewManager } from '../components/react/LinkPreviewManager';
+import QuickActions from '../components/QuickActions.astro';
+import Explorer from '../components/Explorer.astro';
+import Divider from '../components/Divider.astro';
+import Footer from '../components/Footer.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import { MarginaliaColumn } from '../components/react/MarginaliaColumn';
+import { config } from '../config';
+
+interface Props {
+  title: string;
+  description?: string;
+  slug: string;
+  marginalia?: any[];
+  isFolder?: boolean;
+  hideBreadcrumbs?: boolean;
+}
+
+const { title, description, slug, marginalia = [], isFolder = false, hideBreadcrumbs = false } = Astro.props;
+
+// Get all notes for breadcrumb resolution
+const allNotes = await getPublishedNotes();
+---
+
+<BaseLayout title={title} description={description} slug={slug}>
+  <!-- Mobile Navigation -->
+  <MobileNav client:load>
+    <!-- Header with title -->
+    <div class="flex items-center justify-between">
+      <h1 class="text-2xl font-bold font-header text-theme-dark">
+        <a href="/" class="flex items-center gap-2 hover:text-theme-secondary transition-colors">
+          {config.logo && <Image src={config.logo} alt={config.logoAlt || config.pageTitle} width={32} height={32} loading="lazy" class="w-8 h-8" />}
+          {config.pageTitle}
+        </a>
+      </h1>
+    </div>
+
+    <div class="my-1">
+      <Search client:load />
+    </div>
+    <QuickActions />
+    <Divider />
+    <Explorer />
+    <slot name="left" />
+  </MobileNav>
+
+  <div class="flex min-h-screen bg-theme-light">
+    <!-- Left Sidebar - Desktop -->
+    <aside class="w-64 hidden lg:block bg-theme-light">
+      <div class="sticky top-0 p-6 space-y-6">
+        <!-- Header with title -->
+        <div class="flex items-center justify-between">
+          <h1 class="text-2xl font-bold font-header text-theme-dark">
+            <a href="/" class="flex items-center gap-2 hover:text-theme-secondary transition-colors">
+              {config.logo && <Image src={config.logo} alt={config.logoAlt || config.pageTitle} width={32} height={32} loading="lazy" class="w-8 h-8" />}
+              {config.pageTitle}
+            </a>
+          </h1>
+        </div>
+
+        <div class="my-1">
+          <Search client:load />
+        </div>
+        <QuickActions />
+        <Divider />
+        <Explorer />
+        <slot name="left" />
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
+      <article class:list={[!isFolder && "prose prose-lg dark:prose-invert", "max-w-none w-full min-w-0"]}>
+        {!hideBreadcrumbs && <Breadcrumbs slug={slug} allNotes={allNotes} />}
+        <slot />
+      </article>
+      <MarginaliaColumn marginalia={marginalia} client:load />
+      <Footer />
+    </main>
+
+    <!-- Right Sidebar -->
+    <aside class="w-80 hidden xl:block bg-theme-light">
+      <div class="sidebar-scroll sticky top-0 max-h-screen overflow-y-auto p-6">
+        <slot name="right" />
+      </div>
+    </aside>
+  </div>
+
+  <ScrollToTop client:load />
+  <LinkPreviewManager client:only="react" transition:persist="link-preview-manager" />
+</BaseLayout>
+
+<style>
+  /* Hide scrollbar for right sidebar while maintaining scroll functionality */
+  .sidebar-scroll {
+    /* Firefox */
+    scrollbar-width: none;
+  }
+
+  /* Webkit browsers (Chrome, Safari, Edge) */
+  .sidebar-scroll::-webkit-scrollbar {
+    display: none;
+  }
+</style>
