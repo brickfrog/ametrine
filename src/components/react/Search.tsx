@@ -1,5 +1,6 @@
 import { Search as SearchIcon, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 interface ContentDetails {
   slug: string;
@@ -86,7 +87,7 @@ export function Search() {
     );
   }
 
-  return (
+  const modalContent = (
     <div
       className="fixed inset-0 z-50 bg-black/50 flex items-start justify-center pt-[20vh]"
       onClick={() => setIsOpen(false)}
@@ -157,4 +158,8 @@ export function Search() {
       </div>
     </div>
   );
+
+  return typeof document !== "undefined"
+    ? createPortal(modalContent, document.body)
+    : null;
 }
