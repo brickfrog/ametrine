@@ -67,16 +67,16 @@
     position: relative;
   }
 
-  /* Reading mode adjustments - use flex layout to allow content centering */
+  /* Reading mode adjustments - keep marginalia, center content */
   body.reading-mode main.has-marginalia {
-    display: flex;
-    justify-content: center;
+    display: grid;
+    grid-template-columns: minmax(auto, 900px) 240px;
     gap: 2rem;
+    justify-content: center;
   }
 
   body.reading-mode main.has-marginalia > article {
-    flex-shrink: 1;
-    justify-self: unset;
+    max-width: 900px;
   }
 
   /* Marginalia column - React managed */

@@ -213,7 +213,7 @@ body.reading-mode aside {
   display: none !important;
 }
 
-body.reading-mode main {
+body.reading-mode main:not(.has-marginalia) {
   max-width: 65ch !important;
   margin: 0 auto !important;
 }
