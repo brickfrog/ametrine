@@ -28,11 +28,13 @@ A modern digital garden built with Astro, featuring wikilinks, backlinks, graph 
 ├── src/
 │   ├── components/      # Astro and React components
 │   ├── content/
-│   │   └── notes/       # Your markdown notes go here
+│   │   ├── vault/       # Your notes (.md), bases (.base), canvases (.canvas)
+│   │   └── bibliography.bib  # Citation references
 │   ├── layouts/         # Page layouts
 │   ├── pages/           # Routes and API endpoints
 │   ├── plugins/         # Remark/Rehype plugins
 │   ├── styles/          # Global CSS
+│   ├── utils/           # Utility functions
 │   └── config.ts        # Site configuration
 └── package.json
 ```
