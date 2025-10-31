@@ -503,9 +503,11 @@ Result: https://google.com
 ### Images
 
 ```markdown
-![Alt text](/ametrine.png)
+![Alt text](/ametrine/ametrine.png)
 ```
-Result: ![Alt text](/ametrine.png)
+Result:
+
+![Example image](/ametrine/ametrine.png)
 
 ### Blockquotes
 
