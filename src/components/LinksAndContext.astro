@@ -18,7 +18,7 @@ const allNotes = await getPublishedNotes();
 
 // Get cited bibliography entries
 const bibliographyEntries = config.citations?.enable
-  ? await getCitedBibliography(note.body, './bibliography.bib')
+  ? await getCitedBibliography(note.body, config.citations.bibliographyFile)
   : [];
 
 // Extract external links (merged with bibliography)
