@@ -128,7 +128,7 @@ function FileNode({ data }: { data: any }) {
       >
         {fileInfo?.type === "image" ? (
           <img
-            src={`/src/content/vault/${fileInfo.path}`}
+            src={fileInfo.path}
             className="w-full h-full object-cover block"
             alt=""
           />
