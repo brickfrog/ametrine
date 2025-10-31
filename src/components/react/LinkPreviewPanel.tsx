@@ -264,7 +264,7 @@ export function LinkPreviewPanel({
         top: position.y,
         width: size.w,
         height: size.h,
-        zIndex,
+        zIndex: isDragging || isResizing ? zIndex + 1000 : zIndex,
       }}
       onClick={() => onFocus(id)}
     >

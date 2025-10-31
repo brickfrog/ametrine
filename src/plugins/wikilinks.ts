@@ -79,7 +79,7 @@ export function wikilinks(options: WikilinkOptions = {}) {
             return value; // Leave as-is for now
           }
 
-          // Build the URL (absolute path for Astro base URL)
+          // Build the URL (absolute path for rehype plugin to rewrite)
           const [pageName, pageAnchor] = splitAnchor(`${fp}${anchor}`);
           const slug = slugify(pageName);
           const url = `/${slug}${pageAnchor}`;

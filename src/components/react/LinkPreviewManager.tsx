@@ -88,11 +88,15 @@ export function LinkPreviewManager() {
       const link = target.closest("a.internal-link") as HTMLAnchorElement;
       if (!link) return;
 
-      // Extract slug from href
+      // Extract slug from href (strip base URL if present)
       const href = link.getAttribute("href");
       if (!href) return;
 
-      const slug = href.replace(/^\//, "").replace(/#.*$/, "");
+      const baseUrl = import.meta.env.BASE_URL || "/";
+      const slug = href
+        .replace(new RegExp(`^${baseUrl.replace(/\/$/, "")}`), "")
+        .replace(/^\//, "")
+        .replace(/#.*$/, "");
       const content = contentIndex[slug];
       if (!content) return;
 

@@ -10,6 +10,7 @@ import { toc } from './src/plugins/toc.ts';
 import { highlights } from './src/plugins/highlights.ts';
 import { removeTitle } from './src/plugins/removeTitle.ts';
 import { marginalia } from './src/plugins/marginalia.ts';
+import { rehypeBaseUrl } from './src/plugins/rehype-base-url.ts';
 import remarkMath from 'remark-math';
 import remarkGfm from 'remark-gfm';
 import remarkSmartyPants from 'remark-smartypants';
@@ -83,6 +84,9 @@ export default defineConfig({
       rehypeRaw, // Process raw HTML from remark plugins AFTER callouts
       // @ts-expect-error - Rehype plugin types are incompatible with Astro's type definitions
       links,
+      // Prepend base URL to all internal links (must be after all other plugins)
+      // @ts-expect-error - Rehype plugin types are incompatible with Astro's type definitions
+      [rehypeBaseUrl, { base: '/ametrine' }], // Must match base config above
       // Citations - conditionally enabled
       // @ts-expect-error - Rehype plugin types are incompatible with Astro's type definitions
       ...(config.citations?.enable ? [

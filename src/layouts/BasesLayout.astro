@@ -1,5 +1,4 @@
 ---
-import { Image } from 'astro:assets';
 import { getPublishedNotes } from '../utils/filterNotes';
 import BaseLayout from './BaseLayout.astro';
 import { Search } from '../components/react/Search';
@@ -35,7 +34,7 @@ const logoSrc = logoPath ? `${basePath}/${logoPath}` : undefined;
     <div class="flex items-center justify-between">
       <h1 class="text-2xl font-bold font-header text-theme-dark">
         <a href={baseHref} class="flex items-center gap-2 hover:text-theme-secondary transition-colors">
-          {logoSrc && <Image src={logoSrc} alt={config.logoAlt || config.pageTitle} width={32} height={32} loading="lazy" class="w-8 h-8" />}
+          {logoSrc && <img src={logoSrc} alt={config.logoAlt || config.pageTitle} width="32" height="32" loading="lazy" class="w-8 h-8" />}
           {config.pageTitle}
         </a>
       </h1>
@@ -54,7 +53,7 @@ const logoSrc = logoPath ? `${basePath}/${logoPath}` : undefined;
         <div class="flex items-center justify-between">
           <h1 class="text-2xl font-bold font-header text-theme-dark">
             <a href={baseHref} class="flex items-center gap-2 hover:text-theme-secondary transition-colors">
-              {logoSrc && <Image src={logoSrc} alt={config.logoAlt || config.pageTitle} width={32} height={32} loading="lazy" class="w-8 h-8" />}
+              {logoSrc && <img src={logoSrc} alt={config.logoAlt || config.pageTitle} width="32" height="32" loading="lazy" class="w-8 h-8" />}
               {config.pageTitle}
             </a>
           </h1>

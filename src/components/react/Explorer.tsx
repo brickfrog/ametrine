@@ -19,28 +19,6 @@ interface ExplorerProps {
 
 type FullSlug = string;
 
-function resolveRelative(current: string, target: string): string {
-  const currentParts = current.split("/").filter(Boolean);
-  const targetParts = target.split("/").filter(Boolean);
-
-  let commonLength = 0;
-  while (
-    commonLength < currentParts.length &&
-    commonLength < targetParts.length &&
-    currentParts[commonLength] === targetParts[commonLength]
-  ) {
-    commonLength++;
-  }
-
-  const upLevels = currentParts.length - commonLength;
-  const relativeParts = [
-    ...Array(upLevels).fill(".."),
-    ...targetParts.slice(commonLength),
-  ];
-
-  return "/" + (relativeParts.length ? relativeParts.join("/") : "");
-}
-
 function simplifySlug(slug: string): string {
   return slug.replace(/\/index$/, "");
 }
@@ -56,8 +34,8 @@ function FileNode({ node, currentSlug }: FileNodeProps) {
   const isCanvas = node.data?.type === "canvas";
   const href =
     (isBase || isImage || isCanvas) && node.data?.links?.[0]
-      ? `/${node.data.links[0]}`
-      : resolveRelative(currentSlug, node.slug);
+      ? `${import.meta.env.BASE_URL}/${node.data.links[0]}`
+      : `${import.meta.env.BASE_URL}/${node.slug}`;
   const isActive =
     currentSlug === node.slug || currentSlug === simplifySlug(node.slug);
 
@@ -133,7 +111,7 @@ function FolderNode({
   const FolderContent =
     behavior === "link" ? (
       <a
-        href={resolveRelative(currentSlug, folderLinkPath)}
+        href={`${import.meta.env.BASE_URL}/${folderLinkPath}`}
         data-for={folderLinkPath}
         className="text-theme-secondary font-header text-[0.95rem] font-semibold leading-6 inline-block no-underline hover:text-theme-tertiary"
       >

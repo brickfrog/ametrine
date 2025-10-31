@@ -62,7 +62,7 @@ const crumbs: Crumb[] = [];
 // Add root
 crumbs.push({
   displayName: breadcrumbsConfig.rootName,
-  path: '/',
+  path: import.meta.env.BASE_URL || '/',
 });
 
 // Build intermediate crumbs
@@ -92,7 +92,7 @@ for (let i = 0; i < slugParts.length; i++) {
   }
 
   // For last crumb (current page), no link
-  const path = isLast ? '' : `/${pathSoFar}`;
+  const path = isLast ? '' : `${import.meta.env.BASE_URL}/${pathSoFar}`;
 
   crumbs.push({
     displayName,
