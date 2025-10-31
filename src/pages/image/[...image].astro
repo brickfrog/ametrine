@@ -25,7 +25,7 @@ export async function getStaticPaths() {
     const extension = file.split('.').pop()?.toLowerCase() || '';
 
     // Import the image
-    const images = import.meta.glob('/src/content/vault/*.{png,jpg,jpeg,webp,gif,svg,avif}');
+    const images = import.meta.glob<{ default: ImageMetadata }>('/src/content/vault/*.{png,jpg,jpeg,webp,gif,svg,avif}');
     const imagePath = `/src/content/vault/${file}`;
     const imageModule = await images[imagePath]();
 
@@ -37,7 +37,7 @@ export async function getStaticPaths() {
         fileName: file,
         nameWithoutExt,
         extension,
-        imageModule,
+        imageModule: imageModule.default,
       },
     };
   }));
@@ -51,7 +51,7 @@ const pageTitle = nameWithoutExt;
 const pageDescription = `Image: ${fileName}`;
 
 // Get optimized image
-const optimizedImage = await getImage({ src: imageModule.default });
+const optimizedImage = await getImage({ src: imageModule });
 ---
 
 <ContentLayout
