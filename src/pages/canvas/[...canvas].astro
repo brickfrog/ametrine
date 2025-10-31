@@ -9,6 +9,8 @@ import { parse as parseYaml } from 'yaml';
 import type { CanvasData } from '../../pages/static/contentIndex.json';
 import { findNoteByPath, isImageExtension } from '../../utils/canvas';
 import { config } from '../../config';
+import { imageMap } from '../../utils/imageMap';
+import { getImage } from 'astro:assets';
 
 export async function getStaticPaths() {
   // Check if canvas feature is enabled
@@ -91,10 +93,23 @@ for (const node of canvasData.nodes || []) {
       fileData[node.id] = { type: 'not-found', path: filePath };
     }
   } else if (isImageExtension(filePath)) {
-    // Image file
+    // Image file - process to get optimized URL
+    const fileName = filePath.split('/').pop() || filePath;
+    const imageMetadata = imageMap.get(fileName);
+    let imageUrl = filePath; // fallback to original path
+
+    if (imageMetadata) {
+      try {
+        const optimized = await getImage({ src: imageMetadata });
+        imageUrl = optimized.src;
+      } catch (error) {
+        console.error(`Failed to optimize image ${fileName}:`, error);
+      }
+    }
+
     fileData[node.id] = {
       type: 'image',
-      path: filePath,
+      path: imageUrl,
     };
   } else {
     // Unknown file type
