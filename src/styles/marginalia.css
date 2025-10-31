@@ -53,7 +53,7 @@
 /* Desktop: Dedicated marginalia column aligned to text */
 @media (min-width: 1640px) {
   /* Main content needs wrapper for marginalia column - only when marginalia exists */
-  main:has(.marginalia-column-react:not(:empty)) {
+  main.has-marginalia {
     position: relative;
     display: grid;
     grid-template-columns: 1fr 240px;
@@ -61,20 +61,20 @@
     max-width: none !important;
   }
 
-  main:has(.marginalia-column-react:not(:empty)) > article {
+  main.has-marginalia > article {
     max-width: 900px;
     justify-self: end;
     position: relative;
   }
 
   /* Reading mode adjustments - use flex layout to allow content centering */
-  body.reading-mode main:has(.marginalia-column-react:not(:empty)) {
+  body.reading-mode main.has-marginalia {
     display: flex;
     justify-content: center;
     gap: 2rem;
   }
 
-  body.reading-mode main:has(.marginalia-column-react:not(:empty)) > article {
+  body.reading-mode main.has-marginalia > article {
     flex-shrink: 1;
     justify-self: unset;
   }

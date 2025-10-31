@@ -81,7 +81,7 @@ const logoSrc = logoPath ? `${basePath}/${logoPath}` : undefined;
     </aside>
 
     <!-- Main Content -->
-    <main class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
+    <main class:list={["flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full", marginalia && marginalia.length > 0 && "has-marginalia"]}>
       <article class:list={[!isFolder && "prose prose-lg dark:prose-invert", "max-w-none w-full min-w-0"]}>
         {!hideBreadcrumbs && <Breadcrumbs slug={slug} allNotes={allNotes} />}
         <slot />
