@@ -219,7 +219,9 @@ export function Explorer({
 
       // Fetch content index
       try {
-        const response = await fetch(`${import.meta.env.BASE_URL}/static/contentIndex.json`);
+        const response = await fetch(
+          `${import.meta.env.BASE_URL}/static/contentIndex.json`,
+        );
         const data: Record<string, ContentDetails> = await response.json();
         const entries = Object.entries(data) as [FullSlug, ContentDetails][];
         const trieNode = FileTrieNode.fromEntries(entries);
