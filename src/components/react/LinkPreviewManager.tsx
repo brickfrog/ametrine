@@ -65,7 +65,7 @@ export function LinkPreviewManager() {
 
   // Load content index
   useEffect(() => {
-    fetch("/static/contentIndex.json")
+    fetch(`${import.meta.env.BASE_URL}/static/contentIndex.json`)
       .then((res) => res.json())
       .then((data) => {
         setContentIndex(data);
@@ -211,7 +211,7 @@ export function LinkPreviewManager() {
         htmlContent = contentCacheRef.current.get(slug);
       } else {
         try {
-          const response = await fetch(`/${slug}`);
+          const response = await fetch(`${import.meta.env.BASE_URL}/${slug}`);
           if (response.ok) {
             const html = await response.text();
             const parser = new DOMParser();

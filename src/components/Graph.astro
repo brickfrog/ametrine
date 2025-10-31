@@ -151,7 +151,7 @@ const { currentSlug } = Astro.props;
 
   async function loadGraphData(): Promise<GraphData> {
     try {
-      const response = await fetch('/static/contentIndex.json');
+      const response = await fetch(`${import.meta.env.BASE_URL}/static/contentIndex.json`);
       if (!response.ok) {
         console.warn('Content index not found - graph will be empty');
         return { nodes: [], links: [] };
@@ -435,7 +435,7 @@ const { currentSlug } = Astro.props;
 
     // Make nodes clickable
     node.on('click', (_event: any, d: any) => {
-      window.location.href = `/${d.id}`;
+      window.location.href = `${import.meta.env.BASE_URL}/${d.id}`;
     });
 
     // Add zoom behavior

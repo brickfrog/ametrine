@@ -289,7 +289,7 @@ export const config: SiteConfig = {
   pageTitle: "Ametrine",
   pageTitleSuffix: "",
   defaultDescription: "A digital garden built with Ametrine",
-  logo: "/ametrine.png",
+  logo: "ametrine.png",
   logoAlt: "Ametrine",
   enableSPA: true,
   enablePopovers: true,

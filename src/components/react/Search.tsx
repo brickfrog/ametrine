@@ -29,7 +29,7 @@ export function Search() {
 
     // Fetch if no cache or cache failed
     if (!cached || !allNotes.length) {
-      fetch("/static/contentIndex.json")
+      fetch(`${import.meta.env.BASE_URL}/static/contentIndex.json`)
         .then((res) => res.json())
         .then((data: Record<string, ContentDetails>) => {
           const notes = Object.values(data);

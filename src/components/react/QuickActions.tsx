@@ -64,12 +64,12 @@ export function QuickActions({ allSlugs = [] }: QuickActionsProps) {
   const handleRandomArticle = () => {
     if (allSlugs.length > 0) {
       const randomSlug = allSlugs[Math.floor(Math.random() * allSlugs.length)];
-      window.location.href = `/${randomSlug}`;
+      window.location.href = `${import.meta.env.BASE_URL}/${randomSlug}`;
     }
   };
 
   const handleActivityPage = () => {
-    window.location.href = "/stats";
+    window.location.href = `${import.meta.env.BASE_URL}/stats`;
   };
 
   return (

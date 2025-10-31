@@ -62,13 +62,13 @@ if (socialImage) {
     <link rel="canonical" href={config.baseUrl ? `${config.baseUrl}${Astro.url.pathname}` : Astro.url.pathname} />
 
     <!-- Favicons -->
-    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-    <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png" />
-    <link rel="icon" type="image/png" sizes="512x512" href="/favicon-512.png" />
-    <link rel="apple-touch-icon" sizes="512x512" href="/favicon-512.png" />
+    <link rel="icon" type="image/x-icon" href={`${import.meta.env.BASE_URL}/favicon.ico`} />
+    <link rel="icon" type="image/png" sizes="192x192" href={`${import.meta.env.BASE_URL}/favicon-192.png`} />
+    <link rel="icon" type="image/png" sizes="512x512" href={`${import.meta.env.BASE_URL}/favicon-512.png`} />
+    <link rel="apple-touch-icon" sizes="512x512" href={`${import.meta.env.BASE_URL}/favicon-512.png`} />
 
     <!-- RSS Feed -->
-    <link rel="alternate" type="application/rss+xml" title={`${config.pageTitle} RSS Feed`} href="/rss.xml" />
+    <link rel="alternate" type="application/rss+xml" title={`${config.pageTitle} RSS Feed`} href={`${import.meta.env.BASE_URL}/rss.xml`} />
 
     <!-- View Transitions for SPA-like navigation -->
     <ClientRouter />
