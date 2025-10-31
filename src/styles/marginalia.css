@@ -56,27 +56,20 @@
   main.has-marginalia {
     position: relative;
     display: grid;
-    grid-template-columns: 1fr 240px;
+    grid-template-columns: minmax(auto, 900px) 240px;
     gap: 2rem;
     max-width: none !important;
+    justify-content: center;
   }
 
   main.has-marginalia > article {
     max-width: 900px;
-    justify-self: end;
     position: relative;
   }
 
-  /* Reading mode adjustments - keep marginalia, center content */
+  /* Reading mode - same layout, just hide sidebars */
   body.reading-mode main.has-marginalia {
-    display: grid;
-    grid-template-columns: minmax(auto, 900px) 240px;
-    gap: 2rem;
-    justify-content: center;
-  }
-
-  body.reading-mode main.has-marginalia > article {
-    max-width: 900px;
+    /* Inherits from above */
   }
 
   /* Marginalia column - React managed */
