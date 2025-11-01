@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { BookOpen, Shuffle, X, Moon, Sun, BarChart3 } from "lucide-react";
+import { BookOpen, Shuffle, X, Moon, Sun, BarChart3, Type } from "lucide-react";
 import { useStore } from "@nanostores/react";
 import { isReadingMode } from "../../stores/readingMode";
+import { fontScale } from "../../stores/fontScale";
 
 interface QuickActionsProps {
   allSlugs?: string[];
@@ -10,7 +11,9 @@ interface QuickActionsProps {
 
 export function QuickActions({ allSlugs = [] }: QuickActionsProps) {
   const readingMode = useStore(isReadingMode);
+  const currentFontScale = useStore(fontScale);
   const [mounted, setMounted] = useState(false);
+  const [showFontMenu, setShowFontMenu] = useState(false);
   // Initialize from DOM state (set by inline script) to prevent flash
   const [theme, setTheme] = useState<"light" | "dark">(() => {
     if (typeof document !== "undefined") {
@@ -72,6 +75,18 @@ export function QuickActions({ allSlugs = [] }: QuickActionsProps) {
     window.location.href = `${import.meta.env.BASE_URL}/stats`;
   };
 
+  const changeFontScale = (newScale: number) => {
+    fontScale.set(newScale);
+    setShowFontMenu(false);
+  };
+
+  const fontSizes = [
+    { label: "A-", value: 0.875, title: "Small" },
+    { label: "A", value: 1.0, title: "Normal" },
+    { label: "A+", value: 1.125, title: "Large" },
+    { label: "A++", value: 1.25, title: "Extra Large" },
+  ];
+
   return (
     <>
       <div className="flex gap-2 quick-actions">
@@ -84,6 +99,36 @@ export function QuickActions({ allSlugs = [] }: QuickActionsProps) {
           <Moon size={18} className="dark:hidden" />
           <Sun size={18} className="hidden dark:block" />
         </button>
+        <div className="relative">
+          <button
+            onClick={() => setShowFontMenu(!showFontMenu)}
+            className="flex items-center justify-center w-9 h-9 rounded-md hover:bg-theme-lightgray text-theme-dark transition-colors"
+            title="Adjust font size"
+          >
+            <Type size={18} />
+          </button>
+          {showFontMenu && (
+            <div className="absolute top-full mt-2 left-0 bg-theme-light border border-theme-gray rounded-lg shadow-xl p-2 z-50 min-w-[160px]">
+              {fontSizes.map((size) => (
+                <button
+                  key={size.value}
+                  onClick={() => changeFontScale(size.value)}
+                  className={`w-full text-left px-3 py-2 rounded-md transition-colors flex items-center justify-between ${
+                    currentFontScale === size.value
+                      ? "bg-theme-highlight text-theme-secondary font-semibold"
+                      : "text-theme-dark hover:bg-theme-lightgray"
+                  }`}
+                  title={size.title}
+                >
+                  <span className="font-mono text-base">{size.label}</span>
+                  <span className="text-xs text-theme-darkgray">
+                    {size.title}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
         <button
           onClick={toggleReadingMode}
           className="flex items-center justify-center w-9 h-9 rounded-md hover:bg-theme-lightgray text-theme-dark transition-colors"

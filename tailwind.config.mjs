@@ -257,7 +257,7 @@ export default {
         },
         lg: {
           css: {
-            fontSize: '1.125rem',
+            fontSize: 'calc(1.125rem * var(--font-scale, 1))',
             lineHeight: '1.75',
 
             h1: {

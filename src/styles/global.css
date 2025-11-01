@@ -7,6 +7,8 @@
   /* Better defaults */
   html {
     @apply antialiased;
+    /* Font scale controlled by user preference */
+    --font-scale: 1.0;
   }
 
   body {
@@ -15,6 +17,7 @@
     color: var(--color-dark);
     overflow-x: hidden;
   }
+
 
   /* Scroll margin for anchor links (headings, marginalia, etc.) */
   h1, h2, h3, h4, h5, h6 {
