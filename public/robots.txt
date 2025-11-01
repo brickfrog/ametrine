@@ -1,6 +1,0 @@
-# Robots.txt for Ametrine
-User-agent: *
-Allow: /
-
-# Sitemap
-Sitemap: https://yoursite.com/sitemap-index.xml
