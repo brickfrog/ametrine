@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState, useLayoutEffect } from "react";
+import { useEffect, useRef, useState, useLayoutEffect, memo } from "react";
 import { MARGINALIA, TIMING } from "../../constants/spacing";
 
-interface MarginaliaEntry {
+export interface MarginaliaEntry {
   id: number;
   content: string;
   html: string;
@@ -18,7 +18,9 @@ interface PositionedNote {
   top: number;
 }
 
-export function MarginaliaManager({ marginalia }: Props) {
+export const MarginaliaManager = memo(function MarginaliaManager({
+  marginalia,
+}: Props) {
   const [positions, setPositions] = useState<PositionedNote[]>([]);
   const columnRef = useRef<HTMLDivElement>(null);
 
@@ -124,9 +126,15 @@ export function MarginaliaManager({ marginalia }: Props) {
       });
     };
 
-    // Use ResizeObserver for more efficient updates
+    // Use ResizeObserver with debouncing for more efficient updates
+    let debounceTimer: NodeJS.Timeout | null = null;
     const resizeObserver = new ResizeObserver(() => {
-      calculatePositions();
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+      debounceTimer = setTimeout(() => {
+        calculatePositions();
+      }, 150); // Debounce by 150ms
     });
 
     // Observe the article element
@@ -144,6 +152,9 @@ export function MarginaliaManager({ marginalia }: Props) {
     const timeoutId = setTimeout(waitForImages, TIMING.MARGINALIA_RENDER_DELAY);
 
     return () => {
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
       resizeObserver.disconnect();
       clearTimeout(timeoutId);
     };
@@ -253,4 +264,4 @@ export function MarginaliaManager({ marginalia }: Props) {
       ))}
     </div>
   );
-}
+});

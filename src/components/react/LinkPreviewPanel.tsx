@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, memo } from "react";
 import { ExternalLink, Pin, Maximize, Minimize, X } from "lucide-react";
 import { config } from "../../config";
 import { LINK_PREVIEW } from "../../constants/spacing";
@@ -31,7 +31,7 @@ interface LinkPreviewPanelProps extends LinkPreviewData {
   onFocus: (id: string) => void;
 }
 
-export function LinkPreviewPanel({
+export const LinkPreviewPanel = memo(function LinkPreviewPanel({
   id,
   title,
   url,
@@ -355,4 +355,4 @@ export function LinkPreviewPanel({
       />
     </div>
   );
-}
+});

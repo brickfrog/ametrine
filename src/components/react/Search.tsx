@@ -1,8 +1,8 @@
 import { Search as SearchIcon, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
 
-interface ContentDetails {
+export interface ContentDetails {
   slug: string;
   title: string;
   links: string[];
@@ -15,21 +15,26 @@ export function Search() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<ContentDetails[]>([]);
   const [allNotes, setAllNotes] = useState<ContentDetails[]>([]);
+  const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Load data: try cache first, then fetch
+    let needsFetch = true;
     const cached = localStorage.getItem("search-notes");
     if (cached) {
       try {
-        setAllNotes(JSON.parse(cached));
+        const notes = JSON.parse(cached);
+        if (notes && notes.length > 0) {
+          setAllNotes(notes);
+          needsFetch = false;
+        }
       } catch {
         console.warn("Failed to parse cached search notes");
-        // Fall through to fetch if cache is corrupted
       }
     }
 
     // Fetch if no cache or cache failed
-    if (!cached || !allNotes.length) {
+    if (needsFetch) {
       fetch(`${import.meta.env.BASE_URL}/static/contentIndex.json`)
         .then((res) => res.json())
         .then((data: Record<string, ContentDetails>) => {
@@ -39,8 +44,10 @@ export function Search() {
         })
         .catch((err) => console.error("Failed to load content index:", err));
     }
+  }, []);
 
-    // Keyboard shortcut: Cmd+K or Ctrl+K (always register, regardless of cache)
+  useEffect(() => {
+    // Keyboard shortcut: Cmd+K or Ctrl+K
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
@@ -54,6 +61,43 @@ export function Search() {
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
+
+  // Focus trap
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const modal = modalRef.current;
+    if (!modal) return;
+
+    const focusableElements = modal.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    );
+    const firstFocusable = focusableElements[0] as HTMLElement;
+    const lastFocusable = focusableElements[
+      focusableElements.length - 1
+    ] as HTMLElement;
+
+    const handleTab = (e: KeyboardEvent) => {
+      if (e.key !== "Tab") return;
+
+      if (e.shiftKey) {
+        // Shift+Tab
+        if (document.activeElement === firstFocusable) {
+          e.preventDefault();
+          lastFocusable.focus();
+        }
+      } else {
+        // Tab
+        if (document.activeElement === lastFocusable) {
+          e.preventDefault();
+          firstFocusable.focus();
+        }
+      }
+    };
+
+    modal.addEventListener("keydown", handleTab);
+    return () => modal.removeEventListener("keydown", handleTab);
+  }, [isOpen, results]);
 
   useEffect(() => {
     if (!query.trim()) {
@@ -93,6 +137,7 @@ export function Search() {
       onClick={() => setIsOpen(false)}
     >
       <div
+        ref={modalRef}
         className="bg-theme-light rounded-lg shadow-2xl w-full max-w-2xl border border-theme-gray"
         onClick={(e) => e.stopPropagation()}
       >

@@ -14,16 +14,23 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import type { CanvasData } from "../../pages/static/contentIndex.json";
+import type { Note } from "../../utils/filterNotes";
+import type { BaseView } from "../../utils/bases/types";
 import { getCanvasColor } from "../../utils/canvas";
 import { TableView } from "./TableView";
 
 interface FileNodeData {
   type: "note" | "base" | "image" | "not-found";
-  note?: any;
+  note?: Note;
   baseName?: string;
-  view?: any;
-  notes?: any[];
+  view?: BaseView;
+  notes?: Note[];
   path?: string;
+}
+
+interface TextNodeData {
+  text: string;
+  color?: string;
 }
 
 interface CanvasViewerProps {
@@ -33,7 +40,7 @@ interface CanvasViewerProps {
 }
 
 // Custom node component for text nodes
-function TextNode({ data }: { data: any }) {
+function TextNode({ data }: { data: TextNodeData }) {
   const color = getCanvasColor(data.color);
   return (
     <>
@@ -99,8 +106,14 @@ function NotePreview({ slug }: { slug: string }) {
   );
 }
 
+interface FileNodeProps {
+  color?: string;
+  fileData: FileNodeData;
+  file: string;
+}
+
 // Custom node component for file nodes
-function FileNode({ data }: { data: any }) {
+function FileNode({ data }: { data: FileNodeProps }) {
   const color = getCanvasColor(data.color);
   const fileInfo = data.fileData;
 
@@ -136,7 +149,7 @@ function FileNode({ data }: { data: any }) {
             {fileInfo?.type === "note" && fileInfo.note?.slug && (
               <NotePreview slug={fileInfo.note.slug} />
             )}
-            {fileInfo?.type === "base" && (
+            {fileInfo?.type === "base" && fileInfo.view && (
               <div className="min-w-max canvas-base-table">
                 <style>{`
                   .canvas-base-table table {
@@ -201,7 +214,7 @@ export function CanvasViewer({
       ? getCanvasColor(edge.color)
       : "var(--color-dark)";
 
-    const edgeConfig: any = {
+    const edgeConfig: Edge = {
       id: edge.id,
       source: edge.fromNode,
       target: edge.toNode,
@@ -219,11 +232,8 @@ export function CanvasViewer({
         width: 20,
         height: 20,
       },
+      label: edge.label,
     };
-
-    if (edge.label) {
-      edgeConfig.label = edge.label;
-    }
 
     return edgeConfig;
   });

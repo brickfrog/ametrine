@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { LinkPreviewPanel, type LinkPreviewData } from "./LinkPreviewPanel";
 import type { ContentDetails } from "../../pages/static/contentIndex.json";
 import { config } from "../../config";
@@ -291,7 +291,7 @@ export function LinkPreviewManager() {
     setPanels((prev) => new Map(prev).set(slug, newPanel));
   };
 
-  const handleClose = (id: string) => {
+  const handleClose = useCallback((id: string) => {
     // Clear any pending timeout for this panel
     if (hoverTimeoutRef.current[id]) {
       clearTimeout(hoverTimeoutRef.current[id]);
@@ -303,13 +303,13 @@ export function LinkPreviewManager() {
       next.delete(id);
       return next;
     });
-  };
+  }, []);
 
-  const handleOpenInNewTab = (url: string) => {
+  const handleOpenInNewTab = useCallback((url: string) => {
     window.open(url, "_blank", "noopener,noreferrer");
-  };
+  }, []);
 
-  const handlePinChange = (id: string, pinned: boolean) => {
+  const handlePinChange = useCallback((id: string, pinned: boolean) => {
     setPanels((prev) => {
       const next = new Map(prev);
       const panel = next.get(id);
@@ -318,44 +318,53 @@ export function LinkPreviewManager() {
       }
       return next;
     });
-  };
+  }, []);
 
-  const handleMove = (id: string, pos: { x: number; y: number }) => {
-    setPanels((prev) => {
-      const next = new Map(prev);
-      const panel = next.get(id);
-      if (panel) {
-        next.set(id, { ...panel, position: pos });
-      }
-      return next;
-    });
-  };
+  const handleMove = useCallback(
+    (id: string, pos: { x: number; y: number }) => {
+      setPanels((prev) => {
+        const next = new Map(prev);
+        const panel = next.get(id);
+        if (panel) {
+          next.set(id, { ...panel, position: pos });
+        }
+        return next;
+      });
+    },
+    [],
+  );
 
-  const handleResize = (id: string, size: { w: number; h: number }) => {
-    setPanels((prev) => {
-      const next = new Map(prev);
-      const panel = next.get(id);
-      if (panel) {
-        next.set(id, { ...panel, size });
-      }
-      return next;
-    });
-  };
+  const handleResize = useCallback(
+    (id: string, size: { w: number; h: number }) => {
+      setPanels((prev) => {
+        const next = new Map(prev);
+        const panel = next.get(id);
+        if (panel) {
+          next.set(id, { ...panel, size });
+        }
+        return next;
+      });
+    },
+    [],
+  );
 
-  const handleFocus = (id: string) => {
-    setPanels((prev) => {
-      const next = new Map(prev);
-      const panel = next.get(id);
-      if (panel) {
-        const newZIndex = highestZIndex + 1;
-        setHighestZIndex(newZIndex);
-        next.set(id, { ...panel, zIndex: newZIndex });
-      }
-      return next;
-    });
-  };
+  const handleFocus = useCallback(
+    (id: string) => {
+      setPanels((prev) => {
+        const next = new Map(prev);
+        const panel = next.get(id);
+        if (panel) {
+          const newZIndex = highestZIndex + 1;
+          setHighestZIndex(newZIndex);
+          next.set(id, { ...panel, zIndex: newZIndex });
+        }
+        return next;
+      });
+    },
+    [highestZIndex],
+  );
 
-  const handleMinimizeChange = (id: string, minimized: boolean) => {
+  const handleMinimizeChange = useCallback((id: string, minimized: boolean) => {
     setPanels((prev) => {
       const next = new Map(prev);
       const panel = next.get(id);
@@ -410,7 +419,7 @@ export function LinkPreviewManager() {
 
       return next;
     });
-  };
+  }, []);
 
   return (
     <>
