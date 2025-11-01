@@ -1,0 +1,249 @@
+/* Graph Component Styles */
+
+.graph {
+  width: 100%;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.graph-outer {
+  border-radius: var(--tw-border-radius, 5px);
+  border: 1px solid var(--color-gray);
+  box-sizing: border-box;
+  height: 250px; /* Fixed height for embedded view */
+  position: relative;
+  overflow: hidden;
+}
+
+.graph-container {
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+}
+
+.graph-container:active {
+  cursor: grabbing;
+}
+
+.global-graph-icon {
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: var(--color-dark);
+  opacity: 0.5;
+  width: 24px; /* GRAPH.ICON_SIZE */
+  height: 24px; /* GRAPH.ICON_SIZE */
+  position: absolute;
+  padding: 0.2rem; /* GRAPH.ICON_PADDING */
+  margin: 0.3rem; /* GRAPH.ICON_MARGIN */
+  top: 0;
+  right: 0;
+  border-radius: 4px; /* GRAPH.BORDER_RADIUS */
+  background-color: transparent;
+  transition: background-color 0.3s ease, opacity 0.3s ease;
+}
+
+.global-graph-icon:hover {
+  background-color: var(--color-lightgray);
+  opacity: 1;
+}
+
+.global-graph-outer {
+  position: fixed;
+  z-index: 500;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  backdrop-filter: blur(4px);
+  background-color: rgba(0, 0, 0, 0.3);
+  display: none;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.global-graph-outer.active {
+  display: block;
+}
+
+.global-graph-container {
+  border: 1px solid var(--color-gray);
+  background-color: var(--color-light);
+  border-radius: 5px;
+  box-sizing: border-box;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  height: 80vh; /* GRAPH.GLOBAL_HEIGHT_VW */
+  width: 80vw; /* GRAPH.GLOBAL_WIDTH_VW */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.graph-canvas {
+  flex: 1;
+  width: 100%;
+  cursor: grab;
+  overflow: hidden;
+}
+
+.graph-canvas:active {
+  cursor: grabbing;
+}
+
+:global(.nodes circle) {
+  cursor: pointer;
+}
+
+:global(.nodes circle:hover) {
+  fill: var(--color-tertiary);
+}
+
+:global(.nodes text) {
+  pointer-events: none;
+  user-select: none;
+}
+
+@media (max-width: 1024px) {
+  .global-graph-container {
+    width: 90vw; /* GRAPH.GLOBAL_WIDTH_VW_MOBILE */
+    height: 90vh; /* GRAPH.GLOBAL_HEIGHT_VW_MOBILE */
+  }
+}
+
+/* Time Controls */
+.time-controls {
+  padding: 8px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.time-control-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  justify-content: center;
+}
+
+.time-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.time-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--color-darkgray);
+  cursor: pointer;
+  user-select: none;
+  opacity: 0.8;
+}
+
+.time-label input[type="radio"],
+.time-label input[type="checkbox"] {
+  cursor: pointer;
+}
+
+.time-slider {
+  flex: 1;
+  height: 6px;
+  background: var(--color-lightgray);
+  border-radius: 3px;
+  outline: none;
+  -webkit-appearance: none;
+}
+
+.time-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--color-secondary);
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.time-slider::-webkit-slider-thumb:hover {
+  background: var(--color-tertiary);
+}
+
+.time-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--color-secondary);
+  cursor: pointer;
+  border: none;
+  transition: background 0.2s ease;
+}
+
+.time-slider::-moz-range-thumb:hover {
+  background: var(--color-tertiary);
+}
+
+.time-date-label {
+  font-size: 11px;
+  color: var(--color-gray);
+  min-width: 80px;
+  text-align: center;
+  opacity: 0.7;
+}
+
+.time-current-date {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-secondary);
+  min-width: 100px;
+  text-align: center;
+  opacity: 0.9;
+}
+
+.time-button {
+  padding: 4px 12px;
+  background-color: transparent;
+  color: var(--color-secondary);
+  border: 1px solid var(--color-secondary);
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  opacity: 0.8;
+}
+
+.time-button:hover {
+  background-color: var(--color-secondary);
+  color: var(--color-light);
+  opacity: 1;
+}
+
+@media (max-width: 768px) {
+  .time-controls {
+    padding: 10px 16px;
+    gap: 8px;
+  }
+
+  .time-control-row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .time-label {
+    font-size: 12px;
+  }
+
+  .time-date-label {
+    min-width: 60px;
+  }
+}

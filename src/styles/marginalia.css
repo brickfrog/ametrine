@@ -53,11 +53,12 @@
 /* Desktop: Dedicated marginalia column aligned to text */
 @media (min-width: 1640px) {
   /* Main content needs wrapper for marginalia column - only when marginalia exists */
+  /* Override Tailwind Typography prose max-width when marginalia is present */
   main.has-marginalia {
     display: grid;
     grid-template-columns: minmax(auto, 900px) 240px;
     gap: 2rem;
-    max-width: none !important;
+    max-width: none !important; /* Required to override .prose max-width */
     justify-content: center;
   }
 
@@ -166,15 +167,15 @@
   }
 }
 
-/* Hide desktop marginalia on smaller screens */
+/* Hide desktop marginalia on smaller screens (override grid layout) */
 @media (max-width: 1639px) {
   .marginalia-content {
-    display: none !important;
+    display: none !important; /* Required to hide marginalia column in grid layout */
   }
 
   .marginalia-column,
   .marginalia-column-react {
-    display: none !important;
+    display: none !important; /* Required to hide marginalia column in grid layout */
   }
 }
 

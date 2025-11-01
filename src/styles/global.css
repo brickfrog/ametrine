@@ -49,8 +49,9 @@ a.external:hover {
   margin: 1.5rem 0;
 }
 
+/* Override expressive-code library default z-index */
 .expressive-code .frame .header {
-  z-index: 0 !important;
+  z-index: 0 !important; /* Required to override library inline styles */
 }
 
 /* Inline code */
@@ -77,9 +78,10 @@ a.external:hover {
   overflow: hidden;
 }
 
+/* Override inline styles from React when panel is minimized */
 .lp-panel.minimized {
-  width: 200px !important;
-  height: auto !important;
+  width: 200px !important; /* Required to override React inline styles */
+  height: auto !important; /* Required to override React inline styles */
   cursor: pointer;
 }
 
@@ -209,9 +211,10 @@ a.external:hover {
   border-color: transparent transparent var(--color-gray) transparent;
 }
 
+/* Mobile responsive override for link preview panels */
 @media (max-width: 1024px) {
   .lp-panel:not(.minimized) {
-    width: 90vw !important;
+    width: 90vw !important; /* Required to override React inline width on mobile */
   }
 }
 
@@ -340,13 +343,13 @@ body.dark .callout-content {
   color: var(--color-light);
 }
 
-/* Mermaid diagram text styling */
+/* Override Mermaid library SVG text colors for theme consistency */
 .mermaid .messageText {
-  fill: var(--color-dark) !important;
+  fill: var(--color-dark) !important; /* Required to override Mermaid SVG defaults */
 }
 
 body.dark .mermaid .messageText {
-  fill: var(--color-light) !important;
+  fill: var(--color-light) !important; /* Required to override Mermaid SVG defaults */
 }
 
 /* Citations & Bibliography */
