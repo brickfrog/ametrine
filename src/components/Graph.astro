@@ -651,7 +651,7 @@ const { currentSlug } = Astro.props;
 
   .global-graph-outer {
     position: fixed;
-    z-index: 9999;
+    z-index: 99999;
     left: 0;
     top: 0;
     width: 100vw;
@@ -660,6 +660,7 @@ const { currentSlug } = Astro.props;
     background-color: rgba(0, 0, 0, 0.3);
     display: none;
     overflow: hidden;
+    isolation: isolate;
   }
 
   .global-graph-outer.active {

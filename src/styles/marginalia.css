@@ -54,7 +54,6 @@
 @media (min-width: 1640px) {
   /* Main content needs wrapper for marginalia column - only when marginalia exists */
   main.has-marginalia {
-    position: relative;
     display: grid;
     grid-template-columns: minmax(auto, 900px) 240px;
     gap: 2rem;
@@ -64,7 +63,6 @@
 
   main.has-marginalia > article {
     max-width: 900px;
-    position: relative;
   }
 
   /* Reading mode - same layout, just hide sidebars */
@@ -77,7 +75,7 @@
     position: relative;
     width: 100%;
     min-height: 100vh;
-    z-index: 1;
+    z-index: auto;
   }
 
   .marginalia-note {

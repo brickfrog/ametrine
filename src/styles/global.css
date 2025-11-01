@@ -46,6 +46,10 @@ a.external:hover {
   margin: 1.5rem 0;
 }
 
+.expressive-code .frame .header {
+  z-index: 0 !important;
+}
+
 /* Inline code */
 :not(pre) > code {
   background-color: var(--color-lightgray);
