@@ -9,8 +9,8 @@
     "astro": "astro",
     "check": "astro check",
     "validate": "echo 'Build the site first, then check: /ametrine/validate-links.json'",
-    "lint": "oxlint src/",
-    "lint:fix": "oxlint src/ --fix",
+    "lint": "oxlint src/ --ignore-pattern '**/*.astro'",
+    "lint:fix": "oxlint src/ --fix --ignore-pattern '**/*.astro'",
     "format": "oxfmt src/",
     "format:check": "oxfmt src/ --check"
   },
