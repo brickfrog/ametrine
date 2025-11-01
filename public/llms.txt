@@ -1,0 +1,80 @@
+# Ametrine
+
+> A modern digital garden and personal knowledge base built with Astro
+
+## Overview
+
+Ametrine is a static site generator optimized for note-taking and knowledge management, inspired by Obsidian and designed for personal digital gardens. It transforms markdown notes into a beautiful, interconnected website with advanced features.
+
+## Key Features
+
+- **Obsidian-Compatible**: Full support for wikilinks, internal linking, and graph visualization
+- **Markdown-First**: Write in plain markdown with frontmatter metadata
+- **Advanced Note Features**:
+  - Marginalia (side notes and annotations)
+  - Bases (database-style views with filtering and sorting)
+  - Citations and backlinks
+  - Reading time and metrics
+- **Modern Tech Stack**: Built with Astro 5, React 19, TypeScript
+- **Performance**: Static site generation with view transitions
+- **Full-Text Search**: Client-side search with instant results
+- **Link Previews**: Hover previews for internal links
+
+## Documentation
+
+### Getting Started
+- Quick Start: https://brickfrog.github.io/ametrine/quick-start/
+- Configuration Guide: https://brickfrog.github.io/ametrine/configuration-guide/
+- Deployment Guide: https://brickfrog.github.io/ametrine/deployment-guide/
+
+### Reference
+- Frontmatter Reference: https://brickfrog.github.io/ametrine/frontmatter-reference/
+- Syntax Reference: https://brickfrog.github.io/ametrine/syntax-reference/
+- Wikilinks & Graph: https://brickfrog.github.io/ametrine/wikilinks-and-graph/
+
+### Features
+- Obsidian Features Demo: https://brickfrog.github.io/ametrine/obsidian-features-demo/
+- Marginalia Demo: https://brickfrog.github.io/ametrine/marginalia-demo/
+- Bases Demo: https://brickfrog.github.io/ametrine/bases-demo/
+- Advanced Features: https://brickfrog.github.io/ametrine/advanced-features/
+
+## Content Structure
+
+This site follows a digital garden philosophy:
+- **Notes**: Individual markdown files with metadata
+- **Tags**: Topical organization (demo, features, documentation, guide, etc.)
+- **Bases**: Dynamic collections and filtered views
+- **Graph**: Visual representation of note connections
+
+## Technical Details
+
+- **Framework**: Astro 5.15+ (SSG mode)
+- **Content**: Markdown with YAML frontmatter
+- **Styling**: Tailwind CSS with custom theme system
+- **Interactivity**: React islands for dynamic components
+- **Build Output**: Fully static HTML/CSS/JS
+
+## Feeds & Sitemaps
+
+- RSS Feed: https://brickfrog.github.io/ametrine/rss.xml
+- Sitemap: https://brickfrog.github.io/ametrine/sitemap-index.xml
+
+## License & Source
+
+This is a documentation and demo site. The Ametrine template is open source.
+
+## Best Use Cases
+
+Ametrine is ideal for:
+- Personal knowledge bases and second brains
+- Technical documentation sites
+- Developer portfolios with notes/blog
+- Research and study notes
+- Digital gardens and evergreen content
+
+## Content Types
+
+- **Guides**: Step-by-step tutorials (quick-start, deployment-guide, configuration-guide)
+- **References**: Comprehensive documentation (frontmatter-reference, syntax-reference)
+- **Demos**: Feature showcases (marginalia-demo, bases-demo, obsidian-features-demo)
+- **Meta**: About the site and its architecture

@@ -32,6 +32,14 @@ if (socialImage) {
   // Fallback to default OG image
   ogImageUrl = `${config.baseUrl}/og/default.png`;
 }
+
+// Generate breadcrumb schema for AI discoverability
+const breadcrumbItems = slug ? slug.split('/').filter(Boolean).map((segment, idx, arr) => ({
+  "@type": "ListItem",
+  "position": idx + 2, // Position 1 is Home
+  "name": segment.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase()),
+  "item": `${config.baseUrl}/${arr.slice(0, idx + 1).join('/')}/`
+})) : [];
 ---
 
 <!doctype html>
@@ -74,19 +82,41 @@ if (socialImage) {
     <!-- JSON-LD Structured Data -->
     <script is:inline type="application/ld+json" set:html={JSON.stringify({
       "@context": "https://schema.org",
-      "@type": "WebSite",
-      "name": config.pageTitle,
-      "description": pageDescription,
-      "url": config.baseUrl || Astro.site?.href,
-      ...(slug && {
-        "mainEntity": {
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "name": config.pageTitle,
+          "description": pageDescription,
+          "url": config.baseUrl || Astro.site?.href
+        },
+        ...(slug && breadcrumbItems.length > 0 ? [{
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Home",
+              "item": config.baseUrl
+            },
+            ...breadcrumbItems
+          ]
+        }] : []),
+        ...(slug ? [{
           "@type": "Article",
           "headline": title,
           "description": pageDescription,
           "url": `${config.baseUrl}${Astro.url.pathname}`,
-          ...(ogImageUrl && { "image": ogImageUrl })
-        }
-      })
+          ...(ogImageUrl && { "image": ogImageUrl }),
+          "publisher": {
+            "@type": "Organization",
+            "name": config.pageTitle,
+            ...(config.logo && { "logo": {
+              "@type": "ImageObject",
+              "url": `${config.baseUrl}${config.logo}`
+            }})
+          }
+        }] : [])
+      ]
     })} />
 
     <!-- View Transitions for SPA-like navigation -->

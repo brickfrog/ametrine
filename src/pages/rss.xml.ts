@@ -34,9 +34,11 @@ export const GET: APIRoute = async (context) => {
     items: recentNotes.map((note) => ({
       title: note.data.title,
       description: note.data.description || "",
+      content: note.body, // Full content for better AI understanding
       link: `/${note.id.replace(".md", "")}`,
       pubDate: note.data.date || note.data.updated || new Date(),
       author: note.data.author,
+      categories: note.data.tags || [], // Add tags as categories for better discoverability
     })),
     customData: `<language>${config.locale}</language>`,
   });
