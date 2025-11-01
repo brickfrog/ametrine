@@ -85,6 +85,6 @@ const logoSrc = logoPath ? `${basePath}/${logoPath}` : undefined;
     </aside>
   </div>
 
-  <ScrollToTop client:load />
+  <ScrollToTop client:idle />
   <LinkPreviewManager client:only="react" transition:persist="link-preview-manager" />
 </BaseLayout>

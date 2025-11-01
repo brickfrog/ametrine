@@ -217,17 +217,17 @@ a.external:hover {
 
 /* Reading Mode */
 body.reading-mode aside {
-  display: none !important;
+  display: none;
 }
 
 body.reading-mode main:not(.has-marginalia) {
-  max-width: 65ch !important;
-  margin: 0 auto !important;
+  max-width: 65ch;
+  margin: 0 auto;
 }
 
 body.reading-mode .prose {
-  font-size: 1.125rem !important;
-  line-height: 1.75 !important;
+  font-size: 1.125rem;
+  line-height: 1.75;
 }
 
 /* Obsidian-style Highlights */

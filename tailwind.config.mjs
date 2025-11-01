@@ -28,6 +28,13 @@ export default {
         overlay: '200',
         modal: '300',
         tooltip: '400',
+        'graph-fullscreen': '500',
+      },
+      opacity: {
+        'intensity-1': '0.25',
+        'intensity-2': '0.5',
+        'intensity-3': '0.7',
+        'intensity-4': '1',
       },
       typography: {
         DEFAULT: {

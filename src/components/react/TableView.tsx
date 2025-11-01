@@ -117,16 +117,11 @@ export function TableView({
       </thead>
       <tbody>
         {table.getRowModel().rows.map((row) => (
-          <tr
-            key={row.id}
-            className="border-b"
-            style={{ borderColor: "var(--color-lightgray)" }}
-          >
+          <tr key={row.id} className="border-b border-theme-lightgray">
             {row.getVisibleCells().map((cell) => (
               <td
                 key={cell.id}
-                className="px-3 py-2 align-middle whitespace-nowrap"
-                style={{ color: "var(--color-darkgray)" }}
+                className="px-3 py-2 align-middle whitespace-nowrap text-theme-darkgray"
               >
                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
               </td>

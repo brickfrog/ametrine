@@ -10,7 +10,7 @@ import Explorer from '../components/Explorer.astro';
 import Divider from '../components/Divider.astro';
 import Footer from '../components/Footer.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
-import { MarginaliaColumn } from '../components/react/MarginaliaColumn';
+import { MarginaliaManager } from '../components/react/MarginaliaManager';
 import { config } from '../config';
 
 interface Props {
@@ -86,7 +86,9 @@ const logoSrc = logoPath ? `${basePath}/${logoPath}` : undefined;
         {!hideBreadcrumbs && <Breadcrumbs slug={slug} allNotes={allNotes} />}
         <slot />
       </article>
-      <MarginaliaColumn marginalia={marginalia} client:load />
+      <div class="marginalia-column">
+        <MarginaliaManager marginalia={marginalia} client:load />
+      </div>
       <Footer />
     </main>
 
@@ -98,7 +100,7 @@ const logoSrc = logoPath ? `${basePath}/${logoPath}` : undefined;
     </aside>
   </div>
 
-  <ScrollToTop client:load />
+  <ScrollToTop client:idle />
   <LinkPreviewManager client:only="react" transition:persist="link-preview-manager" />
 </BaseLayout>
 

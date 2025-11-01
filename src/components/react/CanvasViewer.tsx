@@ -88,11 +88,7 @@ function NotePreview({ slug }: { slug: string }) {
   }, [slug]);
 
   if (loading) {
-    return (
-      <div className="p-3 text-sm" style={{ color: "var(--color-gray)" }}>
-        Loading...
-      </div>
-    );
+    return <div className="p-3 text-sm text-theme-gray">Loading...</div>;
   }
 
   return (
@@ -157,10 +153,7 @@ function FileNode({ data }: { data: any }) {
               </div>
             )}
             {fileInfo?.type === "not-found" && (
-              <div
-                className="text-center p-5"
-                style={{ color: "var(--color-gray)" }}
-              >
+              <div className="text-center p-5 text-theme-gray">
                 <div className="text-3xl mb-2">⚠️</div>
                 <div className="text-xs font-medium">File not found</div>
                 <div className="text-[10px]">{fileInfo.path}</div>

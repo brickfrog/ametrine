@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, memo } from "react";
 import { useStore } from "@nanostores/react";
 import { ChevronDown } from "lucide-react";
 import { FileTrieNode } from "../../utils/fileTrie";
@@ -28,7 +28,7 @@ interface FileNodeProps {
   currentSlug: string;
 }
 
-function FileNode({ node, currentSlug }: FileNodeProps) {
+const FileNode = memo(({ node, currentSlug }: FileNodeProps) => {
   const isBase = node.data?.type === "base";
   const isImage = node.data?.type === "image";
   const isCanvas = node.data?.type === "canvas";
@@ -50,33 +50,24 @@ function FileNode({ node, currentSlug }: FileNodeProps) {
       >
         <span className="flex-1">{node.displayName}</span>
         {isBase && (
-          <span
-            className="text-xs px-1 py-0.5 bg-theme-secondary rounded font-bold"
-            style={{ color: "var(--color-dark)" }}
-          >
+          <span className="text-xs px-1 py-0.5 bg-theme-secondary text-theme-dark rounded font-bold">
             BASE
           </span>
         )}
         {isImage && node.data?.extension && (
-          <span
-            className="text-xs px-1 py-0.5 bg-theme-tertiary rounded font-bold"
-            style={{ color: "var(--color-dark)" }}
-          >
+          <span className="text-xs px-1 py-0.5 bg-theme-tertiary text-theme-dark rounded font-bold">
             {node.data.extension}
           </span>
         )}
         {isCanvas && (
-          <span
-            className="text-xs px-1 py-0.5 bg-theme-tertiary rounded font-bold"
-            style={{ color: "var(--color-dark)" }}
-          >
+          <span className="text-xs px-1 py-0.5 bg-theme-tertiary text-theme-dark rounded font-bold">
             CANVAS
           </span>
         )}
       </a>
     </li>
   );
-}
+});
 
 interface FolderNodeProps {
   node: FileTrieNode<ContentDetails>;
@@ -85,89 +76,86 @@ interface FolderNodeProps {
   defaultCollapsed: boolean;
 }
 
-function FolderNode({
-  node,
-  currentSlug,
-  behavior,
-  defaultCollapsed,
-}: FolderNodeProps) {
-  const folderPath = node.slug;
-  const folderLinkPath = folderPath.replace(/\/index$/, "");
-  const folderStatesMap = useStore(folderStates);
+const FolderNode = memo(
+  ({ node, currentSlug, behavior, defaultCollapsed }: FolderNodeProps) => {
+    const folderPath = node.slug;
+    const folderLinkPath = folderPath.replace(/\/index$/, "");
+    const folderStatesMap = useStore(folderStates);
 
-  const isCollapsed = folderStatesMap[folderPath] ?? defaultCollapsed;
+    const isCollapsed = folderStatesMap[folderPath] ?? defaultCollapsed;
 
-  // If this folder is a prefix of the current path, open it
-  const simpleFolderPath = simplifySlug(folderPath);
-  const folderIsPrefixOfCurrentSlug =
-    simpleFolderPath === currentSlug.slice(0, simpleFolderPath.length);
+    // If this folder is a prefix of the current path, open it
+    const simpleFolderPath = simplifySlug(folderPath);
+    const folderIsPrefixOfCurrentSlug =
+      simpleFolderPath === currentSlug.slice(0, simpleFolderPath.length);
 
-  const isOpen = !isCollapsed || folderIsPrefixOfCurrentSlug;
+    const isOpen = !isCollapsed || folderIsPrefixOfCurrentSlug;
 
-  const handleToggle = () => {
-    toggleFolderState(folderPath, defaultCollapsed);
-  };
+    const handleToggle = () => {
+      toggleFolderState(folderPath, defaultCollapsed);
+    };
 
-  const FolderContent =
-    behavior === "link" ? (
-      <a
-        href={`${import.meta.env.BASE_URL}/${folderLinkPath}`}
-        data-for={folderLinkPath}
-        className="text-theme-secondary font-header text-[0.95rem] font-semibold leading-6 inline-block no-underline hover:text-theme-tertiary"
-      >
-        {node.displayName}
-      </a>
-    ) : (
-      <button
-        onClick={handleToggle}
-        className="text-left cursor-pointer p-0 bg-transparent border-none flex items-center font-header text-theme-dark"
-      >
-        <span className="text-[0.95rem] inline-block text-theme-secondary font-semibold m-0 leading-6 pointer-events-none">
+    const FolderContent =
+      behavior === "link" ? (
+        <a
+          href={`${import.meta.env.BASE_URL}/${folderLinkPath}`}
+          data-for={folderLinkPath}
+          className="text-theme-secondary font-header text-[0.95rem] font-semibold leading-6 inline-block no-underline hover:text-theme-tertiary"
+        >
           {node.displayName}
-        </span>
-      </button>
-    );
-
-  return (
-    <li>
-      <div className="flex flex-row items-center select-none">
-        <ChevronDown
-          className={`mr-[5px] text-theme-secondary cursor-pointer transition-transform duration-300 flex-shrink-0 hover:text-theme-tertiary ${
-            !isOpen ? "-rotate-90" : ""
-          }`}
-          size={12}
+        </a>
+      ) : (
+        <button
           onClick={handleToggle}
-        />
-        <div>{FolderContent}</div>
-      </div>
-      <div
-        className={`grid transition-[grid-template-rows] duration-300 ease-in-out ${
-          isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
-        }`}
-      >
-        <ul className="overflow-hidden ml-[6px] pl-[0.8rem] border-l border-theme-lightgray list-none m-0 p-0">
-          {node.children.map((child) =>
-            child.isFolder ? (
-              <FolderNode
-                key={child.slug}
-                node={child}
-                currentSlug={currentSlug}
-                behavior={behavior}
-                defaultCollapsed={defaultCollapsed}
-              />
-            ) : (
-              <FileNode
-                key={child.slug}
-                node={child}
-                currentSlug={currentSlug}
-              />
-            ),
-          )}
-        </ul>
-      </div>
-    </li>
-  );
-}
+          className="text-left cursor-pointer p-0 bg-transparent border-none flex items-center font-header text-theme-dark"
+        >
+          <span className="text-[0.95rem] inline-block text-theme-secondary font-semibold m-0 leading-6 pointer-events-none">
+            {node.displayName}
+          </span>
+        </button>
+      );
+
+    return (
+      <li>
+        <div className="flex flex-row items-center select-none">
+          <ChevronDown
+            className={`mr-[5px] text-theme-secondary cursor-pointer transition-transform duration-300 flex-shrink-0 hover:text-theme-tertiary ${
+              !isOpen ? "-rotate-90" : ""
+            }`}
+            size={12}
+            onClick={handleToggle}
+          />
+          <div>{FolderContent}</div>
+        </div>
+        <div
+          className={`grid transition-[grid-template-rows] duration-300 ease-in-out ${
+            isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+          }`}
+        >
+          <ul className="overflow-hidden ml-[6px] pl-[0.8rem] border-l border-theme-lightgray list-none m-0 p-0">
+            {node.children.map((child) =>
+              child.isFolder ? (
+                <FolderNode
+                  key={child.slug}
+                  node={child}
+                  currentSlug={currentSlug}
+                  behavior={behavior}
+                  defaultCollapsed={defaultCollapsed}
+                />
+              ) : (
+                <FileNode
+                  key={child.slug}
+                  node={child}
+                  currentSlug={currentSlug}
+                />
+              ),
+            )}
+          </ul>
+        </div>
+      </li>
+    );
+  },
+);
 
 export function Explorer({
   behavior = "link",
