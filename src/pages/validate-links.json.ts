@@ -1,8 +1,8 @@
-import type { APIRoute } from 'astro';
-import { getCollection } from 'astro:content';
+import type { APIRoute } from "astro";
+import { getCollection } from "astro:content";
 
 export const GET: APIRoute = async () => {
-  const notes = await getCollection('vault');
+  const notes = await getCollection("vault");
   const validSlugs = new Set(notes.map((note) => note.slug));
 
   const brokenLinks: Array<{ sourceFile: string; targetSlug: string }> = [];
@@ -31,13 +31,13 @@ export const GET: APIRoute = async () => {
         isValid: brokenLinks.length === 0,
       },
       null,
-      2
+      2,
     ),
     {
       status: brokenLinks.length === 0 ? 200 : 422,
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
-    }
+    },
   );
 };

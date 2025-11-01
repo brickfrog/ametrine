@@ -21,6 +21,14 @@ export default {
           highlight: 'var(--color-highlight)',
         },
       },
+      zIndex: {
+        base: '0',
+        sticky: '10',
+        dropdown: '100',
+        overlay: '200',
+        modal: '300',
+        tooltip: '400',
+      },
       typography: {
         DEFAULT: {
           css: {

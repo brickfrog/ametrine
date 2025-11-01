@@ -89,7 +89,7 @@ export function Search() {
 
   const modalContent = (
     <div
-      className="fixed inset-0 z-50 bg-black/50 flex items-start justify-center pt-[20vh]"
+      className="fixed inset-0 z-modal bg-black/50 flex items-start justify-center pt-[20vh]"
       onClick={() => setIsOpen(false)}
     >
       <div

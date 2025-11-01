@@ -108,7 +108,7 @@ export function QuickActions({ allSlugs = [] }: QuickActionsProps) {
             <Type size={18} />
           </button>
           {showFontMenu && (
-            <div className="absolute top-full mt-2 left-0 bg-theme-light border border-theme-gray rounded-lg shadow-xl p-2 z-50 min-w-[160px]">
+            <div className="absolute top-full mt-2 left-0 bg-theme-light border border-theme-gray rounded-lg shadow-xl p-2 z-dropdown min-w-[160px]">
               {fontSizes.map((size) => (
                 <button
                   key={size.value}
@@ -159,7 +159,7 @@ export function QuickActions({ allSlugs = [] }: QuickActionsProps) {
         createPortal(
           <button
             onClick={toggleReadingMode}
-            className="fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-2 rounded-md bg-theme-secondary text-theme-light hover:bg-theme-tertiary transition-colors shadow-lg"
+            className="fixed top-4 right-4 z-modal flex items-center gap-2 px-4 py-2 rounded-md bg-theme-secondary text-theme-light hover:bg-theme-tertiary transition-colors shadow-lg"
             title="Exit reading mode (Esc)"
           >
             <X size={18} />

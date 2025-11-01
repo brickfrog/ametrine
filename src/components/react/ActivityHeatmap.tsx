@@ -279,7 +279,7 @@ export function ActivityHeatmap({ data }: ActivityHeatmapProps) {
       {/* Tooltip */}
       {hoveredDay && hoveredDay.count >= 0 && (
         <div
-          className="fixed z-50 pointer-events-none"
+          className="fixed z-tooltip pointer-events-none"
           style={{
             left: `${mousePos.x + 10}px`,
             top: `${mousePos.y + 10}px`,

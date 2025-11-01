@@ -41,27 +41,13 @@ function Card({
   const imageAspectRatio = view.imageAspectRatio || 0.75; // Default 4:3
 
   return (
-    <div
-      className="rounded-lg overflow-hidden transition-shadow"
-      style={{
-        background: "var(--color-light)",
-        border: "1px solid var(--color-lightgray)",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.1)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.boxShadow = "none";
-      }}
-    >
+    <div className="rounded-lg overflow-hidden transition-shadow bg-theme-light border border-theme-lightgray hover:shadow-lg">
       {/* Image */}
       {imageValue && (
         <div
-          className="w-full overflow-hidden"
+          className="w-full overflow-hidden relative bg-theme-lightgray"
           style={{
             paddingBottom: `${imageAspectRatio * 100}%`,
-            position: "relative",
-            background: "var(--color-lightgray)",
           }}
         >
           <img
@@ -87,14 +73,7 @@ function Card({
               <div key={propertyName}>
                 <a
                   href={`${import.meta.env.BASE_URL}/${note.slug}`}
-                  className="text-lg font-semibold no-underline hover:underline block"
-                  style={{ color: "var(--color-secondary)" }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.color = "var(--color-tertiary)")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.color = "var(--color-secondary)")
-                  }
+                  className="text-lg font-semibold no-underline hover:underline block text-theme-secondary hover:text-theme-tertiary transition-colors"
                 >
                   {formatted || note.data.title || note.slug}
                 </a>
@@ -109,11 +88,7 @@ function Card({
                 {value.map((tag: string) => (
                   <span
                     key={tag}
-                    className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded"
-                    style={{
-                      color: "var(--color-light)",
-                      background: "var(--color-tertiary)",
-                    }}
+                    className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded text-theme-light bg-theme-tertiary"
                   >
                     {tag}
                   </span>
@@ -126,11 +101,7 @@ function Card({
           if (propertyName === "file.backlinks") {
             const count = Array.isArray(value) ? value.length : 0;
             return count > 0 ? (
-              <div
-                key={propertyName}
-                className="text-sm"
-                style={{ color: "var(--color-darkgray)" }}
-              >
+              <div key={propertyName} className="text-sm text-theme-darkgray">
                 <span className="font-medium">Backlinks:</span> {count}
               </div>
             ) : null;
@@ -139,11 +110,7 @@ function Card({
           // Other properties - render with label
           if (value !== null && value !== undefined && value !== "") {
             return (
-              <div
-                key={propertyName}
-                className="text-sm"
-                style={{ color: "var(--color-darkgray)" }}
-              >
+              <div key={propertyName} className="text-sm text-theme-darkgray">
                 <span className="font-medium">
                   {getPropertyLabel(propertyName)}:
                 </span>{" "}
@@ -164,10 +131,7 @@ export function CardView({ notes, view, imageUrlMap = {} }: CardViewProps) {
 
   if (notes.length === 0) {
     return (
-      <div
-        className="text-center py-12 px-4 italic"
-        style={{ color: "var(--color-darkgray)" }}
-      >
+      <div className="text-center py-12 px-4 italic text-theme-darkgray">
         <p>No notes match the current filters.</p>
       </div>
     );

@@ -52,14 +52,7 @@ export function TableView({
             return (
               <a
                 href={`${import.meta.env.BASE_URL}/${note.slug}`}
-                className="font-medium no-underline hover:underline"
-                style={{ color: "var(--color-secondary)" }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.color = "var(--color-tertiary)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.color = "var(--color-secondary)")
-                }
+                className="font-medium no-underline hover:underline text-theme-secondary hover:text-theme-tertiary transition-colors"
               >
                 {formatted || note.data.title || note.slug}
               </a>
@@ -72,30 +65,18 @@ export function TableView({
                 {value.map((tag: string) => (
                   <span
                     key={tag}
-                    className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded whitespace-nowrap"
-                    style={{
-                      color: "var(--color-light)",
-                      background: "var(--color-tertiary)",
-                    }}
+                    className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded whitespace-nowrap text-theme-light bg-theme-tertiary"
                   >
                     {tag}
                   </span>
                 ))}
               </div>
             ) : (
-              <span className="italic" style={{ color: "var(--color-gray)" }}>
-                —
-              </span>
+              <span className="italic text-theme-gray">—</span>
             );
           }
 
-          return (
-            formatted || (
-              <span className="italic" style={{ color: "var(--color-gray)" }}>
-                —
-              </span>
-            )
-          );
+          return formatted || <span className="italic text-theme-gray">—</span>;
         },
       })),
     [columnOrder],
@@ -109,10 +90,7 @@ export function TableView({
 
   if (notes.length === 0) {
     return (
-      <div
-        className="text-center py-12 px-4 italic"
-        style={{ color: "var(--color-darkgray)" }}
-      >
+      <div className="text-center py-12 px-4 italic text-theme-darkgray">
         <p>No notes match the current filters.</p>
       </div>
     );
@@ -120,20 +98,13 @@ export function TableView({
 
   return (
     <table className="table w-full border-collapse text-sm">
-      <thead
-        className="sticky top-0 z-10"
-        style={{
-          background: "var(--color-lightgray)",
-          borderBottom: "1px solid var(--color-gray)",
-        }}
-      >
+      <thead className="sticky top-0 z-sticky bg-theme-lightgray border-b border-theme-gray">
         {table.getHeaderGroups().map((headerGroup) => (
           <tr key={headerGroup.id}>
             {headerGroup.headers.map((header) => (
               <th
                 key={header.id}
-                className="text-left px-3 py-2 font-semibold text-[0.8125rem] whitespace-nowrap relative"
-                style={{ color: "var(--color-dark)" }}
+                className="text-left px-3 py-2 font-semibold text-[0.8125rem] whitespace-nowrap relative text-theme-dark"
               >
                 {flexRender(
                   header.column.columnDef.header,

@@ -43,7 +43,7 @@ export function MobileNav({ children }: MobileNavProps) {
       {/* Hamburger Button - Only visible on mobile */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-theme-lightgray border border-theme-gray hover:bg-theme-gray transition-colors"
+        className="lg:hidden fixed top-4 left-4 z-modal p-2 rounded-lg bg-theme-lightgray border border-theme-gray hover:bg-theme-gray transition-colors"
         aria-label={isOpen ? "Close menu" : "Open menu"}
       >
         {isOpen ? (
@@ -56,7 +56,7 @@ export function MobileNav({ children }: MobileNavProps) {
       {/* Backdrop */}
       {isOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-black/50 z-40"
+          className="lg:hidden fixed inset-0 bg-black/50 z-overlay"
           onClick={() => setIsOpen(false)}
           aria-hidden="true"
         />
@@ -64,7 +64,7 @@ export function MobileNav({ children }: MobileNavProps) {
 
       {/* Mobile Sidebar */}
       <aside
-        className={`lg:hidden fixed top-0 left-0 bottom-0 w-64 bg-theme-lightgray border-r border-theme-lightgray z-40 transform transition-transform duration-300 ease-in-out overflow-y-auto ${
+        className={`lg:hidden fixed top-0 left-0 bottom-0 w-64 bg-theme-lightgray border-r border-theme-lightgray z-overlay transform transition-transform duration-300 ease-in-out overflow-y-auto ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >

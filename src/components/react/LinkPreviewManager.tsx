@@ -48,6 +48,16 @@ export function LinkPreviewManager() {
 
   const hoverTimeoutRef = useRef<{ [key: string]: NodeJS.Timeout | null }>({});
   const contentCacheRef = useRef<Map<string, string>>(new Map());
+  const activeSlugRef = useRef<string | null>(null);
+
+  // Helper function to extract slug consistently
+  const extractSlug = (href: string): string => {
+    const baseUrl = import.meta.env.BASE_URL || "/";
+    return href
+      .replace(new RegExp(`^${baseUrl.replace(/\/$/, "")}`), "")
+      .replace(/^\//, "")
+      .replace(/#.*$/, "");
+  };
 
   // Save panels state to sessionStorage whenever it changes
   useEffect(() => {
@@ -92,13 +102,20 @@ export function LinkPreviewManager() {
       const href = link.getAttribute("href");
       if (!href) return;
 
-      const baseUrl = import.meta.env.BASE_URL || "/";
-      const slug = href
-        .replace(new RegExp(`^${baseUrl.replace(/\/$/, "")}`), "")
-        .replace(/^\//, "")
-        .replace(/#.*$/, "");
+      const slug = extractSlug(href);
       const content = contentIndex[slug];
       if (!content) return;
+
+      // Clear timeout for different link if hovering over new link
+      if (activeSlugRef.current && activeSlugRef.current !== slug) {
+        const prevTimeout = hoverTimeoutRef.current[activeSlugRef.current];
+        if (prevTimeout) {
+          clearTimeout(prevTimeout);
+          hoverTimeoutRef.current[activeSlugRef.current] = null;
+        }
+      }
+
+      activeSlugRef.current = slug;
 
       // Skip if timeout already exists for this slug
       if (hoverTimeoutRef.current[slug]) return;
@@ -106,18 +123,25 @@ export function LinkPreviewManager() {
       // Set delay before showing preview
       hoverTimeoutRef.current[slug] = setTimeout(() => {
         showPreview(slug, link, content);
+        // Clean up timeout after it fires
+        hoverTimeoutRef.current[slug] = null;
       }, config.popover?.hoverDelay ?? 300);
     };
 
     const handleMouseOut = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
+      const relatedTarget = e.relatedTarget as HTMLElement;
+
+      // Don't close if mouse moved to the preview panel itself
+      if (relatedTarget?.closest(".lp-panel")) return;
+
       const link = target.closest("a.internal-link") as HTMLAnchorElement;
       if (!link) return;
 
       const href = link.getAttribute("href");
       if (!href) return;
 
-      const slug = href.replace(/^\//, "").replace(/#.*$/, "");
+      const slug = extractSlug(href);
 
       // Cancel pending preview
       if (hoverTimeoutRef.current[slug]) {
@@ -146,14 +170,14 @@ export function LinkPreviewManager() {
       }
     };
 
-    // Use event delegation with capture phase
-    document.addEventListener("mouseover", handleMouseOver, true);
-    document.addEventListener("mouseout", handleMouseOut, true);
+    // Use event delegation with bubble phase for better compatibility
+    document.addEventListener("mouseover", handleMouseOver);
+    document.addEventListener("mouseout", handleMouseOut);
     document.addEventListener("click", handleClick);
 
     return () => {
-      document.removeEventListener("mouseover", handleMouseOver, true);
-      document.removeEventListener("mouseout", handleMouseOut, true);
+      document.removeEventListener("mouseover", handleMouseOver);
+      document.removeEventListener("mouseout", handleMouseOut);
       document.removeEventListener("click", handleClick);
 
       // Clear all timeouts
@@ -170,6 +194,11 @@ export function LinkPreviewManager() {
   ) => {
     // Check if panel already exists
     if (panels.has(slug)) {
+      // Clear any pending timeout for this slug
+      if (hoverTimeoutRef.current[slug]) {
+        clearTimeout(hoverTimeoutRef.current[slug]);
+        hoverTimeoutRef.current[slug] = null;
+      }
       // Bring to front
       handleFocus(slug);
       return;
@@ -263,6 +292,12 @@ export function LinkPreviewManager() {
   };
 
   const handleClose = (id: string) => {
+    // Clear any pending timeout for this panel
+    if (hoverTimeoutRef.current[id]) {
+      clearTimeout(hoverTimeoutRef.current[id]);
+      hoverTimeoutRef.current[id] = null;
+    }
+
     setPanels((prev) => {
       const next = new Map(prev);
       next.delete(id);

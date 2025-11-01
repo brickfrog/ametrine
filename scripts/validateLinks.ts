@@ -1,5 +1,4 @@
 import { getCollection } from 'astro:content';
-import * as path from 'node:path';
 
 /**
  * Validates all wikilinks in the vault to ensure they point to existing notes
