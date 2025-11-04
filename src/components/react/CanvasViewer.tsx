@@ -18,6 +18,7 @@ import type { Note } from "../../utils/filterNotes";
 import type { BaseView } from "../../utils/bases/types";
 import { getCanvasColor } from "../../utils/canvas";
 import { TableView } from "./TableView";
+import { ArrowUpRight } from "lucide-react";
 
 interface FileNodeData {
   type: "note" | "base" | "image" | "not-found";
@@ -26,6 +27,7 @@ interface FileNodeData {
   view?: BaseView;
   notes?: Note[];
   path?: string;
+  file?: string; // Original file path for navigation
 }
 
 interface TextNodeData {
@@ -112,6 +114,32 @@ interface FileNodeProps {
   file: string;
 }
 
+// Helper function to generate navigation URL based on file type
+function getNavigationUrl(fileData: FileNodeData): string | null {
+  const baseUrl = import.meta.env.BASE_URL;
+
+  if (fileData.type === "note" && fileData.note?.slug) {
+    return `${baseUrl}/${fileData.note.slug}`;
+  }
+
+  if (fileData.type === "base" && fileData.baseName && fileData.view?.name) {
+    const viewSlug = fileData.view.name.toLowerCase().replace(/\s+/g, "-");
+    return `${baseUrl}/base/${fileData.baseName}/${viewSlug}`;
+  }
+
+  if (fileData.type === "image" && fileData.file) {
+    // Extract filename without extension and directory
+    const fileName = fileData.file.split("/").pop() || fileData.file;
+    const nameWithoutExt = fileName.replace(
+      /\.(png|jpg|jpeg|webp|gif|svg|avif)$/i,
+      "",
+    );
+    return `${baseUrl}/image/${nameWithoutExt}`;
+  }
+
+  return null;
+}
+
 // Custom node component for file nodes
 function FileNode({ data }: { data: FileNodeProps }) {
   const color = getCanvasColor(data.color);
@@ -128,13 +156,38 @@ function FileNode({ data }: { data: FileNodeProps }) {
       <Handle type="source" position={Position.Left} id="left" />
       <Handle type="source" position={Position.Right} id="right" />
       <div
-        className="rounded-md overflow-hidden min-w-[200px] h-full"
+        className="rounded-md overflow-hidden min-w-[200px] h-full relative"
         style={{
           background: "var(--color-light)",
           border: `3px solid ${color}`,
         }}
         onWheel={(e) => e.stopPropagation()}
       >
+        {(() => {
+          const navUrl = getNavigationUrl(fileInfo);
+          if (!navUrl) return null;
+
+          const label =
+            fileInfo.type === "note"
+              ? "Open note in full view"
+              : fileInfo.type === "base"
+                ? "Open base view"
+                : fileInfo.type === "image"
+                  ? "Open image in full view"
+                  : "Open file";
+
+          return (
+            <a
+              href={navUrl}
+              className="absolute top-2 right-2 z-50 flex items-center justify-center w-7 h-7 rounded-md bg-theme-light hover:bg-theme-lightgray text-theme-secondary hover:text-theme-tertiary transition-colors shadow-md border border-theme-lightgray"
+              title={label}
+              aria-label={label}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <ArrowUpRight size={16} />
+            </a>
+          );
+        })()}
         {fileInfo?.type === "image" ? (
           <img
             src={fileInfo.path}

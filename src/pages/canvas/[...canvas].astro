@@ -110,6 +110,7 @@ for (const node of canvasData.nodes || []) {
     fileData[node.id] = {
       type: 'image',
       path: imageUrl,
+      file: filePath, // Store original path for navigation
     };
   } else {
     // Unknown file type
