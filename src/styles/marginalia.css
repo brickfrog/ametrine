@@ -16,14 +16,14 @@
 /* Reference number/superscript */
 .marginalia-ref {
   color: var(--color-secondary);
-  font-size: 0.75em;
+  font-size: 0.7em;
   font-weight: 600;
   cursor: pointer;
   text-decoration: none;
-  vertical-align: super;
+  vertical-align: baseline;
+  position: relative;
+  top: -0.5em;
   line-height: 0;
-  margin-left: 0.02em;
-  margin-right: 0.02em;
   transition: color 0.2s ease;
 }
 

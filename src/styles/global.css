@@ -11,6 +11,30 @@
     --font-scale: 1.0;
   }
 
+  /* Micro-typography enhancements for prose content */
+  .prose {
+    /* Enable ligatures for smoother character combinations (fi, fl, etc.) */
+    font-feature-settings: 'liga' 1, 'calt' 1;
+    font-variant-ligatures: common-ligatures contextual;
+
+    /* Enable kerning for optimal letter spacing */
+    font-kerning: normal;
+
+    /* Optimize text rendering for better legibility */
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+
+    /* Enable hyphenation for better line breaks */
+    hyphens: auto;
+    -webkit-hyphens: auto;
+    -ms-hyphens: auto;
+    hyphenate-limit-chars: 6 3 3;
+
+    /* Optical sizing for variable fonts (if available) */
+    font-optical-sizing: auto;
+  }
+
   body {
     @apply text-base;
     background-color: var(--color-light);
@@ -230,7 +254,7 @@ body.reading-mode main:not(.has-marginalia) {
 
 body.reading-mode .prose {
   font-size: 1.125rem;
-  line-height: 1.75;
+  line-height: 1.5;
 }
 
 /* Obsidian-style Highlights */
@@ -386,14 +410,14 @@ sup.citation {
 /* Style footnote superscripts only (not marginalia) */
 .prose sup:not(.marginalia-ref) {
   color: var(--color-tertiary);
-  font-size: 0.75em;
+  font-size: 0.7em;
   font-weight: 600;
   cursor: pointer;
   text-decoration: none;
-  vertical-align: super;
+  vertical-align: baseline;
+  position: relative;
+  top: -0.5em;
   line-height: 0;
-  margin-left: 0.02em;
-  margin-right: 0.02em;
 }
 
 .prose sup:not(.marginalia-ref)::before {

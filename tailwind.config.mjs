@@ -41,8 +41,8 @@ export default {
           css: {
             // Base text settings
             color: 'var(--color-dark)',
-            maxWidth: 'none',
-            lineHeight: '1.7',
+            maxWidth: '700px',
+            lineHeight: '1.4',
             wordBreak: 'break-word',
             overflowWrap: 'break-word',
 
@@ -109,9 +109,9 @@ export default {
 
             // Paragraphs - moderate spacing
             p: {
-              marginTop: '1.25em',
-              marginBottom: '1.25em',
-              lineHeight: '1.7',
+              marginTop: '1em',
+              marginBottom: '1em',
+              lineHeight: '1.4',
             },
 
             // First paragraph after heading - reduce top margin
@@ -127,8 +127,8 @@ export default {
             },
 
             'ul > li, ol > li': {
-              marginTop: '0.5em',
-              marginBottom: '0.5em',
+              marginTop: '0.25em',
+              marginBottom: '0.25em',
               paddingLeft: '0.25em',
             },
 
@@ -273,7 +273,7 @@ export default {
         lg: {
           css: {
             fontSize: 'calc(1.125rem * var(--font-scale, 1))',
-            lineHeight: '1.75',
+            lineHeight: '1.4',
 
             h1: {
               fontSize: '2.5em',
@@ -297,8 +297,8 @@ export default {
             },
 
             p: {
-              marginTop: '1.3em',
-              marginBottom: '1.3em',
+              marginTop: '1em',
+              marginBottom: '1em',
             },
 
             'ul, ol': {
