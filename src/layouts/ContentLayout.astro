@@ -49,7 +49,7 @@ const logoSrc = logoPath ? `${basePath}/${logoPath}` : undefined;
       </div>
 
       <div class="my-1">
-        <Search client:load />
+        <Search client:idle transition:persist="search-bar" />
       </div>
       <QuickActions />
       <Divider />
@@ -72,7 +72,7 @@ const logoSrc = logoPath ? `${basePath}/${logoPath}` : undefined;
         </div>
 
         <div class="my-1">
-          <Search client:load />
+          <Search client:idle transition:persist="search-bar" />
         </div>
         <QuickActions />
         <Divider />
