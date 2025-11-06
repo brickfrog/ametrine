@@ -56,9 +56,9 @@ export default {
               textIndent: '0',
             },
 
-            // H1: Top-level sections
+            // H1: Top-level sections (fluid typography)
             h1: {
-              fontSize: '2.25em',
+              fontSize: 'clamp(1.75em, 1.5em + 1.5vw, 2.25em)',
               fontWeight: '700',
               marginTop: '0',
               marginBottom: '0.75em',
@@ -66,9 +66,9 @@ export default {
               paddingBottom: '0',
             },
 
-            // H2: Major sections
+            // H2: Major sections (fluid typography)
             h2: {
-              fontSize: '1.75em',
+              fontSize: 'clamp(1.5em, 1.3em + 1vw, 1.75em)',
               fontWeight: '600',
               marginTop: '2em',
               marginBottom: '0.75em',
@@ -76,17 +76,17 @@ export default {
               paddingBottom: '0',
             },
 
-            // H3: Subsections
+            // H3: Subsections (fluid typography)
             h3: {
-              fontSize: '1.4em',
+              fontSize: 'clamp(1.25em, 1.15em + 0.5vw, 1.4em)',
               fontWeight: '600',
               marginTop: '1.75em',
               marginBottom: '0.65em',
             },
 
-            // H4: Minor headings
+            // H4: Minor headings (fluid typography)
             h4: {
-              fontSize: '1.2em',
+              fontSize: 'clamp(1.125em, 1.075em + 0.25vw, 1.2em)',
               fontWeight: '600',
               marginTop: '1.5em',
               marginBottom: '0.6em',

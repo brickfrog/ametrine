@@ -9,6 +9,10 @@
     @apply antialiased;
     /* Font scale controlled by user preference */
     --font-scale: 1.0;
+    /* Prevent iOS text size adjustment */
+    -webkit-text-size-adjust: 100%;
+    -moz-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 
   /* Micro-typography enhancements for prose content */
@@ -47,6 +51,32 @@
   h1, h2, h3, h4, h5, h6 {
     scroll-margin-top: 2rem;
   }
+
+  /* Universal focus-visible styles for accessibility */
+  *:focus-visible {
+    outline: 2px solid var(--color-secondary);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  /* Enhanced focus for buttons */
+  button:focus-visible {
+    outline-width: 3px;
+    outline-offset: 3px;
+  }
+
+  /* Links get underline on focus for clarity */
+  a:focus-visible {
+    outline: 2px solid var(--color-secondary);
+    outline-offset: 2px;
+    text-decoration: underline;
+  }
+
+  /* Enhanced focus visibility in dark mode */
+  .dark *:focus-visible {
+    outline-width: 3px;
+    outline-color: var(--color-tertiary);
+  }
 }
 
 /* Internal link styles */
@@ -66,6 +96,21 @@ a.external {
 
 a.external:hover {
   color: var(--color-tertiary);
+}
+
+/* Minimum touch targets for mobile accessibility (WCAG 2.1 Level AAA) */
+@media (max-width: 768px) {
+  button,
+  a[href],
+  input[type="button"],
+  input[type="submit"],
+  [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
 }
 
 /* Code Block Styles */
@@ -704,7 +749,7 @@ table {
   width: 100%;
   border-collapse: collapse;
   margin: 1.5rem 0;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: 'Source Sans Pro', sans-serif;
   line-height: 1.5;
   display: block;
   overflow-x: auto;
@@ -812,4 +857,111 @@ h6 > a:hover {
 .prose a[data-footnote-backref]::after {
   content: '[↑]';
   font-size: 0.875rem;
+}
+
+/* ============================================ */
+/* ADDITIONAL PROSE ELEMENTS                    */
+/* ============================================ */
+
+/* Table captions */
+.prose caption {
+  caption-side: top;
+  font-style: italic;
+  font-size: 0.9em;
+  padding: 0.5em;
+  text-align: left;
+  color: var(--color-darkgray);
+  margin-bottom: 0.5em;
+}
+
+/* Definition lists */
+.prose dl {
+  margin: 1.5em 0;
+}
+
+.prose dt {
+  font-weight: 600;
+  margin-top: 1em;
+  color: var(--color-dark);
+}
+
+.prose dd {
+  margin-left: 2em;
+  margin-top: 0.25em;
+  color: var(--color-darkgray);
+}
+
+/* Abbreviations with tooltips */
+.prose abbr[title] {
+  text-decoration: underline dotted;
+  text-decoration-color: var(--color-gray);
+  cursor: help;
+}
+
+/* ============================================ */
+/* DARK MODE TYPOGRAPHY REFINEMENTS             */
+/* ============================================ */
+
+/* Subtle typographic adjustments for better dark mode legibility */
+.dark .prose {
+  line-height: 1.5; /* Slightly more generous than light mode's 1.4 */
+  letter-spacing: 0.01em; /* Subtle tracking increase for light-on-dark */
+}
+
+/* Reduce heading weight in dark mode for better rendering */
+.dark h1,
+.dark h2,
+.dark h3,
+.dark h4,
+.dark h5,
+.dark h6 {
+  font-weight: 500; /* One step lighter than light mode */
+}
+
+/* ============================================ */
+/* ACCESSIBILITY FEATURES                       */
+/* ============================================ */
+
+/* Reduced Motion Support (WCAG 2.1) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  :root {
+    --color-dark: #000000;
+    --color-light: #ffffff;
+    --color-secondary: #0000ff;
+    --color-tertiary: #0066ff;
+    --color-gray: #666666;
+    --color-darkgray: #333333;
+  }
+
+  .dark {
+    --color-dark: #ffffff;
+    --color-light: #000000;
+    --color-secondary: #00ffff;
+    --color-tertiary: #66ffff;
+    --color-gray: #999999;
+    --color-darkgray: #cccccc;
+  }
+
+  /* Increase border visibility */
+  * {
+    border-width: max(2px, var(--border-width, 1px)) !important;
+  }
+
+  /* Ensure all text is high contrast */
+  body {
+    color: var(--color-dark) !important;
+    background-color: var(--color-light) !important;
+  }
 }
