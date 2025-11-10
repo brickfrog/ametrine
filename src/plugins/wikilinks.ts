@@ -16,8 +16,8 @@ export interface WikilinkOptions {
 }
 
 const defaultOptions: WikilinkOptions = {
-  enableEmbeds: false,
-  markBroken: false,
+  enableEmbeds: true,
+  markBroken: true,
 };
 
 /**
