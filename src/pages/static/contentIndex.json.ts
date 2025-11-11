@@ -1,6 +1,6 @@
 import { getPublishedNotes } from "../../utils/filterNotes";
 import type { APIRoute } from "astro";
-import GithubSlugger from "github-slugger";
+import { slugify } from "../../utils/slugify";
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { parse as parseYaml } from "yaml";
@@ -66,7 +66,6 @@ const wikilinkRegex =
  */
 function extractLinks(content: string): string[] {
   const links: string[] = [];
-  const slugger = new GithubSlugger();
 
   // Find all wikilinks
   const matches = content.matchAll(wikilinkRegex);
@@ -78,7 +77,7 @@ function extractLinks(content: string): string[] {
       const pageName = rawFp.split("#")[0].trim();
       if (pageName) {
         // Slugify the page name
-        const slug = slugger.slug(pageName);
+        const slug = slugify(pageName);
         links.push(slug);
       }
     }

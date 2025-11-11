@@ -1,6 +1,8 @@
 import { Search as SearchIcon, X } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
+import { UI, TIMING } from "../../constants/spacing";
+import { logger } from "../../utils/logger";
 
 export interface ContentDetails {
   slug: string;
@@ -10,12 +12,29 @@ export interface ContentDetails {
   content: string;
 }
 
+interface SearchableNote extends ContentDetails {
+  _titleLower: string;
+  _contentLower: string;
+  _tagsLower: string[];
+}
+
 export function Search() {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [results, setResults] = useState<ContentDetails[]>([]);
-  const [allNotes, setAllNotes] = useState<ContentDetails[]>([]);
+  const [allNotes, setAllNotes] = useState<SearchableNote[]>([]);
   const modalRef = useRef<HTMLDivElement>(null);
+
+  // Pre-compute lowercase versions for faster search
+  const preprocessNotes = (notes: ContentDetails[]): SearchableNote[] => {
+    return notes.map((note) => ({
+      ...note,
+      _titleLower: note.title.toLowerCase(),
+      _contentLower: note.content.toLowerCase(),
+      _tagsLower: note.tags.map((tag) => tag.toLowerCase()),
+    }));
+  };
 
   useEffect(() => {
     // Load data: try cache first, then fetch
@@ -25,11 +44,11 @@ export function Search() {
       try {
         const notes = JSON.parse(cached);
         if (notes && notes.length > 0) {
-          setAllNotes(notes);
+          setAllNotes(preprocessNotes(notes));
           needsFetch = false;
         }
       } catch {
-        console.warn("Failed to parse cached search notes");
+        logger.warn("Failed to parse cached search notes");
       }
     }
 
@@ -39,10 +58,10 @@ export function Search() {
         .then((res) => res.json())
         .then((data: Record<string, ContentDetails>) => {
           const notes = Object.values(data);
-          setAllNotes(notes);
+          setAllNotes(preprocessNotes(notes));
           localStorage.setItem("search-notes", JSON.stringify(notes));
         })
-        .catch((err) => console.error("Failed to load content index:", err));
+        .catch((err) => logger.error("Failed to load content index:", err));
     }
   }, []);
 
@@ -99,22 +118,32 @@ export function Search() {
     return () => modal.removeEventListener("keydown", handleTab);
   }, [isOpen, results]);
 
+  // Debounce search query
   useEffect(() => {
-    if (!query.trim()) {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(query);
+    }, TIMING.LINK_PREVIEW_HOVER_DELAY); // 300ms debounce
+
+    return () => clearTimeout(timer);
+  }, [query]);
+
+  // Perform search with pre-computed lowercase strings
+  useEffect(() => {
+    if (!debouncedQuery.trim()) {
       setResults([]);
       return;
     }
 
-    const searchQuery = query.toLowerCase();
+    const searchQuery = debouncedQuery.toLowerCase();
     const filtered = allNotes.filter(
       (note) =>
-        note.title.toLowerCase().includes(searchQuery) ||
-        note.content.toLowerCase().includes(searchQuery) ||
-        note.tags.some((tag) => tag.toLowerCase().includes(searchQuery)),
+        note._titleLower.includes(searchQuery) ||
+        note._contentLower.includes(searchQuery) ||
+        note._tagsLower.some((tag) => tag.includes(searchQuery)),
     );
 
-    setResults(filtered.slice(0, 10)); // Limit to 10 results
-  }, [query, allNotes]);
+    setResults(filtered.slice(0, UI.SEARCH_RESULTS_LIMIT));
+  }, [debouncedQuery, allNotes]);
 
   if (!isOpen) {
     return (

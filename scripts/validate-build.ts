@@ -295,11 +295,11 @@ class BuildValidator {
 
 async function main() {
   const validator = new BuildValidator();
-  const { stats, hasErrors } = await validator.validate();
+  const { stats } = await validator.validate();
   validator.printResults(stats);
 
-  const { hasErrors: finalHasErrors } = validator.getResults();
-  process.exit(finalHasErrors ? 1 : 0);
+  const { hasErrors } = validator.getResults();
+  process.exit(hasErrors ? 1 : 0);
 }
 
 main();

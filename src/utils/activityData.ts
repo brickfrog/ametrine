@@ -3,6 +3,8 @@
  * Groups notes by creation and update dates
  */
 
+import { ACTIVITY_HEATMAP } from "../constants/spacing";
+
 export interface ActivityDay {
   date: string; // YYYY-MM-DD
   count: number;
@@ -132,13 +134,13 @@ export function processActivityData(
 
 /**
  * Get color intensity class based on note count
- * GitHub-style intensity: 0 (none), 1-2 (low), 3-5 (medium), 6+ (high)
+ * GitHub-style intensity: 0 (none), 1-2 (low), 3-4 (medium), 5-6 (high), 7+ (very high)
  */
 export function getIntensityLevel(count: number): 0 | 1 | 2 | 3 | 4 {
-  if (count === 0) return 0;
-  if (count <= 2) return 1;
-  if (count <= 4) return 2;
-  if (count <= 6) return 3;
+  if (count === ACTIVITY_HEATMAP.INTENSITY_NONE) return 0;
+  if (count <= ACTIVITY_HEATMAP.INTENSITY_LOW_MAX) return 1;
+  if (count <= ACTIVITY_HEATMAP.INTENSITY_MEDIUM_MAX) return 2;
+  if (count <= ACTIVITY_HEATMAP.INTENSITY_HIGH_MAX) return 3;
   return 4;
 }
 

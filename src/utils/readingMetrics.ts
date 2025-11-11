@@ -3,6 +3,7 @@
  */
 
 import GithubSlugger from "github-slugger";
+import { WORDS_PER_MINUTE } from "../constants/reading";
 import type { Note } from "./filterNotes";
 
 export interface LinkGraph {
@@ -37,6 +38,7 @@ const wikilinkRegex =
 
 /**
  * Extract wikilink targets from markdown content
+ * Uses a fresh slugger to avoid state pollution
  */
 function extractLinks(content: string): string[] {
   const links: string[] = [];
@@ -65,11 +67,11 @@ function calculateWordCount(content: string): number {
 }
 
 /**
- * Calculate reading time in minutes (200 words per minute)
+ * Calculate reading time in minutes
  */
 function calculateReadingTime(content: string): number {
   const words = calculateWordCount(content);
-  return Math.ceil(words / 200);
+  return Math.ceil(words / WORDS_PER_MINUTE);
 }
 
 /**
@@ -98,8 +100,10 @@ export function buildLinkGraph(notes: Note[]): LinkGraph {
   // Build incoming links from outgoing
   for (const [fromSlug, toSlugs] of outgoing.entries()) {
     for (const toSlug of toSlugs) {
-      const current = incoming.get(toSlug) || [];
-      incoming.set(toSlug, [...current, fromSlug]);
+      if (!incoming.has(toSlug)) {
+        incoming.set(toSlug, []);
+      }
+      incoming.get(toSlug)!.push(fromSlug);
     }
   }
 

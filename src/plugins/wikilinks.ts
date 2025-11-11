@@ -1,7 +1,7 @@
 import { findAndReplace } from "mdast-util-find-and-replace";
 import type { Root } from "mdast";
 import type { VFile } from "vfile";
-import GithubSlugger from "github-slugger";
+import { slugifyPath } from "../utils/slugify";
 
 // Wikilink regex from Quartz
 // Matches: [[Page Name]], [[Page#heading]], [[Page|Alias]], [[Page#heading|Alias]]
@@ -25,18 +25,7 @@ const defaultOptions: WikilinkOptions = {
  * Preserves folder structure by slugifying each path segment separately
  */
 function slugify(text: string): string {
-  const slugger = new GithubSlugger();
-  const trimmed = text.trim();
-
-  // Handle folder paths: split on '/', slugify each part, rejoin
-  if (trimmed.includes("/")) {
-    return trimmed
-      .split("/")
-      .map((part) => slugger.slug(part.trim()))
-      .join("/");
-  }
-
-  return slugger.slug(trimmed);
+  return slugifyPath(text);
 }
 
 /**

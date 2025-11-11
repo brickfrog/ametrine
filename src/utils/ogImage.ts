@@ -1,4 +1,5 @@
 import type { SatoriOptions } from "satori";
+import { WORDS_PER_MINUTE } from "../constants/reading";
 
 /**
  * Fetch a Google Font's TTF file
@@ -90,7 +91,6 @@ export async function getSatoriFonts(
  * Calculate reading time from text content
  */
 export function calculateReadingTime(text: string): number {
-  const wordsPerMinute = 200;
   const words = text.trim().split(/\s+/).length;
-  return Math.ceil(words / wordsPerMinute);
+  return Math.ceil(words / WORDS_PER_MINUTE);
 }

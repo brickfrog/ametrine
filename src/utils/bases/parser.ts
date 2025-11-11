@@ -2,6 +2,29 @@ import yaml from "js-yaml";
 import type { BaseConfig, BaseView, Filter } from "./types";
 
 /**
+ * Raw YAML structure as loaded (before validation)
+ */
+interface RawBaseYAML {
+  views?: unknown[];
+  filters?: unknown;
+  formulas?: unknown;
+  properties?: unknown;
+}
+
+interface RawViewYAML {
+  type?: string;
+  name?: string;
+  description?: string;
+  properties?: string[];
+  sort?: {
+    by: string;
+    order?: "asc" | "desc";
+  };
+  filter?: string;
+  [key: string]: unknown;
+}
+
+/**
  * Parse a .base file (YAML format) into a BaseConfig object
  *
  * @param content - Raw YAML content from .base file
@@ -10,7 +33,7 @@ import type { BaseConfig, BaseView, Filter } from "./types";
  */
 export function parseBaseFile(content: string): BaseConfig {
   try {
-    const parsed = yaml.load(content) as any;
+    const parsed = yaml.load(content) as RawBaseYAML;
 
     if (!parsed || typeof parsed !== "object") {
       throw new Error("Base file must contain a valid YAML object");
@@ -27,44 +50,49 @@ export function parseBaseFile(content: string): BaseConfig {
     }
 
     // Validate and normalize views
-    const views: BaseView[] = parsed.views.map((view: any, index: number) => {
-      if (!view || typeof view !== "object") {
-        throw new Error(`View at index ${index} must be an object`);
-      }
+    const views: BaseView[] = parsed.views.map(
+      (view: unknown, index: number) => {
+        const rawView = view as RawViewYAML;
+        if (!rawView || typeof rawView !== "object") {
+          throw new Error(`View at index ${index} must be an object`);
+        }
 
-      if (
-        !view.type ||
-        !["table", "cards", "list", "map"].includes(view.type)
-      ) {
-        throw new Error(
-          `View at index ${index} must have a valid type (table, cards, list, or map)`,
-        );
-      }
+        if (
+          !rawView.type ||
+          !["table", "cards", "list", "map"].includes(rawView.type)
+        ) {
+          throw new Error(
+            `View at index ${index} must have a valid type (table, cards, list, or map)`,
+          );
+        }
 
-      if (!view.name || typeof view.name !== "string") {
-        throw new Error(`View at index ${index} must have a name`);
-      }
+        if (!rawView.name || typeof rawView.name !== "string") {
+          throw new Error(`View at index ${index} must have a name`);
+        }
 
-      return {
-        type: view.type,
-        name: view.name,
-        limit: view.limit ? Number(view.limit) : undefined,
-        filters: view.filters,
-        order: Array.isArray(view.order) ? view.order : undefined,
-        image: view.image,
-        imageFit: view.imageFit,
-        imageAspectRatio: view.imageAspectRatio
-          ? Number(view.imageAspectRatio)
-          : undefined,
-        cardSize: view.cardSize ? Number(view.cardSize) : undefined,
-      };
-    });
+        return {
+          type: rawView.type as BaseView["type"],
+          name: rawView.name,
+          limit: rawView.limit ? Number(rawView.limit) : undefined,
+          filters: rawView.filters as Filter | undefined,
+          order: Array.isArray(rawView.order)
+            ? (rawView.order as string[])
+            : undefined,
+          image: rawView.image as string | undefined,
+          imageFit: rawView.imageFit as BaseView["imageFit"] | undefined,
+          imageAspectRatio: rawView.imageAspectRatio
+            ? Number(rawView.imageAspectRatio)
+            : undefined,
+          cardSize: rawView.cardSize ? Number(rawView.cardSize) : undefined,
+        };
+      },
+    );
 
     const config: BaseConfig = {
       views,
-      filters: parsed.filters,
-      formulas: parsed.formulas,
-      properties: parsed.properties,
+      filters: parsed.filters as Filter | undefined,
+      formulas: parsed.formulas as Record<string, string> | undefined,
+      properties: parsed.properties as Record<string, any> | undefined,
     };
 
     return config;

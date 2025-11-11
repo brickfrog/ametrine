@@ -3,7 +3,7 @@ import { getPublishedNotes, type Note } from '../utils/filterNotes';
 import { extractExternalLinks, groupLinksByDomain } from '../utils/extractExternalLinks';
 import { findRelatedNotes } from '../utils/findRelatedNotes';
 import { getCitedBibliography } from '../utils/parseBibliography';
-import GithubSlugger from 'github-slugger';
+import { slugify } from '../utils/slugify';
 import { config } from '../config';
 
 interface Props {
@@ -30,7 +30,6 @@ const wikilinkRegex = /!?\[\[([^[\]|#\\]+)?(#+[^[\]|#\\]+)?(\\?\|[^[\]#]*)?\]\]/
 
 function extractWikilinks(content: string): string[] {
   const links: string[] = [];
-  const slugger = new GithubSlugger();
 
   const matches = content.matchAll(wikilinkRegex);
   for (const match of matches) {
@@ -38,7 +37,7 @@ function extractWikilinks(content: string): string[] {
     if (rawFp) {
       const pageName = rawFp.split('#')[0].trim();
       if (pageName) {
-        const linkSlug = slugger.slug(pageName);
+        const linkSlug = slugify(pageName);
         links.push(linkSlug);
       }
     }

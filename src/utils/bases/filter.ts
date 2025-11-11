@@ -8,6 +8,7 @@ import type {
 } from "./types";
 import { builtinFunctions, isTruthy } from "./functions";
 import { wrapString, wrapList, wrapDate } from "./propertyWrappers";
+import { getFolderPath } from "../folders";
 
 /**
  * Extract embedded files from note body
@@ -31,7 +32,7 @@ function createFileProperties(note: Note): FileProperties {
   const slug = note.slug;
   const parts = slug.split("/");
   const fileName = parts[parts.length - 1];
-  const folder = parts.length > 1 ? parts.slice(0, -1).join("/") : "";
+  const folder = getFolderPath(slug);
   const basename = fileName.replace(/\.[^.]+$/, "");
 
   return {

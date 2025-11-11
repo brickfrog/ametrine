@@ -1,7 +1,6 @@
 import { glob } from 'fast-glob';
 import { readFile } from 'node:fs/promises';
-import GithubSlugger from 'github-slugger';
-import { basename } from 'node:path';
+import { slugify, slugifyPath, resetSlugger } from '../src/utils/slugify';
 
 /**
  * Validates all wikilinks in the vault to ensure they point to existing notes
@@ -26,7 +25,7 @@ interface Note {
  * Extract headings from markdown content and convert them to URL-safe IDs
  */
 function extractHeadings(content: string): Set<string> {
-  const slugger = new GithubSlugger();
+  resetSlugger(); // Reset for fresh heading slugs
   const headings = new Set<string>();
 
   // Split content into lines
@@ -47,7 +46,7 @@ function extractHeadings(content: string): Set<string> {
     const match = line.match(/^(#{1,6})\s+(.+)$/);
     if (match) {
       const headingText = match[2].trim();
-      const slug = slugger.slug(headingText);
+      const slug = slugify(headingText);
       headings.add(slug);
     }
   }
@@ -86,10 +85,7 @@ function parseWikilinksWithAnchors(content: string): Array<{ slug: string; ancho
 
       if (pageName) {
         // Slugify the page name (same way wikilinks plugin does)
-        const slugger = new GithubSlugger();
-        const slug = pageName.includes('/')
-          ? pageName.split('/').map(part => slugger.slug(part.trim())).join('/')
-          : slugger.slug(pageName);
+        const slug = slugifyPath(pageName);
 
         links.push({ slug, anchor });
       }

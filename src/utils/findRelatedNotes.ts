@@ -1,4 +1,5 @@
 import type { Note } from "./filterNotes";
+import { getFolderPath } from "./folders";
 
 export interface RelatedNote {
   note: Note;
@@ -16,9 +17,7 @@ export function findRelatedNotes(
 ): RelatedNote[] {
   const related: RelatedNote[] = [];
   const currentTags = new Set(currentNote.data.tags || []);
-  const currentFolder = currentNote.slug.includes("/")
-    ? currentNote.slug.substring(0, currentNote.slug.lastIndexOf("/"))
-    : "";
+  const currentFolder = getFolderPath(currentNote.slug);
 
   for (const note of allNotes) {
     // Skip self
@@ -40,9 +39,7 @@ export function findRelatedNotes(
     }
 
     // Score by same folder (medium weight)
-    const noteFolder = note.slug.includes("/")
-      ? note.slug.substring(0, note.slug.lastIndexOf("/"))
-      : "";
+    const noteFolder = getFolderPath(note.slug);
     if (currentFolder && noteFolder === currentFolder) {
       score += 2; // 2 points for same folder
       reasons.push("same folder");
@@ -75,17 +72,13 @@ export function getNotesInSameFolder(
   currentNote: Note,
   allNotes: Note[],
 ): Note[] {
-  const currentFolder = currentNote.slug.includes("/")
-    ? currentNote.slug.substring(0, currentNote.slug.lastIndexOf("/"))
-    : "";
+  const currentFolder = getFolderPath(currentNote.slug);
 
   if (!currentFolder) return [];
 
   return allNotes.filter((note) => {
     if (note.slug === currentNote.slug) return false;
-    const noteFolder = note.slug.includes("/")
-      ? note.slug.substring(0, note.slug.lastIndexOf("/"))
-      : "";
+    const noteFolder = getFolderPath(note.slug);
     return noteFolder === currentFolder;
   });
 }

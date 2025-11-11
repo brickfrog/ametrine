@@ -63,6 +63,7 @@ export const UI = {
   ICON_SIZE_SM: 16,
   ICON_SIZE_MD: 18,
   ICON_SIZE_LG: 24,
+  SEARCH_RESULTS_LIMIT: 10, // Maximum number of search results to display
 } as const;
 
 // Table of Contents
@@ -101,4 +102,14 @@ export const TIMING = {
   LINK_PREVIEW_HOVER_DELAY: 300,
   ANIMATION_DURATION: 200,
   TRANSITION_DURATION: 300,
+} as const;
+
+// Activity Heatmap
+export const ACTIVITY_HEATMAP = {
+  // GitHub-style intensity thresholds
+  INTENSITY_NONE: 0,
+  INTENSITY_LOW_MAX: 2, // 1-2 edits
+  INTENSITY_MEDIUM_MAX: 4, // 3-4 edits
+  INTENSITY_HIGH_MAX: 6, // 5-6 edits
+  // 7+ edits = level 4 (very high)
 } as const;

@@ -5,6 +5,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { logger } from "../utils/logger";
 
 export interface ContentDetails {
   slug: string;
@@ -41,7 +42,7 @@ export function ContentIndexProvider({ children }: { children: ReactNode }) {
           return;
         }
       } catch {
-        console.warn("Failed to parse cached search notes");
+        logger.warn("Failed to parse cached search notes");
       }
     }
 
@@ -58,7 +59,7 @@ export function ContentIndexProvider({ children }: { children: ReactNode }) {
         setIsLoading(false);
       })
       .catch((err) => {
-        console.error("Failed to load content index:", err);
+        logger.error("Failed to load content index:", err);
         setError(err instanceof Error ? err : new Error(String(err)));
         setIsLoading(false);
       });
