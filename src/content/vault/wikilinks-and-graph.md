@@ -17,7 +17,7 @@ Learn how to create connections between notes and visualize your knowledge netwo
 Wikilinks are ==double-bracket links== that connect notes together. They're inspired by Wikipedia's internal linking system and popularized by tools like [[Obsidian Features Demo|Obsidian]].
 
 Wikilinks are better than regular markdown links because:
-- Faster to write: `[[Page]]` vs `[Page](page.md)`
+- Faster to write: `[[page]]` vs `[Page](page.md)`
 - Auto-complete in most editors
 - Work with note titles, not file paths
 - Support aliases and sections
@@ -52,20 +52,20 @@ Result: [[Configuration Guide|customizing your site]]
 Link directly to a heading within a page:
 
 ```markdown
-[[Deployment Guide#Netlify]]
+[[Deployment Guide#netlify]]
 ```
 
-Result: [[Deployment Guide#Netlify]]
+Result: [[Deployment Guide#netlify]]
 
 ### Section with Custom Text
 
 Combine both features:
 
 ```markdown
-[[Configuration Guide#Theme Customization|changing colors]]
+[[Configuration Guide#theme-customization|changing colors]]
 ```
 
-Result: [[Configuration Guide#Theme Customization|changing colors]]
+Result: [[Configuration Guide#theme-customization|changing colors]]
 
 ## Aliases
 
@@ -80,8 +80,8 @@ aliases: [Obsidian Demo, Feature Demo]
 
 Now all these link to the same page:
 - `[[Obsidian Features Demo]]` → [[Obsidian Features Demo]]
-- `[[Obsidian Demo]]` → [[Obsidian Demo]]
-- `[[Feature Demo]]` → [[Feature Demo]]
+- `[[obsidian-features-demo|Obsidian Demo]]` → [[obsidian-features-demo|Obsidian Demo]]
+- `[[obsidian-features-demo|Feature Demo]]` → [[obsidian-features-demo|Feature Demo]]
 
 > [!note] Alias Matching
 > Aliases are case-insensitive and match exactly. Use them for common abbreviations or alternate terms.
@@ -218,7 +218,7 @@ Balance both: Link generously in hubs, selectively in focused notes.
 
 Where you place links matters:
 
-**Inline links** (like [[this]]) work well for:
+**Inline links** (like `[[this]]`) work well for:
 - Direct references
 - Supporting evidence
 - Related tangents
@@ -291,7 +291,7 @@ Central hub for all digital gardening content.
 
 ## Core Concepts
 - [[index|What is a Digital Garden?]]
-- [[Knowledge Management]]
+- `[[knowledge-management]]`
 
 ## Guides
 - [[Quick Start]]
@@ -318,15 +318,15 @@ tags: [concept, pkm]
 
 Each note should express ==one complete idea==.
 
-Atomic notes are fundamental to [[Zettelkasten Method|Zettelkasten]]
-and [[Knowledge Management|PKM systems]].
+Atomic notes are fundamental to `[[zettelkasten-method|Zettelkasten]]`
+and `[[knowledge-management|PKM systems]]`.
 
 Benefits:
 - Easier to link
 - More reusable
 - Clearer focus
 
-See also: [[Building a Knowledge Network]]
+See also: `[[building-a-knowledge-network]]`
 ```
 
 This creates targeted connections to related concepts.
@@ -342,11 +342,11 @@ status: in-progress
 
 # Website Redesign
 
-Using [[Ametrine]] to build the new site.
+Using `[[ametrine]]` to build the new site.
 
 ## Tasks
 - [x] Choose template ([[Quick Start]])
-- [x] Configure theme ([[Configuration Guide#Theme Customization]])
+- [x] Configure theme ([[Configuration Guide#theme-customization]])
 - [ ] Deploy ([[Deployment Guide]])
 
 ## Resources
@@ -369,7 +369,7 @@ Don't just link forward - think about backlinks:
 
 The text surrounding a link provides context for backlinks:
 
-Bad: "See [[this page]]"
+Bad: "See `[[this-page]]`"
 Good: "Learn more about [[Configuration Guide|customizing themes]]"
 
 The backlink panel shows surrounding text, so good context helps readers.

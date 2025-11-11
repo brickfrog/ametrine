@@ -220,10 +220,10 @@ aliases: [Alt Name, Another Name, Abbreviation]
 ```
 
 All these wikilinks resolve to the same note:
-- `[[My Note]]`
-- `[[Alt Name]]`
-- `[[Another Name]]`
-- `[[Abbreviation]]`
+- `[[my-note]]`
+- `[[alt-name]]`
+- `[[another-name]]`
+- `[[abbreviation]]`
 
 Use cases:
 - Abbreviations: `PKM` → `Personal Knowledge Management`
@@ -241,7 +241,7 @@ Internal and external links in the note.
 
 ```yaml
 links:
-  - target: other-note
+  - target: `other-note`
     text: Other Note
     type: internal
 ```
@@ -359,7 +359,7 @@ metadata: {
 }
 ```
 
-See [[Configuration Guide#Metadata Display]] for details.
+See [[Configuration Guide#metadata-display]] for details.
 
 ## Examples
 
@@ -477,7 +477,7 @@ draft: true
 **Problem:** Custom fields don't appear
 
 **Solutions:**
-- Check [[Configuration Guide#Metadata Display]]
+- Check [[Configuration Guide#metadata-display]]
 - Verify field is in frontmatter
 - Try restarting dev server
 - Check browser console for errors

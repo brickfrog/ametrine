@@ -3,7 +3,7 @@ title: Bases Demo
 description: Database-like views of your notes with filtering and sorting
 tags: [demo, features, bases]
 date: 2025-10-30
-image: "[[Polished Ametrine.png]]"
+image: "/ametrine.png"
 ---
 
 # Bases Demo

@@ -3,7 +3,7 @@ title: Quick Start
 description: Get your Ametrine digital garden running in 5 minutes
 tags: [guide, setup, tutorial]
 date: 2025-10-30
-image: "[[Polished Ametrine.png]]"
+image: "/ametrine.png"
 ---
 
 # Quick Start
@@ -123,9 +123,9 @@ my-garden/
 Link between notes using double brackets:
 
 ```markdown
-[[Page Name]]              # Links to page-name.md
-[[Page Name|Display Text]] # Custom link text
-[[Page#Section]]           # Link to a specific section
+`[[page-name]]`              # Links to page-name.md
+`[[page-name|Display Text]]` # Custom link text
+`[[page#section]]`           # Link to a specific section
 ```
 
 Learn more in [[Wikilinks and Graph]].

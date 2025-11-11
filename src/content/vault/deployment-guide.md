@@ -89,7 +89,7 @@ Add `netlify.toml` to your project root:
   command = "bun run build"
   publish = "dist"
 
-[[redirects]]
+`[[redirects]]`
   from = "/*"
   to = "/index.html"
   status = 200
@@ -414,7 +414,7 @@ bun run build --verbose
 
 Netlify:
 ```toml
-[[redirects]]
+`[[redirects]]`
   from = "/*"
   to = "/index.html"
   status = 200
@@ -461,7 +461,7 @@ Use services like:
 
 ### Analytics
 
-See [[Configuration Guide#Analytics Integration]] for setup instructions.
+See [[Configuration Guide#analytics-integration]] for setup instructions.
 
 ### Error Tracking
 

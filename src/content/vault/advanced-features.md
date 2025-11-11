@@ -56,7 +56,7 @@ The content index includes:
 
 ## Link Preview Popovers
 
-Hover over any ==internal wikilink== to see a preview popup {{Like [[this one]]!}}.
+Hover over any ==internal wikilink== to see a preview popup {{Try hovering over a link!}}.
 
 ### Popover Features
 
@@ -180,7 +180,7 @@ Defined in `src/config.ts`:
 - Purple accents (#9d7bd8)
 - Reduced eye strain
 
-See [[Configuration Guide#Colors]] to customize.
+See [[configuration-guide#colors]] to customize.
 
 ### Dark Mode for Diagrams
 

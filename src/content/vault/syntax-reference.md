@@ -28,16 +28,16 @@ Result: [[Configuration Guide|customize your site]]
 ### Link to Section
 
 ```markdown
-[[Deployment Guide#Netlify]]
+[[Deployment Guide#netlify]]
 ```
-Result: [[Deployment Guide#Netlify]]
+Result: [[Deployment Guide#netlify]]
 
 ### Section with Alias
 
 ```markdown
-[[Configuration Guide#Theme Customization|theme colors]]
+[[Configuration Guide#theme-customization|theme colors]]
 ```
-Result: [[Configuration Guide#Theme Customization|theme colors]]
+Result: [[Configuration Guide#theme-customization|theme colors]]
 
 ## Highlights
 
@@ -314,7 +314,7 @@ Quote from source[@key2023, p. 42].
 Result: Quote from source[@key2023, p. 42].
 
 > [!note] Bibliography Required
-> Citations require a `bibliography.bib` file. See [[Configuration Guide#Citations]].
+> Citations require a `bibliography.bib` file. See [[Configuration Guide#citations]].
 
 ## Code Blocks
 
