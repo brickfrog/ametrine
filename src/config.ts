@@ -250,6 +250,8 @@ export interface SiteConfig {
   locale: string;
   /** Base URL for absolute links (sitemaps, RSS, etc) */
   baseUrl?: string;
+  /** Base path for deployment (e.g., "/repo-name" for GitHub Pages, "/" for root) */
+  basePath?: string;
   /** Glob patterns to ignore */
   ignorePatterns: string[];
   /** Default date type: created, modified, or published */
@@ -296,6 +298,7 @@ export const config: SiteConfig = {
   analytics: null,
   locale: "en-US",
   baseUrl: "https://brickfrog.github.io/ametrine",
+  basePath: "/ametrine",
   ignorePatterns: ["private", "templates", ".obsidian"],
   defaultDateType: "modified",
   footer: {

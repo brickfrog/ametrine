@@ -46,6 +46,7 @@ All commands are run from the root of the project, from a terminal:
 | Command             | Action                                           |
 | :------------------ | :----------------------------------------------- |
 | `bun install`       | Installs dependencies                            |
+| `bun run setup`     | Show setup checklist for new installations       |
 | `bun run dev`       | Starts local dev server at `localhost:4321`      |
 | `bun run build`     | Build your production site to `./dist/`          |
 | `bun run preview`   | Preview your build locally, before deploying     |
@@ -53,14 +54,31 @@ All commands are run from the root of the project, from a terminal:
 
 ## Getting Started
 
-After cloning this template, customize it for your site:
+### Quick Setup
 
-- [ ] Update site title, description, and logo in `src/config.ts`
-- [ ] Modify footer links in `src/config.ts`
-- [ ] Customize theme colors and typography in `src/config.ts`
-- [ ] Replace logo in `public/ametrine.png`
-- [ ] Delete or replace example notes in `src/content/vault/`
-- [ ] Update `baseUrl` in `src/config.ts` for production deployment
+1. **Install dependencies:**
+   ```sh
+   bun install
+   ```
+
+2. **View setup checklist:**
+   ```sh
+   bun run setup
+   ```
+
+3. **Customize your site** (`src/config.ts`):
+   - [ ] Update `pageTitle`, `defaultDescription`
+   - [ ] Set `baseUrl` (full URL like `https://yourdomain.com`)
+   - [ ] Set `basePath` (`"/"` for root domain, `"/repo-name"` for GitHub Pages)
+   - [ ] Modify `footer.links` (replace GitHub link)
+   - [ ] Customize theme colors and typography
+   - [ ] Replace logo in `public/ametrine.png`
+   - [ ] Delete or replace example notes in `src/content/vault/`
+
+4. **Start developing:**
+   ```sh
+   bun run dev
+   ```
 
 ## Customization
 

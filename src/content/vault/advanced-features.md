@@ -286,7 +286,7 @@ Browse your notes hierarchically.
 ### Explorer Behavior
 
 The explorer shows:
-- All notes in `src/content/notes/`
+- All notes in `src/content/vault/`
 - Organized by folder structure
 - Sorted alphabetically
 - Current page highlighted

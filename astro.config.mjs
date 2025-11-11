@@ -26,7 +26,7 @@ import { config } from './src/config.ts';
 // https://astro.build/config
 export default defineConfig({
   site: config.baseUrl,
-  base: '/ametrine',
+  base: config.basePath || '/',
   integrations: [
     expressiveCode({
       themes: ['github-light', 'github-dark'],
@@ -86,7 +86,7 @@ export default defineConfig({
       links,
       // Prepend base URL to all internal links (must be after all other plugins)
       // @ts-expect-error - Rehype plugin types are incompatible with Astro's type definitions
-      [rehypeBaseUrl, { base: '/ametrine' }], // Must match base config above
+      [rehypeBaseUrl, { base: config.basePath || '/' }],
       // Citations - conditionally enabled
       // @ts-expect-error - Rehype plugin types are incompatible with Astro's type definitions
       ...(config.citations?.enable ? [
