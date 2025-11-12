@@ -149,7 +149,7 @@ export function Search() {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="flex items-center gap-2 w-full px-3 py-2 text-sm text-theme-darkgray bg-theme-lightgray rounded-lg hover:bg-theme-highlight transition-colors"
+        className="flex items-center gap-2 w-full px-3 py-2 text-sm text-theme-darkgray bg-theme-lightgray rounded-lg hover:bg-theme-highlight"
       >
         <SearchIcon className="h-4 w-4" />
         <span>Search...</span>
