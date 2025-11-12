@@ -1,5 +1,8 @@
 name: CI
 
+# This workflow runs for all repositories (including template users).
+# It validates code quality through formatting, linting, tests, and builds.
+
 on:
   push:
     branches: [master, main]

@@ -18,6 +18,9 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # Only auto-deploy for the original demo repository.
+    # Template users: Change 'brickfrog/ametrine' to 'your-username/your-repo' when ready to deploy.
+    if: github.repository == 'brickfrog/ametrine'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
