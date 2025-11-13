@@ -1,5 +1,5 @@
 ---
-import BasesLayout from '../../layouts/BasesLayout.astro';
+import ContentLayout from '../../layouts/ContentLayout.astro';
 import { TableView } from '../../components/react/TableView';
 import { CardView } from '../../components/react/CardView';
 import BaseToolbar from '../../components/base/BaseToolbar.astro';
@@ -19,18 +19,31 @@ export async function getStaticPaths() {
     return [];
   }
 
-  // Load .base files from vault directory
+  // Recursively scan vault directory for .base files
   const contentPath = join(process.cwd(), `src/content/${siteConfig.vaultName || 'vault'}`);
-  const files = await readdir(contentPath);
-  const baseFiles = files.filter((f) => f.endsWith('.base'));
 
-  const bases = await Promise.all(
-    baseFiles.map(async (file) => {
-      const content = await readFile(join(contentPath, file), 'utf-8');
-      const data = parseYaml(content);
-      return { id: file, data };
-    })
-  );
+  async function scanForBaseFiles(dir: string, basePath: string = ''): Promise<Array<{ id: string; data: any }>> {
+    const bases: Array<{ id: string; data: any }> = [];
+    const entries = await readdir(dir, { withFileTypes: true });
+
+    for (const entry of entries) {
+      const fullPath = join(dir, entry.name);
+      const relativePath = basePath ? `${basePath}/${entry.name}` : entry.name;
+
+      if (entry.isDirectory() && !entry.name.startsWith('.')) {
+        const subBases = await scanForBaseFiles(fullPath, relativePath);
+        bases.push(...subBases);
+      } else if (entry.isFile() && entry.name.endsWith('.base')) {
+        const content = await readFile(fullPath, 'utf-8');
+        const data = parseYaml(content);
+        bases.push({ id: relativePath, data });
+      }
+    }
+
+    return bases;
+  }
+
+  const bases = await scanForBaseFiles(contentPath);
 
   const paths = bases.flatMap((base) => {
     const config = base.data;
@@ -90,10 +103,11 @@ const pageTitle = `${view.name} | ${baseName}`;
 const pageDescription = `Base view: ${view.name}`;
 ---
 
-<BasesLayout
+<ContentLayout
   title={pageTitle}
   description={pageDescription}
   slug={`base/${baseName}/${view.name}`}
+  marginalia={[]}
   hideBreadcrumbs={true}
 >
   <div class="base-page px-4 sm:px-6 lg:px-8">
@@ -125,7 +139,7 @@ const pageDescription = `Base view: ${view.name}`;
       </div>
     )}
   </div>
-</BasesLayout>
+</ContentLayout>
 
 <style>
   .table-wrapper {

@@ -18,13 +18,32 @@ export async function getStaticPaths() {
     return [];
   }
 
-  // Load .canvas files from vault directory
+  // Recursively scan vault directory for .canvas files
   const vaultPath = join(process.cwd(), `src/content/${config.vaultName || 'vault'}`);
-  const files = await readdir(vaultPath);
-  const canvasFiles = files.filter((f) => f.endsWith('.canvas'));
 
-  const paths = canvasFiles.map((file) => {
-    const canvasName = file.replace(/\.canvas$/, '');
+  async function scanForCanvasFiles(dir: string, basePath: string = ''): Promise<Array<{ file: string; relativePath: string }>> {
+    const canvases: Array<{ file: string; relativePath: string }> = [];
+    const entries = await readdir(dir, { withFileTypes: true });
+
+    for (const entry of entries) {
+      const fullPath = join(dir, entry.name);
+      const relativePath = basePath ? `${basePath}/${entry.name}` : entry.name;
+
+      if (entry.isDirectory() && !entry.name.startsWith('.')) {
+        const subCanvases = await scanForCanvasFiles(fullPath, relativePath);
+        canvases.push(...subCanvases);
+      } else if (entry.isFile() && entry.name.endsWith('.canvas')) {
+        canvases.push({ file: relativePath, relativePath });
+      }
+    }
+
+    return canvases;
+  }
+
+  const canvasFiles = await scanForCanvasFiles(vaultPath);
+
+  const paths = canvasFiles.map(({ file, relativePath }) => {
+    const canvasName = relativePath.replace(/\.canvas$/, '');
 
     return {
       params: {

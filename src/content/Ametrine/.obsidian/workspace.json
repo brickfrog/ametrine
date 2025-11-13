@@ -11,13 +11,17 @@
             "id": "9890a3d1e9407fc8",
             "type": "leaf",
             "state": {
-              "type": "bases",
+              "type": "canvas",
               "state": {
-                "file": "Examples/all-notes.base",
-                "viewName": "All Notes"
+                "file": "Examples/test-canvas.canvas",
+                "viewState": {
+                  "x": 420,
+                  "y": 310,
+                  "zoom": -1.699694716812433
+                }
               },
-              "icon": "lucide-table",
-              "title": "all-notes"
+              "icon": "lucide-layout-dashboard",
+              "title": "test-canvas"
             }
           }
         ]
@@ -184,12 +188,16 @@
       "bases:Create new base": false
     }
   },
-  "active": "2404304b41483ef1",
+  "active": "9890a3d1e9407fc8",
   "lastOpenFiles": [
+    "Examples/all-notes.base",
+    "Examples/index.md",
+    "Examples/index.md.tmp.2042416.1763069722089",
+    "Assets/index.md",
+    "Assets/index.md.tmp.2042416.1763069717420",
     "Assets/ametrine.md",
     "Examples/test-canvas.canvas",
     "Examples/test-cards.base",
-    "Examples/all-notes.base",
     "index.md",
     "Assets/Polished Ametrine.png",
     "Welcome.md"

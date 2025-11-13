@@ -13,6 +13,7 @@ import {
   getNotesInFolder,
   getSubfolders,
   getFolderDisplayName,
+  getAllFilesInFolder,
 } from '../utils/folders';
 import { config } from '../config';
 
@@ -25,8 +26,8 @@ export async function getStaticPaths() {
     props: { note, isFolder: false },
   }));
 
-  // Generate paths for folders
-  const folders = getAllFolders(notes);
+  // Generate paths for folders (including empty folders from filesystem)
+  const folders = await getAllFolders(notes);
   const folderPaths = folders.map((folder) => ({
     params: { slug: folder },
     props: { note: undefined, isFolder: true, folderPath: folder },
@@ -50,11 +51,13 @@ let subfolders: string[] = [];
 let sortedNotes: Note[] = [];
 let folderName = '';
 let totalItems = 0;
+let otherFiles: Array<{ name: string; type: string; path: string }> = [];
 
 if (isFolder) {
   allNotes = await getPublishedNotes();
   notesInFolder = getNotesInFolder(folderPath!, allNotes, false);
   subfolders = getSubfolders(folderPath!, allNotes);
+  otherFiles = await getAllFilesInFolder(folderPath!);
 
   // Sort notes by date (newest first) then alphabetically
   sortedNotes = notesInFolder.sort((a, b) => {
@@ -71,7 +74,7 @@ if (isFolder) {
   });
 
   folderName = getFolderDisplayName(folderPath!);
-  totalItems = notesInFolder.length + subfolders.length;
+  totalItems = notesInFolder.length + subfolders.length + otherFiles.length;
 }
 
 let Content: any, toc: any[] = [], marginalia: any = [];
@@ -123,12 +126,11 @@ function formatDate(date: Date | undefined) {
                       <div class="flex-1 min-w-0">
                         <div class="desc mb-2">
                           <h3 class="text-lg font-semibold font-header m-0">
-                            <span class="text-theme-darkgray mr-2">📁</span>
                             <a
                               href={`${import.meta.env.BASE_URL}/${subfolder}`}
                               class="text-theme-dark hover:text-theme-secondary transition-colors"
                             >
-                              {subfolderName}
+                              {subfolderName}/
                             </a>
                           </h3>
                         </div>
@@ -181,6 +183,49 @@ function formatDate(date: Date | undefined) {
                   </div>
                 </li>
               ))}
+
+              {/* Render other files (images, canvas, base files, etc.) */}
+              {otherFiles.map((file) => {
+                const isImage = ['png', 'jpg', 'jpeg', 'webp', 'gif', 'avif', 'svg'].includes(file.type);
+                const isCanvas = file.type === 'canvas';
+                const isBase = file.type === 'base';
+                const fileSlug = file.path.replace(/\.(png|jpg|jpeg|webp|gif|avif|svg|canvas|base)$/i, '');
+
+                let fileUrl = '';
+                if (isImage) {
+                  fileUrl = `${import.meta.env.BASE_URL}/image/${fileSlug}`;
+                } else if (isCanvas) {
+                  fileUrl = `${import.meta.env.BASE_URL}/canvas/${fileSlug}`;
+                } else if (isBase) {
+                  fileUrl = `${import.meta.env.BASE_URL}/base/${fileSlug}`;
+                }
+
+                return (
+                  <li class="list-none border-b border-theme-gray last:border-0">
+                    <div class="section py-4 flex gap-4">
+                      <div class="flex-1 min-w-0">
+                        <div class="desc mb-2">
+                          <h3 class="text-lg font-semibold font-header m-0">
+                            {fileUrl ? (
+                              <a
+                                href={fileUrl}
+                                class="text-theme-dark hover:text-theme-secondary transition-colors"
+                              >
+                                {file.name}
+                              </a>
+                            ) : (
+                              <span class="text-theme-dark">{file.name}</span>
+                            )}
+                            <span class="text-xs text-theme-darkgray ml-2">
+                              [{file.type}]
+                            </span>
+                          </h3>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         </ContentLayout>

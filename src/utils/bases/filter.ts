@@ -8,7 +8,7 @@ import type {
 } from "./types";
 import { builtinFunctions, isTruthy } from "./functions";
 import { wrapString, wrapList, wrapDate } from "./propertyWrappers";
-import { getFolderPath } from "../folders";
+import { getFolderPath } from "../folderUtils";
 
 /**
  * Extract embedded files from note body

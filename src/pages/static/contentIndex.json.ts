@@ -164,88 +164,97 @@ export const GET: APIRoute = async () => {
     };
   }
 
-  // Add base files
+  // Recursively scan vault for base, image, and canvas files
   const vaultPath = join(process.cwd(), `src/content/${vaultName}`);
-  const files = await readdir(vaultPath);
-  const baseFiles = files.filter((f) => f.endsWith(".base"));
 
-  for (const file of baseFiles) {
-    const baseName = file.replace(/\.base$/, "");
-    const content = await readFile(join(vaultPath, file), "utf-8");
-    const baseData = parseYaml(content);
-    const firstView = baseData.views?.[0];
-    const firstViewSlug = firstView?.name.toLowerCase().replace(/\s+/g, "-");
+  async function scanDirectory(
+    dir: string,
+    basePath: string = "",
+  ): Promise<void> {
+    const entries = await readdir(dir, { withFileTypes: true });
 
-    contentIndex[baseName] = {
-      slug: baseName,
-      title: baseName,
-      filePath: `content/${vaultName}/${file}`,
-      links: [`base/${baseName}/${firstViewSlug}`],
-      tags: [],
-      content,
-      excerpt: `Base: ${baseName}`,
-      type: "base",
-    };
-  }
+    for (const entry of entries) {
+      const fullPath = join(dir, entry.name);
+      const relativePath = basePath ? `${basePath}/${entry.name}` : entry.name;
 
-  // Add image files
-  const imageExtensions = [
-    ".png",
-    ".jpg",
-    ".jpeg",
-    ".webp",
-    ".gif",
-    ".svg",
-    ".avif",
-  ];
-  const imageFiles = files.filter((f) =>
-    imageExtensions.some((ext) => f.toLowerCase().endsWith(ext)),
-  );
+      if (entry.isDirectory() && !entry.name.startsWith(".")) {
+        await scanDirectory(fullPath, relativePath);
+      } else if (entry.isFile() && !entry.name.startsWith(".")) {
+        // Handle base files
+        if (entry.name.endsWith(".base")) {
+          const slug = relativePath.replace(/\.base$/, "");
+          const content = await readFile(fullPath, "utf-8");
+          const baseData = parseYaml(content);
+          const firstView = baseData.views?.[0];
+          const firstViewSlug = firstView?.name
+            .toLowerCase()
+            .replace(/\s+/g, "-");
 
-  for (const file of imageFiles) {
-    const extension = file.split(".").pop()?.toUpperCase() || "";
-    const nameWithoutExt = file.replace(/\.[^.]+$/, "");
+          contentIndex[slug] = {
+            slug,
+            title: entry.name.replace(/\.base$/, ""),
+            filePath: `content/${vaultName}/${relativePath}`,
+            links: [`base/${slug}/${firstViewSlug}`],
+            tags: [],
+            content,
+            excerpt: `Base: ${entry.name.replace(/\.base$/, "")}`,
+            type: "base",
+          };
+        }
+        // Handle image files
+        else if (
+          [".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg", ".avif"].some(
+            (ext) => entry.name.toLowerCase().endsWith(ext),
+          )
+        ) {
+          const extension = entry.name.split(".").pop()?.toUpperCase() || "";
+          const slug = relativePath.replace(/\.[^.]+$/, "");
 
-    contentIndex[nameWithoutExt] = {
-      slug: nameWithoutExt,
-      title: nameWithoutExt,
-      filePath: `content/${vaultName}/${file}`,
-      links: [`image/${nameWithoutExt}`],
-      tags: [],
-      content: "",
-      excerpt: `Image: ${file}`,
-      type: "image",
-      extension,
-    };
-  }
+          contentIndex[slug] = {
+            slug,
+            title: entry.name.replace(/\.[^.]+$/, ""),
+            filePath: `content/${vaultName}/${relativePath}`,
+            links: [`image/${slug}`],
+            tags: [],
+            content: "",
+            excerpt: `Image: ${entry.name}`,
+            type: "image",
+            extension,
+          };
+        }
+        // Handle canvas files
+        else if (entry.name.endsWith(".canvas")) {
+          const slug = relativePath.replace(/\.canvas$/, "");
+          const content = await readFile(fullPath, "utf-8");
 
-  // Add canvas files
-  const canvasFiles = files.filter((f) => f.endsWith(".canvas"));
+          try {
+            const canvasData: CanvasData = JSON.parse(content);
+            const nodeCount = canvasData.nodes?.length || 0;
+            const edgeCount = canvasData.edges?.length || 0;
 
-  for (const file of canvasFiles) {
-    const canvasName = file.replace(/\.canvas$/, "");
-    const content = await readFile(join(vaultPath, file), "utf-8");
-
-    try {
-      const canvasData: CanvasData = JSON.parse(content);
-      const nodeCount = canvasData.nodes?.length || 0;
-      const edgeCount = canvasData.edges?.length || 0;
-
-      contentIndex[canvasName] = {
-        slug: canvasName,
-        title: canvasName,
-        filePath: `content/${vaultName}/${file}`,
-        links: [`canvas/${canvasName}`],
-        tags: [],
-        content,
-        excerpt: `Canvas: ${nodeCount} nodes, ${edgeCount} edges`,
-        type: "canvas",
-        canvasData,
-      };
-    } catch (error) {
-      console.error(`Failed to parse canvas file ${file}:`, error);
+            contentIndex[slug] = {
+              slug,
+              title: entry.name.replace(/\.canvas$/, ""),
+              filePath: `content/${vaultName}/${relativePath}`,
+              links: [`canvas/${slug}`],
+              tags: [],
+              content,
+              excerpt: `Canvas: ${nodeCount} nodes, ${edgeCount} edges`,
+              type: "canvas",
+              canvasData,
+            };
+          } catch (error) {
+            console.error(
+              `Failed to parse canvas file ${relativePath}:`,
+              error,
+            );
+          }
+        }
+      }
     }
   }
+
+  await scanDirectory(vaultPath);
 
   // Build slug lookup map: filename -> full slug
   const slugLookup = new Map<string, string>();

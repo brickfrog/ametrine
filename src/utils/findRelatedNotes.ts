@@ -1,5 +1,5 @@
 import type { Note } from "./filterNotes";
-import { getFolderPath } from "./folders";
+import { getFolderPath } from "./folderUtils";
 
 export interface RelatedNote {
   note: Note;

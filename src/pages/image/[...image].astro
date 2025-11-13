@@ -16,14 +16,19 @@ export async function getStaticPaths() {
   const paths = await Promise.all(Object.keys(images).map(async (imagePath) => {
     const imageModule = await images[imagePath]();
 
-    // Extract filename from path (e.g., /src/content/vault/Attachments/tokyo_love_story_1.png -> tokyo_love_story_1.png)
+    // Extract relative path from vault root
+    // e.g., /src/content/Ametrine/Assets/image.png -> Assets/image
+    const pathMatch = imagePath.match(/\/content\/[^/]+\/(.+)$/);
+    const relativePath = pathMatch ? pathMatch[1] : imagePath.split('/').pop() || '';
+    const slug = relativePath.replace(/\.[^.]+$/, '');
+
     const file = imagePath.split('/').pop() || '';
     const nameWithoutExt = file.replace(/\.[^.]+$/, '');
     const extension = file.split('.').pop()?.toLowerCase() || '';
 
     return {
       params: {
-        image: nameWithoutExt
+        image: slug
       },
       props: {
         fileName: file,
