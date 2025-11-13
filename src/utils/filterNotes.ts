@@ -2,7 +2,7 @@ import { getCollection, type CollectionEntry } from "astro:content";
 import { config } from "../config";
 import type { PrivateMode } from "../config";
 
-export type Note = CollectionEntry<"vault">;
+export type Note = CollectionEntry<"vault"> & { slug: string };
 
 /**
  * Determine if a note should be published based on the configured private pages mode.
@@ -32,5 +32,13 @@ export function shouldPublishNote(
 export async function getPublishedNotes(): Promise<Note[]> {
   const notes = await getCollection("vault");
   const mode = config.privatePages?.mode || "draft";
-  return notes.filter((note) => shouldPublishNote(note, mode));
+  const published = notes
+    .map(
+      (note): Note => ({
+        ...note,
+        slug: note.id,
+      }),
+    )
+    .filter((note) => shouldPublishNote(note, mode));
+  return published;
 }

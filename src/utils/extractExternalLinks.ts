@@ -33,6 +33,8 @@ export function extractExternalLinks(
 ): ExternalLink[] {
   const links: ExternalLink[] = [];
 
+  if (!markdown) return links;
+
   // Regex to match markdown links [text](url) and bare URLs
   const markdownLinkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
   const bareUrlRegex = /https?:\/\/[^\s<>"{}|\\^`[\])]+/g;

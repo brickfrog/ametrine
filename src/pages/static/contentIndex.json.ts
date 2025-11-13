@@ -1,6 +1,6 @@
 import { getPublishedNotes } from "../../utils/filterNotes";
 import type { APIRoute } from "astro";
-import { slugify } from "../../utils/slugify";
+import GithubSlugger from "github-slugger";
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { parse as parseYaml } from "yaml";
@@ -50,7 +50,7 @@ export interface ContentDetails {
   date?: string;
   updated?: string;
   excerpt: string;
-  type?: "note" | "base" | "image" | "canvas";
+  type?: "note" | "base" | "image" | "canvas" | "tag";
   extension?: string;
   canvasData?: CanvasData;
 }
@@ -62,10 +62,19 @@ const wikilinkRegex =
   /!?\[\[([^[\]|#\\]+)?(#+[^[\]|#\\]+)?(\\?\|[^[\]#]*)?\]\]/g;
 
 /**
- * Extract wikilink targets from markdown content
+ * Extract wikilink targets from markdown content and resolve to full slugs
  */
-function extractLinks(content: string): string[] {
+function extractLinks(
+  content: string,
+  slugLookup: Map<string, string>,
+): string[] {
   const links: string[] = [];
+
+  // Handle undefined or null content
+  if (!content) return links;
+
+  // Create fresh slugger to avoid state pollution
+  const slugger = new GithubSlugger();
 
   // Find all wikilinks
   const matches = content.matchAll(wikilinkRegex);
@@ -76,9 +85,12 @@ function extractLinks(content: string): string[] {
       // Split off anchor if present
       const pageName = rawFp.split("#")[0].trim();
       if (pageName) {
-        // Slugify the page name
-        const slug = slugify(pageName);
-        links.push(slug);
+        // Slugify the page name with fresh slugger
+        const slug = slugger.slug(pageName);
+
+        // Try to resolve to full slug using lookup
+        const fullSlug = slugLookup.get(slug) || slug;
+        links.push(fullSlug);
       }
     }
   }
@@ -90,6 +102,9 @@ function extractLinks(content: string): string[] {
  * Create a plain text excerpt from markdown content
  */
 function createExcerpt(content: string, maxLength: number = 300): string {
+  // Handle undefined or null content
+  if (!content) return "";
+
   // Remove frontmatter
   const withoutFrontmatter = content.replace(/^---[\s\S]+?---\n/, "");
 
@@ -122,26 +137,25 @@ export const GET: APIRoute = async () => {
   // Get all published notes from content collection
   const notes = await getPublishedNotes();
 
-  // Build content index
+  // Build content index (first pass - without links)
   const contentIndex: ContentIndexMap = {};
 
   for (const note of notes) {
-    // Extract links from the markdown body
-    const links = extractLinks(note.body);
-
     // Create excerpt
-    const excerpt = createExcerpt(note.body);
+    const excerpt = createExcerpt(note.body || "");
 
     contentIndex[note.slug] = {
       slug: note.slug,
-      title: note.data.title,
+      title: note.data.title || note.slug,
       filePath: `content/vault/${note.id}`,
-      links,
-      tags: note.data.tags || [],
-      content: note.body,
+      links: [], // Will populate in second pass
+      tags: Array.isArray(note.data.tags) ? note.data.tags : [],
+      content: note.body || "",
       description: note.data.description,
-      author: note.data.author,
-      date: note.data.date?.toISOString(),
+      author: Array.isArray(note.data.author)
+        ? note.data.author[0]
+        : note.data.author || undefined,
+      date: (note.data.date || note.data.created)?.toISOString(),
       updated: note.data.updated?.toISOString(),
       excerpt,
       type: "note",
@@ -229,6 +243,72 @@ export const GET: APIRoute = async () => {
     } catch (error) {
       console.error(`Failed to parse canvas file ${file}:`, error);
     }
+  }
+
+  // Build slug lookup map: filename -> full slug
+  const slugLookup = new Map<string, string>();
+
+  for (const [slug, _entry] of Object.entries(contentIndex)) {
+    // Extract filename (last segment of slug)
+    const filename = slug.split("/").pop() || slug;
+
+    // If duplicate filename exists, skip (can't resolve unambiguously)
+    if (slugLookup.has(filename) && slugLookup.get(filename) !== slug) {
+      // Duplicate detected, remove from map to avoid incorrect resolution
+      slugLookup.delete(filename);
+    } else {
+      slugLookup.set(filename, slug);
+    }
+  }
+
+  // Build set of all unique tags
+  const allTags = new Set<string>();
+
+  for (const [_slug, entry] of Object.entries(contentIndex)) {
+    if (entry.type === "note" && entry.tags) {
+      for (const tag of entry.tags) {
+        allTags.add(tag);
+      }
+    }
+  }
+
+  // Add tag nodes to contentIndex
+  for (const tag of allTags) {
+    const tagSlug = `tags/${tag}`;
+    contentIndex[tagSlug] = {
+      slug: tagSlug,
+      title: tag,
+      filePath: "",
+      links: [],
+      tags: [],
+      content: "",
+      excerpt: `Tag: ${tag}`,
+      type: "tag",
+    };
+  }
+
+  // Second pass: populate links for notes (wikilinks + connections to tags)
+  for (const [slug, entry] of Object.entries(contentIndex)) {
+    // Skip non-note entries - they already have their links set
+    if (entry.type !== "note") continue;
+
+    const allLinks = new Set<string>();
+
+    // Add wikilink targets
+    if (entry.content) {
+      const wikilinks = extractLinks(entry.content, slugLookup);
+      wikilinks.forEach((link) => allLinks.add(link));
+    }
+
+    // Add connections from notes to their tags
+    if (entry.tags) {
+      for (const tag of entry.tags) {
+        const tagSlug = `tags/${tag}`;
+        allLinks.add(tagSlug);
+      }
+    }
+
+    contentIndex[slug].links = Array.from(allLinks);
   }
 
   return new Response(JSON.stringify(contentIndex, null, 2), {

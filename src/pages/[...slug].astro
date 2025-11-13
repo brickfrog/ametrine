@@ -1,5 +1,6 @@
 ---
 import { getPublishedNotes, type Note } from '../utils/filterNotes';
+import { render } from 'astro:content';
 import ContentLayout from '../layouts/ContentLayout.astro';
 import Graph from '../components/Graph.astro';
 import TableOfContents from '../components/TableOfContents.astro';
@@ -66,7 +67,7 @@ if (isFolder) {
     if (aDate && !bDate) return -1;
     if (!aDate && bDate) return 1;
 
-    return a.data.title.localeCompare(b.data.title);
+    return (a.data.title || a.slug).localeCompare(b.data.title || b.slug);
   });
 
   folderName = getFolderDisplayName(folderPath!);
@@ -75,7 +76,7 @@ if (isFolder) {
 
 let Content: any, toc: any[] = [], marginalia: any = [];
 if (note) {
-  const rendered = await note.render();
+  const rendered = await render(note);
   Content = rendered.Content;
   toc = rendered.remarkPluginFrontmatter?.toc || [];
   marginalia = rendered.remarkPluginFrontmatter?.marginalia || [];
@@ -162,9 +163,9 @@ function formatDate(date: Date | undefined) {
                           {note.data.description}
                         </p>
                       )}
-                      {note.data.tags && note.data.tags.length > 0 && (
+                      {note.data.tags && Array.isArray(note.data.tags) && note.data.tags.length > 0 && (
                         <ul class="tags flex gap-2 flex-wrap m-0 p-0">
-                          {note.data.tags.map((tag) => (
+                          {note.data.tags.map((tag: string) => (
                             <li class="list-none">
                               <a
                                 href={`${import.meta.env.BASE_URL}/tags/${tag}`}
@@ -184,14 +185,14 @@ function formatDate(date: Date | undefined) {
           </div>
         </ContentLayout>
   ) : (
-    <ContentLayout title={note!.data.title} description={note!.data.description} slug={note!.slug} marginalia={marginalia}>
+    <ContentLayout title={note!.data.title || note!.slug} description={note!.data.description} slug={note!.slug} marginalia={marginalia}>
       <!-- Left Sidebar -->
       <div slot="left" class="space-y-4">
       </div>
 
       <!-- Main Content -->
-      <h1 class="mb-0">{note!.data.title}</h1>
-      <ContentMeta frontmatter={note!.data} content={note!.body} />
+      <h1 class="mb-0">{note!.data.title || note!.slug}</h1>
+      <ContentMeta frontmatter={note!.data} content={note!.body || ""} />
       <div class="markdown-content">
         <Content />
       </div>
@@ -215,8 +216,8 @@ function formatDate(date: Date | undefined) {
         <TableOfContents toc={toc} slug={note!.slug} />
 
         <!-- Tags -->
-        {config.tags?.enable && config.tags?.showInSidebar && (
-          <Tags tags={note!.data.tags} variant="sidebar" />
+        {config.tags?.enable && config.tags?.showInSidebar && note!.data.tags && (
+          <Tags tags={Array.isArray(note!.data.tags) ? note!.data.tags : []} variant="sidebar" />
         )}
       </div>
     </ContentLayout>

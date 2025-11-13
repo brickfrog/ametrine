@@ -44,7 +44,7 @@ const FileNode = memo(({ node, currentSlug }: FileNodeProps) => {
       <a
         href={href}
         data-for={node.slug}
-        className={`block py-1 text-theme-dark opacity-75 hover:opacity-100 no-underline transition-opacity flex items-center gap-2 ${
+        className={`block py-1 text-sm text-theme-dark opacity-75 hover:opacity-100 no-underline transition-opacity flex items-center gap-2 ${
           isActive ? "!opacity-100 !text-theme-secondary font-semibold" : ""
         }`}
       >
@@ -100,7 +100,7 @@ const FolderNode = memo(
         <a
           href={`${import.meta.env.BASE_URL}/${folderLinkPath}`}
           data-for={folderLinkPath}
-          className="text-theme-secondary font-header text-[0.95rem] font-semibold leading-6 inline-block no-underline hover:text-theme-tertiary"
+          className="text-theme-secondary font-header text-sm font-semibold leading-6 inline-block no-underline hover:text-theme-tertiary"
         >
           {node.displayName}
         </a>
@@ -109,7 +109,7 @@ const FolderNode = memo(
           onClick={handleToggle}
           className="text-left cursor-pointer p-0 bg-transparent border-none flex items-center font-header text-theme-dark"
         >
-          <span className="text-[0.95rem] inline-block text-theme-secondary font-semibold m-0 leading-6 pointer-events-none">
+          <span className="text-sm inline-block text-theme-secondary font-semibold m-0 leading-6 pointer-events-none">
             {node.displayName}
           </span>
         </button>

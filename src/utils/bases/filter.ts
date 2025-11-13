@@ -13,9 +13,12 @@ import { getFolderPath } from "../folders";
 /**
  * Extract embedded files from note body
  */
-function extractEmbeds(body: string): string[] {
+function extractEmbeds(body: string | undefined): string[] {
   const embedRegex = /!\[\[([^\]]+)\]\]/g;
   const embeds: string[] = [];
+
+  if (!body) return embeds;
+
   let match;
 
   while ((match = embedRegex.exec(body)) !== null) {
@@ -43,8 +46,8 @@ function createFileProperties(note: Note): FileProperties {
     ext: "md",
     ctime: note.data.date,
     mtime: note.data.updated || note.data.date,
-    tags: note.data.tags || [],
-    links: note.data.links || [],
+    tags: Array.isArray(note.data.tags) ? note.data.tags : [],
+    links: Array.isArray(note.data.links) ? note.data.links : [],
     embeds: extractEmbeds(note.body),
     properties: { ...note.data },
   };

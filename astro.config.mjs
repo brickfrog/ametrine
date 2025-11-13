@@ -27,6 +27,11 @@ import { config } from './src/config.ts';
 export default defineConfig({
   site: config.baseUrl,
   base: config.basePath || '/',
+  vite: {
+    resolve: {
+      preserveSymlinks: true, // Don't resolve symlinks to absolute paths
+    },
+  },
   integrations: [
     expressiveCode({
       themes: ['github-light', 'github-dark'],

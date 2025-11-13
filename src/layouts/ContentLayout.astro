@@ -59,8 +59,8 @@ const logoSrc = logoPath ? `${basePath}/${logoPath}` : undefined;
 
   <div class="flex min-h-screen bg-theme-light">
     <!-- Left Sidebar - Desktop -->
-    <aside class="w-64 hidden lg:block bg-theme-light">
-      <div class="sticky top-0 p-6 space-y-6">
+    <aside class="w-80 hidden lg:block bg-theme-light">
+      <div class="sidebar-scroll sticky top-0 max-h-screen overflow-y-auto p-6 space-y-6">
         <!-- Header with title -->
         <div class="flex items-center justify-between">
           <h1 class="text-2xl font-bold font-header text-theme-dark">
@@ -106,14 +106,29 @@ const logoSrc = logoPath ? `${basePath}/${logoPath}` : undefined;
 </BaseLayout>
 
 <style>
-  /* Hide scrollbar for right sidebar while maintaining scroll functionality */
+  /* Style scrollbar for sidebars */
   .sidebar-scroll {
     /* Firefox */
-    scrollbar-width: none;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-gray) var(--color-lightgray);
   }
 
   /* Webkit browsers (Chrome, Safari, Edge) */
   .sidebar-scroll::-webkit-scrollbar {
-    display: none;
+    width: 8px;
+  }
+
+  .sidebar-scroll::-webkit-scrollbar-track {
+    background: var(--color-lightgray);
+    border-radius: 4px;
+  }
+
+  .sidebar-scroll::-webkit-scrollbar-thumb {
+    background: var(--color-gray);
+    border-radius: 4px;
+  }
+
+  .sidebar-scroll::-webkit-scrollbar-thumb:hover {
+    background: var(--color-darkgray);
   }
 </style>

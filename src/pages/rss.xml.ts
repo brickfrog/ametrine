@@ -27,19 +27,51 @@ export const GET: APIRoute = async (context) => {
     );
   }
 
+  const rssItems = recentNotes
+    .filter((note) => {
+      // Ensure title is a non-empty string
+      return (
+        note.data.title &&
+        typeof note.data.title === "string" &&
+        note.data.title.trim().length > 0
+      );
+    })
+    .map((note) => {
+      // Ensure description is a non-empty string
+      let description = "No description available";
+      if (
+        note.data.description &&
+        typeof note.data.description === "string" &&
+        note.data.description.trim()
+      ) {
+        description = note.data.description;
+      } else if (
+        note.body &&
+        typeof note.body === "string" &&
+        note.body.trim()
+      ) {
+        description = note.body.slice(0, 200);
+      }
+
+      return {
+        title: note.data.title as string,
+        description: description,
+        content: note.body || "",
+        link: `/${note.id}`,
+        pubDate: note.data.date || note.data.updated || new Date(),
+        ...(note.data.author &&
+          typeof note.data.author === "string" && { author: note.data.author }),
+        ...(note.data.tags &&
+          Array.isArray(note.data.tags) &&
+          note.data.tags.length > 0 && { categories: note.data.tags }),
+      };
+    });
+
   return rss({
     title: config.pageTitle,
     description: `Digital garden and notes from ${config.pageTitle}`,
     site: siteUrl,
-    items: recentNotes.map((note) => ({
-      title: note.data.title,
-      description: note.data.description || "",
-      content: note.body, // Full content for better AI understanding
-      link: `/${note.id.replace(".md", "")}`,
-      pubDate: note.data.date || note.data.updated || new Date(),
-      author: note.data.author,
-      categories: note.data.tags || [], // Add tags as categories for better discoverability
-    })),
+    items: rssItems,
     customData: `<language>${config.locale}</language>`,
   });
 };

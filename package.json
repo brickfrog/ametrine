@@ -42,6 +42,7 @@
     "expr-eval": "^2.0.2",
     "fast-glob": "^3.3.3",
     "github-slugger": "^2.0.0",
+    "gray-matter": "^4.0.3",
     "hast-util-to-html": "^9.0.5",
     "js-yaml": "^4.1.0",
     "lucide-react": "^0.548.0",

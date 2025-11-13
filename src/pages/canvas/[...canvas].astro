@@ -93,23 +93,27 @@ for (const node of canvasData.nodes || []) {
       fileData[node.id] = { type: 'not-found', path: filePath };
     }
   } else if (isImageExtension(filePath)) {
-    // Image file - process to get optimized URL
+    // Image file - get optimized image from imageMap
     const fileName = filePath.split('/').pop() || filePath;
+    const nameWithoutExt = fileName.replace(/\.[^.]+$/, '');
+    let optimizedSrc = '';
+
+    // Look up the image in imageMap (which now includes subdirectories)
     const imageMetadata = imageMap.get(fileName);
-    let imageUrl = filePath; // fallback to original path
 
     if (imageMetadata) {
-      try {
-        const optimized = await getImage({ src: imageMetadata });
-        imageUrl = optimized.src;
-      } catch (error) {
-        console.error(`Failed to optimize image ${fileName}:`, error);
-      }
+      // Get optimized image src
+      const optimizedImage = await getImage({ src: imageMetadata });
+      optimizedSrc = optimizedImage.src;
+    } else {
+      console.warn(`Image ${fileName} not found in imageMap, using image route fallback`);
+      // Fallback to image route URL
+      optimizedSrc = `${import.meta.env.BASE_URL}/image/${nameWithoutExt}`;
     }
 
     fileData[node.id] = {
       type: 'image',
-      path: imageUrl,
+      path: optimizedSrc,
       file: filePath, // Store original path for navigation
     };
   } else {

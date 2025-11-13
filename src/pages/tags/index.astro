@@ -8,8 +8,8 @@ const notes = await getPublishedNotes();
 const tagMap = new Map<string, number>();
 
 notes.forEach((note) => {
-  const tags = note.data.tags || [];
-  tags.forEach((tag) => {
+  const tags = Array.isArray(note.data.tags) ? note.data.tags : [];
+  tags.forEach((tag: string) => {
     tagMap.set(tag, (tagMap.get(tag) || 0) + 1);
   });
 });

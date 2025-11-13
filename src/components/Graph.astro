@@ -50,6 +50,9 @@ const { currentSlug } = Astro.props;
           <label class="time-label">
             <input type="checkbox" id="showUndated" checked /> Show undated
           </label>
+          <label class="time-label">
+            <input type="checkbox" id="showTags" checked /> Show tags
+          </label>
         </div>
         <div class="time-slider-row">
           <span class="time-date-label" id="minDateLabel"></span>
@@ -63,10 +66,6 @@ const { currentSlug } = Astro.props;
             step="1"
           />
           <span class="time-date-label" id="maxDateLabel"></span>
-        </div>
-        <div class="time-control-row">
-          <button id="playPauseBtn" class="time-button">Play</button>
-          <span class="time-current-date" id="currentDateLabel"></span>
         </div>
       </div>
     </div>
@@ -82,6 +81,7 @@ const { currentSlug } = Astro.props;
     title: string;
     date?: string;
     updated?: string;
+    type?: string;
   }
 
   interface Link {
@@ -97,6 +97,7 @@ const { currentSlug } = Astro.props;
     content: string;
     date?: string;
     updated?: string;
+    type?: string;
   }
 
   interface GraphData {
@@ -107,10 +108,9 @@ const { currentSlug } = Astro.props;
   let globalGraphActive = false;
 
   // Time filter state
-  let animationInterval: number | null = null;
-  let isPlaying = false;
   let currentDateField: 'date' | 'updated' = 'date';
   let showUndated = true;
+  let showTags = true;
   let fullGraphData: GraphData | null = null;
   let dateRange: { min: Date; max: Date } | null = null;
   let currentMaxDate: Date | null = null;
@@ -125,9 +125,6 @@ const { currentSlug } = Astro.props;
     });
     eventListeners = [];
 
-    // Stop animation
-    pauseAnimation();
-
     // Clear graph containers
     const localContainer = document.getElementById('graph-local');
     const globalContainer = document.getElementById('graph-global');
@@ -136,7 +133,6 @@ const { currentSlug } = Astro.props;
 
     // Reset state
     globalGraphActive = false;
-    isPlaying = false;
     currentDateField = 'date';
     showUndated = true;
     fullGraphData = null;
@@ -168,7 +164,8 @@ const { currentSlug } = Astro.props;
           id: slug,
           title: entry.title,
           date: entry.date,
-          updated: entry.updated
+          updated: entry.updated,
+          type: entry.type || 'note'
         });
         nodeSet.add(slug);
       }
@@ -252,6 +249,27 @@ const { currentSlug } = Astro.props;
     return { nodes: filteredNodes, links: filteredLinks };
   }
 
+  function filterByTags(data: GraphData, showTags: boolean): GraphData {
+    if (showTags) {
+      return data; // No filtering needed
+    }
+
+    // Filter out tag nodes
+    const filteredNodes = data.nodes.filter(node => node.type !== 'tag');
+
+    // Create set of visible node IDs
+    const visibleNodeIds = new Set(filteredNodes.map(n => n.id));
+
+    // Filter links to only connect visible nodes
+    const filteredLinks = data.links.filter(link => {
+      const sourceId = typeof link.source === 'string' ? link.source : link.source.id;
+      const targetId = typeof link.target === 'string' ? link.target : link.target.id;
+      return visibleNodeIds.has(sourceId) && visibleNodeIds.has(targetId);
+    });
+
+    return { nodes: filteredNodes, links: filteredLinks };
+  }
+
   function getDateRange(nodes: Node[], dateField: 'date' | 'updated'): { min: Date; max: Date } | null {
     const dates = nodes
       .map(n => n[dateField])
@@ -283,50 +301,10 @@ const { currentSlug } = Astro.props;
   function updateGraph(currentSlug: string | null) {
     if (!fullGraphData || !currentMaxDate) return;
 
-    const filteredData = filterByDate(fullGraphData, currentMaxDate, currentDateField, showUndated);
+    let filteredData = filterByDate(fullGraphData, currentMaxDate, currentDateField, showUndated);
+    filteredData = filterByTags(filteredData, showTags);
     renderGraph('graph-global', filteredData, true, currentSlug);
     updateTimeLabels();
-  }
-
-  function playAnimation(currentSlug: string | null) {
-    if (!dateRange || isPlaying) return;
-
-    isPlaying = true;
-    const playPauseBtn = document.getElementById('playPauseBtn');
-    if (playPauseBtn) playPauseBtn.textContent = 'Pause';
-
-    const slider = document.getElementById('timeSlider') as HTMLInputElement;
-    if (!slider) return;
-
-    animationInterval = window.setInterval(() => {
-      let currentValue = parseInt(slider.value);
-
-      if (currentValue >= 100) {
-        pauseAnimation();
-        return;
-      }
-
-      currentValue += 1;
-      slider.value = currentValue.toString();
-
-      // Update currentMaxDate based on slider value
-      const progress = currentValue / 100;
-      const timeRange = dateRange!.max.getTime() - dateRange!.min.getTime();
-      currentMaxDate = new Date(dateRange!.min.getTime() + progress * timeRange);
-
-      updateGraph(currentSlug);
-    }, 200); // 200ms per step
-  }
-
-  function pauseAnimation() {
-    isPlaying = false;
-    const playPauseBtn = document.getElementById('playPauseBtn');
-    if (playPauseBtn) playPauseBtn.textContent = 'Play';
-
-    if (animationInterval !== null) {
-      clearInterval(animationInterval);
-      animationInterval = null;
-    }
   }
 
   function renderGraph(containerId: string, data: GraphData, isGlobal: boolean = false, currentSlug: string | null = null) {
@@ -387,7 +365,11 @@ const { currentSlug } = Astro.props;
     node
       .append('circle')
       .attr('r', (d: any) => d.id === currentSlug ? GRAPH.NODE_RADIUS_CURRENT : GRAPH.NODE_RADIUS)
-      .attr('fill', (d: any) => d.id === currentSlug ? 'var(--color-tertiary)' : 'var(--color-secondary)')
+      .attr('fill', (d: any) => {
+        if (d.id === currentSlug) return 'var(--color-tertiary)';
+        if (d.type === 'tag') return 'var(--color-gray)';
+        return 'var(--color-secondary)';
+      })
       .attr('stroke', 'var(--color-light)')
       .attr('stroke-width', (d: any) => d.id === currentSlug ? GRAPH.NODE_STROKE_WIDTH_CURRENT : GRAPH.NODE_STROKE_WIDTH);
 
@@ -460,7 +442,8 @@ const { currentSlug } = Astro.props;
     const currentSlug = container?.getAttribute('data-current-slug') || null;
 
     // Filter data for local graph view
-    const localData = currentSlug ? filterLocalGraph(data, currentSlug) : data;
+    let localData = currentSlug ? filterLocalGraph(data, currentSlug) : data;
+    localData = filterByTags(localData, showTags);
 
     // Render local graph with current node highlighted
     renderGraph('graph-local', localData, false, currentSlug);
@@ -527,23 +510,35 @@ const { currentSlug } = Astro.props;
             addEventListener(undatedCheckbox, 'change', checkboxHandler);
           }
 
-          // Set up play/pause button
-          const playPauseBtn = document.getElementById('playPauseBtn');
-          if (playPauseBtn) {
-            const playPauseHandler = () => {
-              if (isPlaying) {
-                pauseAnimation();
-              } else {
-                playAnimation(currentSlug);
-              }
-            };
-            addEventListener(playPauseBtn, 'click', playPauseHandler);
-          }
-
           updateTimeLabels();
         }
 
-        renderGraph('graph-global', data, true, currentSlug);
+        // Set up tags toggle
+        const tagsCheckbox = document.getElementById('showTags') as HTMLInputElement;
+        if (tagsCheckbox) {
+          const checkboxHandler = () => {
+            showTags = tagsCheckbox.checked;
+
+            // Update both local and global graphs
+            let localData = currentSlug ? filterLocalGraph(data, currentSlug) : data;
+            localData = filterByTags(localData, showTags);
+            renderGraph('graph-local', localData, false, currentSlug);
+
+            // Update global graph
+            if (globalGraphActive) {
+              let globalData = fullGraphData || data;
+              if (currentMaxDate) {
+                globalData = filterByDate(globalData, currentMaxDate, currentDateField, showUndated);
+              }
+              globalData = filterByTags(globalData, showTags);
+              renderGraph('graph-global', globalData, true, currentSlug);
+            }
+          };
+          addEventListener(tagsCheckbox, 'change', checkboxHandler);
+        }
+
+        let filteredData = filterByTags(data, showTags);
+        renderGraph('graph-global', filteredData, true, currentSlug);
       }
     }
 
@@ -552,9 +547,6 @@ const { currentSlug } = Astro.props;
       globalOuter?.classList.remove('active');
       const container = document.getElementById('graph-global');
       if (container) container.innerHTML = '';
-
-      // Stop animation if playing
-      pauseAnimation();
     }
 
     if (toggleButton) {

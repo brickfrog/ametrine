@@ -1,4 +1,5 @@
 ---
+import { render } from 'astro:content';
 import ContentLayout from '../layouts/ContentLayout.astro';
 import ContentMeta from '../components/ContentMeta.astro';
 import Graph from '../components/Graph.astro';
@@ -18,7 +19,7 @@ let indexToc: any[] = [];
 let indexMarginalia: any[] = [];
 
 if (indexNote) {
-  const rendered = await indexNote.render();
+  const rendered = await render(indexNote);
   IndexContent = rendered.Content;
   indexToc = rendered.remarkPluginFrontmatter?.toc || [];
   indexMarginalia = rendered.remarkPluginFrontmatter?.marginalia || [];
@@ -29,14 +30,14 @@ const hasNotes = notes.length > 0;
 
 {indexNote ? (
   <ContentLayout
-    title={indexNote.data.title}
+    title={indexNote.data.title || indexNote.slug}
     description={indexNote.data.description}
     slug={indexNote.slug}
     marginalia={indexMarginalia}
     isFolder={false}
   >
-    <h1 class="mb-0">{indexNote.data.title}</h1>
-    <ContentMeta frontmatter={indexNote.data} content={indexNote.body} />
+    <h1 class="mb-0">{indexNote.data.title || indexNote.slug}</h1>
+    <ContentMeta frontmatter={indexNote.data} content={indexNote.body || ""} />
     <div class="markdown-content">
       <IndexContent />
     </div>
@@ -50,8 +51,8 @@ const hasNotes = notes.length > 0;
     <div slot="right" class="space-y-6">
       <Graph currentSlug={indexNote.slug} />
       <TableOfContents toc={indexToc} slug={indexNote.slug} />
-      {config.tags?.enable && config.tags?.showInSidebar && (
-        <Tags tags={indexNote.data.tags} variant="sidebar" />
+      {config.tags?.enable && config.tags?.showInSidebar && indexNote.data.tags && (
+        <Tags tags={Array.isArray(indexNote.data.tags) ? indexNote.data.tags : []} variant="sidebar" />
       )}
     </div>
   </ContentLayout>

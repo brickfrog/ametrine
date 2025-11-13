@@ -11,12 +11,14 @@ const { frontmatter, content } = Astro.props;
 
 // Calculate reading time (average 200 words per minute)
 function calculateReadingTime(content: string): number {
+  if (!content) return 0;
   const words = content.trim().split(/\s+/).length;
   return Math.ceil(words / 200);
 }
 
 // Calculate word count
 function calculateWordCount(content: string): number {
+  if (!content) return 0;
   return content.trim().split(/\s+/).length;
 }
 
@@ -103,12 +105,26 @@ const knownFields = new Set([
   ...metaConfig.fields.map(f => f.key),
   // Computed fields that might appear in frontmatter
   'readingTime', 'wordCount', 'word_count',
+  // Internal/technical fields
+  'marginalia', 'toc', 'collapseToc', 'slug',
 ]);
 
 const unknownFields = Object.entries(frontmatter)
   .filter(([key, value]) => {
     // Exclude known fields, private fields (starting with _), and null/undefined values
-    return !knownFields.has(key) && !key.startsWith('_') && value !== null && value !== undefined;
+    if (knownFields.has(key) || key.startsWith('_') || value === null || value === undefined) {
+      return false;
+    }
+
+    // Exclude complex objects and arrays of objects
+    if (typeof value === 'object' && !Array.isArray(value) && !(value instanceof Date)) {
+      return false;
+    }
+    if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'object' && !(value[0] instanceof Date)) {
+      return false;
+    }
+
+    return true;
   })
   .map(([key, value]) => {
     // Auto-detect type and assign icon

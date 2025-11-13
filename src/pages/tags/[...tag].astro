@@ -9,8 +9,8 @@ export async function getStaticPaths() {
   const tagMap = new Map<string, Note[]>();
 
   notes.forEach((note) => {
-    const tags = note.data.tags || [];
-    tags.forEach((tag) => {
+    const tags = Array.isArray(note.data.tags) ? note.data.tags : [];
+    tags.forEach((tag: string) => {
       if (!tagMap.has(tag)) {
         tagMap.set(tag, []);
       }
@@ -20,7 +20,7 @@ export async function getStaticPaths() {
 
   // Generate paths for each tag
   return Array.from(tagMap.entries()).map(([tag, notes]) => ({
-    params: { tag },
+    params: { tag: tag },
     props: { tag, notes },
   }));
 }
@@ -47,7 +47,7 @@ const sortedNotes = notes.sort((a, b) => {
   if (!aDate && bDate) return 1;
 
   // Otherwise sort alphabetically
-  return a.data.title.localeCompare(b.data.title);
+  return (a.data.title || a.slug).localeCompare(b.data.title || b.slug);
 });
 
 // Format date helper
@@ -94,9 +94,9 @@ function formatDate(date: Date | undefined) {
                   {note.data.description}
                 </p>
               )}
-              {note.data.tags && note.data.tags.length > 0 && (
+              {note.data.tags && Array.isArray(note.data.tags) && note.data.tags.length > 0 && (
                 <ul class="tags flex gap-2 flex-wrap m-0 p-0">
-                  {note.data.tags.map((noteTag) => (
+                  {note.data.tags.map((noteTag: string) => (
                     <li class="list-none">
                       <a
                         href={`${import.meta.env.BASE_URL}/tags/${noteTag}`}

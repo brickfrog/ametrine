@@ -350,7 +350,7 @@ export const config: SiteConfig = {
     hideOnRoot: true,
   },
   citations: {
-    enable: true,
+    enable: false,
     bibliographyFile: "./src/content/bibliography.bib",
     suppressBibliography: true,
     linkCitations: false,

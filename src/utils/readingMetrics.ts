@@ -40,9 +40,12 @@ const wikilinkRegex =
  * Extract wikilink targets from markdown content
  * Uses a fresh slugger to avoid state pollution
  */
-function extractLinks(content: string): string[] {
+function extractLinks(content: string | undefined): string[] {
   const links: string[] = [];
   const slugger = new GithubSlugger();
+
+  // Handle undefined or null content
+  if (!content) return links;
 
   const matches = content.matchAll(wikilinkRegex);
   for (const match of matches) {
@@ -62,14 +65,15 @@ function extractLinks(content: string): string[] {
 /**
  * Calculate word count for a note
  */
-function calculateWordCount(content: string): number {
+function calculateWordCount(content: string | undefined): number {
+  if (!content) return 0;
   return content.trim().split(/\s+/).length;
 }
 
 /**
  * Calculate reading time in minutes
  */
-function calculateReadingTime(content: string): number {
+function calculateReadingTime(content: string | undefined): number {
   const words = calculateWordCount(content);
   return Math.ceil(words / WORDS_PER_MINUTE);
 }
@@ -149,7 +153,7 @@ export function calculateReadingMetrics(notes: Note[]): ReadingMetrics {
   // Most linked notes (sorted by incoming links)
   const linkedNotes: LinkedNote[] = notes.map((note) => ({
     slug: note.slug,
-    title: note.data.title,
+    title: note.data.title || note.slug,
     incomingCount: (linkGraph.incoming.get(note.slug) || []).length,
     outgoingCount: (linkGraph.outgoing.get(note.slug) || []).length,
   }));

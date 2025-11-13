@@ -1,15 +1,15 @@
 import type { APIRoute } from "astro";
-import { getCollection } from "astro:content";
+import { getPublishedNotes } from "../utils/filterNotes";
 
 export const GET: APIRoute = async () => {
-  const notes = await getCollection("vault");
+  const notes = await getPublishedNotes();
   const validSlugs = new Set(notes.map((note) => note.slug));
 
   const brokenLinks: Array<{ sourceFile: string; targetSlug: string }> = [];
   let totalLinksChecked = 0;
 
   for (const note of notes) {
-    const links = note.data.links || [];
+    const links = Array.isArray(note.data.links) ? note.data.links : [];
     for (const link of links) {
       totalLinksChecked++;
       if (!validSlugs.has(link)) {

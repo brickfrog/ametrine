@@ -18,11 +18,11 @@ const allNotes = await getPublishedNotes();
 
 // Get cited bibliography entries
 const bibliographyEntries = config.citations?.enable
-  ? await getCitedBibliography(note.body, config.citations.bibliographyFile)
+  ? await getCitedBibliography(note.body || "", config.citations.bibliographyFile)
   : [];
 
 // Extract external links (merged with bibliography)
-const externalLinks = extractExternalLinks(note.body, bibliographyEntries);
+const externalLinks = extractExternalLinks(note.body || "", bibliographyEntries);
 const groupedLinks = groupLinksByDomain(externalLinks);
 
 // Find backlinks
@@ -30,6 +30,8 @@ const wikilinkRegex = /!?\[\[([^[\]|#\\]+)?(#+[^[\]|#\\]+)?(\\?\|[^[\]#]*)?\]\]/
 
 function extractWikilinks(content: string): string[] {
   const links: string[] = [];
+
+  if (!content) return links;
 
   const matches = content.matchAll(wikilinkRegex);
   for (const match of matches) {
@@ -47,7 +49,7 @@ function extractWikilinks(content: string): string[] {
 }
 
 const backlinks = allNotes.filter((n) => {
-  const links = extractWikilinks(n.body);
+  const links = extractWikilinks(n.body || "");
   return links.includes(slug) && n.slug !== slug;
 });
 

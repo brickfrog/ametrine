@@ -1,7 +1,5 @@
 ---
 import ContentLayout from '../../layouts/ContentLayout.astro';
-import { readdir } from 'node:fs/promises';
-import { join } from 'node:path';
 import { config } from '../../config';
 import { getImage } from 'astro:assets';
 
@@ -11,23 +9,16 @@ export async function getStaticPaths() {
     return [];
   }
 
-  // Load image files from vault directory
-  const vaultPath = join(process.cwd(), 'src/content/vault');
-  const files = await readdir(vaultPath);
+  // Import all images from vault directory recursively
+  const images = import.meta.glob<{ default: ImageMetadata }>('/src/content/vault/**/*.{png,jpg,jpeg,webp,gif,svg,avif}');
 
-  const imageExtensions = ['.png', '.jpg', '.jpeg', '.webp', '.gif', '.svg', '.avif'];
-  const imageFiles = files.filter((f) =>
-    imageExtensions.some((ext) => f.toLowerCase().endsWith(ext))
-  );
+  const paths = await Promise.all(Object.keys(images).map(async (imagePath) => {
+    const imageModule = await images[imagePath]();
 
-  const paths = await Promise.all(imageFiles.map(async (file) => {
+    // Extract filename from path (e.g., /src/content/vault/Attachments/tokyo_love_story_1.png -> tokyo_love_story_1.png)
+    const file = imagePath.split('/').pop() || '';
     const nameWithoutExt = file.replace(/\.[^.]+$/, '');
     const extension = file.split('.').pop()?.toLowerCase() || '';
-
-    // Import the image
-    const images = import.meta.glob<{ default: ImageMetadata }>('/src/content/vault/*.{png,jpg,jpeg,webp,gif,svg,avif}');
-    const imagePath = `/src/content/vault/${file}`;
-    const imageModule = await images[imagePath]();
 
     return {
       params: {
