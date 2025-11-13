@@ -4,40 +4,21 @@
     "type": "split",
     "children": [
       {
-        "id": "8d2459f4f6fa1cde",
+        "id": "ded21c564e3351f5",
         "type": "tabs",
         "children": [
           {
-            "id": "9890a3d1e9407fc8",
+            "id": "ea79292f321c1a9f",
             "type": "leaf",
             "state": {
-              "type": "canvas",
+              "type": "markdown",
               "state": {
-                "file": "Examples/test-canvas.canvas",
-                "viewState": {
-                  "x": 420,
-                  "y": 310,
-                  "zoom": -1.699694716812433
-                }
+                "file": "index.md",
+                "mode": "source",
+                "source": false
               },
-              "icon": "lucide-layout-dashboard",
-              "title": "test-canvas"
-            }
-          }
-        ]
-      },
-      {
-        "id": "8e38a3f300c475fb",
-        "type": "tabs",
-        "children": [
-          {
-            "id": "35e4a2bba6464827",
-            "type": "leaf",
-            "state": {
-              "type": "graph",
-              "state": {},
-              "icon": "lucide-git-fork",
-              "title": "Graph view"
+              "icon": "lucide-file",
+              "title": "index"
             }
           }
         ]
@@ -188,18 +169,47 @@
       "bases:Create new base": false
     }
   },
-  "active": "9890a3d1e9407fc8",
+  "active": "ea79292f321c1a9f",
   "lastOpenFiles": [
-    "Examples/all-notes.base",
-    "Examples/index.md",
-    "Examples/index.md.tmp.2042416.1763069722089",
-    "Assets/index.md",
-    "Assets/index.md.tmp.2042416.1763069717420",
-    "Assets/ametrine.md",
-    "Examples/test-canvas.canvas",
-    "Examples/test-cards.base",
+    "Wikilinks and Graph.md",
     "index.md",
+    "Documentation/wikilinks-and-graph.md",
+    "Examples/test-cards.base",
+    "Examples/test-canvas.canvas",
+    "Examples/all-notes.base",
+    "Examples",
+    "Documentation/syntax-reference.md",
+    "Documentation/quick-start.md",
+    "Documentation/obsidian-features-demo.md",
+    "Documentation/marginalia-demo.md",
+    "Documentation/frontmatter-reference.md",
+    "Documentation/deployment-guide.md",
+    "Documentation/configuration-guide.md",
+    "Documentation/bases-demo.md",
+    "Documentation/advanced-features.md",
+    "Documentation",
     "Assets/Polished Ametrine.png",
+    "Assets",
+    "assets/Polished Ametrine.png",
+    "assets",
+    "examples/test-cards.base",
+    "examples/test-canvas.canvas",
+    "examples/all-notes.base",
+    "examples",
+    "documentation/wikilinks-and-graph.md",
+    "documentation/syntax-reference.md",
+    "documentation/quick-start.md",
+    "documentation/obsidian-features-demo.md",
+    "documentation/marginalia-demo.md",
+    "documentation/frontmatter-reference.md",
+    "documentation/deployment-guide.md",
+    "documentation/configuration-guide.md",
+    "documentation/bases-demo.md",
+    "documentation/advanced-features.md",
+    "documentation",
+    "Examples/index.md",
+    "Assets/index.md",
+    "Assets/ametrine.md",
     "Welcome.md"
   ]
 }

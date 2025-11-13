@@ -39,7 +39,8 @@ const vaultLoader: Loader = {
             const contents = await readFile(fullPath, "utf-8");
             const id = relative(vaultPath, fullPath)
               .replace(/\\/g, "/")
-              .replace(/\.mdx?$/, "");
+              .replace(/\.mdx?$/, "")
+              .toLowerCase();
 
             // Extract frontmatter manually
             const frontmatterMatch = contents.match(/^---\n([\s\S]*?)\n---/);

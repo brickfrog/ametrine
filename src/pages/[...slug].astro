@@ -189,7 +189,7 @@ function formatDate(date: Date | undefined) {
                 const isImage = ['png', 'jpg', 'jpeg', 'webp', 'gif', 'avif', 'svg'].includes(file.type);
                 const isCanvas = file.type === 'canvas';
                 const isBase = file.type === 'base';
-                const fileSlug = file.path.replace(/\.(png|jpg|jpeg|webp|gif|avif|svg|canvas|base)$/i, '');
+                const fileSlug = file.path.replace(/\.(png|jpg|jpeg|webp|gif|avif|svg|canvas|base)$/i, '').toLowerCase();
 
                 let fileUrl = '';
                 if (isImage) {

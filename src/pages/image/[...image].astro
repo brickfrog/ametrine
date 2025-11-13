@@ -20,7 +20,7 @@ export async function getStaticPaths() {
     // e.g., /src/content/Ametrine/Assets/image.png -> Assets/image
     const pathMatch = imagePath.match(/\/content\/[^/]+\/(.+)$/);
     const relativePath = pathMatch ? pathMatch[1] : imagePath.split('/').pop() || '';
-    const slug = relativePath.replace(/\.[^.]+$/, '');
+    const slug = relativePath.replace(/\.[^.]+$/, '').toLowerCase();
 
     const file = imagePath.split('/').pop() || '';
     const nameWithoutExt = file.replace(/\.[^.]+$/, '');

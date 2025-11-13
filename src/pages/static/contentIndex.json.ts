@@ -182,7 +182,7 @@ export const GET: APIRoute = async () => {
       } else if (entry.isFile() && !entry.name.startsWith(".")) {
         // Handle base files
         if (entry.name.endsWith(".base")) {
-          const slug = relativePath.replace(/\.base$/, "");
+          const slug = relativePath.replace(/\.base$/, "").toLowerCase();
           const content = await readFile(fullPath, "utf-8");
           const baseData = parseYaml(content);
           const firstView = baseData.views?.[0];
@@ -208,7 +208,7 @@ export const GET: APIRoute = async () => {
           )
         ) {
           const extension = entry.name.split(".").pop()?.toUpperCase() || "";
-          const slug = relativePath.replace(/\.[^.]+$/, "");
+          const slug = relativePath.replace(/\.[^.]+$/, "").toLowerCase();
 
           contentIndex[slug] = {
             slug,
@@ -224,7 +224,7 @@ export const GET: APIRoute = async () => {
         }
         // Handle canvas files
         else if (entry.name.endsWith(".canvas")) {
-          const slug = relativePath.replace(/\.canvas$/, "");
+          const slug = relativePath.replace(/\.canvas$/, "").toLowerCase();
           const content = await readFile(fullPath, "utf-8");
 
           try {

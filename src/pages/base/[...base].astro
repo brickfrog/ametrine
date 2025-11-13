@@ -51,7 +51,7 @@ export async function getStaticPaths() {
     // Create a path for each view in the base
     return config.views.map((view: any, index: number) => ({
       params: {
-        base: `${base.id.replace(/\.base$/, '')}/${view.name.toLowerCase().replace(/\s+/g, '-')}`
+        base: `${base.id.replace(/\.base$/, '').toLowerCase()}/${view.name.toLowerCase().replace(/\s+/g, '-')}`
       },
       props: {
         baseId: base.id,
@@ -98,7 +98,7 @@ if (imageProperty) {
 }
 
 // Extract base name from baseId (remove .base extension)
-const baseName = baseId.replace(/\.base$/, '');
+const baseName = baseId.replace(/\.base$/, '').toLowerCase();
 const pageTitle = `${view.name} | ${baseName}`;
 const pageDescription = `Base view: ${view.name}`;
 ---

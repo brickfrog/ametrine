@@ -43,7 +43,7 @@ export async function getStaticPaths() {
   const canvasFiles = await scanForCanvasFiles(vaultPath);
 
   const paths = canvasFiles.map(({ file, relativePath }) => {
-    const canvasName = relativePath.replace(/\.canvas$/, '');
+    const canvasName = relativePath.replace(/\.canvas$/, '').toLowerCase();
 
     return {
       params: {
