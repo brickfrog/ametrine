@@ -10,7 +10,8 @@ export async function getStaticPaths() {
   }
 
   // Import all images from vault directory recursively
-  const images = import.meta.glob<{ default: ImageMetadata }>('/src/content/vault/**/*.{png,jpg,jpeg,webp,gif,svg,avif}');
+  const vaultName = config.vaultName || 'vault';
+  const images = import.meta.glob<{ default: ImageMetadata }>(['/src/content/Ametrine/**/*.{png,jpg,jpeg,webp,gif,svg,avif}', '/src/content/vault/**/*.{png,jpg,jpeg,webp,gif,svg,avif}'], { eager: false });
 
   const paths = await Promise.all(Object.keys(images).map(async (imagePath) => {
     const imageModule = await images[imagePath]();

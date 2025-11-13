@@ -20,7 +20,7 @@ export async function getStaticPaths() {
   }
 
   // Load .base files from vault directory
-  const contentPath = join(process.cwd(), 'src/content/vault');
+  const contentPath = join(process.cwd(), `src/content/${siteConfig.vaultName || 'vault'}`);
   const files = await readdir(contentPath);
   const baseFiles = files.filter((f) => f.endsWith('.base'));
 

@@ -4,6 +4,7 @@ import GithubSlugger from "github-slugger";
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { parse as parseYaml } from "yaml";
+import { config } from "../../config";
 
 export interface CanvasNode {
   id: string;
@@ -136,6 +137,7 @@ function createExcerpt(content: string, maxLength: number = 300): string {
 export const GET: APIRoute = async () => {
   // Get all published notes from content collection
   const notes = await getPublishedNotes();
+  const vaultName = config.vaultName || "vault";
 
   // Build content index (first pass - without links)
   const contentIndex: ContentIndexMap = {};
@@ -147,7 +149,7 @@ export const GET: APIRoute = async () => {
     contentIndex[note.slug] = {
       slug: note.slug,
       title: note.data.title || note.slug,
-      filePath: `content/vault/${note.id}`,
+      filePath: `content/${vaultName}/${note.id}`,
       links: [], // Will populate in second pass
       tags: Array.isArray(note.data.tags) ? note.data.tags : [],
       content: note.body || "",
@@ -163,7 +165,7 @@ export const GET: APIRoute = async () => {
   }
 
   // Add base files
-  const vaultPath = join(process.cwd(), "src/content/vault");
+  const vaultPath = join(process.cwd(), `src/content/${vaultName}`);
   const files = await readdir(vaultPath);
   const baseFiles = files.filter((f) => f.endsWith(".base"));
 
@@ -177,7 +179,7 @@ export const GET: APIRoute = async () => {
     contentIndex[baseName] = {
       slug: baseName,
       title: baseName,
-      filePath: `content/vault/${file}`,
+      filePath: `content/${vaultName}/${file}`,
       links: [`base/${baseName}/${firstViewSlug}`],
       tags: [],
       content,
@@ -207,7 +209,7 @@ export const GET: APIRoute = async () => {
     contentIndex[nameWithoutExt] = {
       slug: nameWithoutExt,
       title: nameWithoutExt,
-      filePath: `content/vault/${file}`,
+      filePath: `content/${vaultName}/${file}`,
       links: [`image/${nameWithoutExt}`],
       tags: [],
       content: "",
@@ -232,7 +234,7 @@ export const GET: APIRoute = async () => {
       contentIndex[canvasName] = {
         slug: canvasName,
         title: canvasName,
-        filePath: `content/vault/${file}`,
+        filePath: `content/${vaultName}/${file}`,
         links: [`canvas/${canvasName}`],
         tags: [],
         content,

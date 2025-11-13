@@ -1,6 +1,3 @@
-# All Notes Base
-# Simple base showing all notes in the garden
-
 views:
   - type: table
     name: All Notes
@@ -8,15 +5,13 @@ views:
       - file.name
       - file.tags
       - file.mtime
-
   - type: table
     name: Recent Updates
-    limit: 20
     order:
       - file.name
       - file.mtime
       - file.tags
-
+    limit: 20
   - type: table
     name: Guides Only
     filters:

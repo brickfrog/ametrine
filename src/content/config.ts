@@ -3,11 +3,18 @@ import type { Loader } from "astro/loaders";
 import { readdir, readFile, stat } from "node:fs/promises";
 import { join, relative } from "node:path";
 import { load as yamlLoad } from "js-yaml";
+import { config } from "../config.ts";
 
 const vaultLoader: Loader = {
   name: "vault-loader",
-  load: async ({ store, parseData, generateDigest, logger }) => {
-    const vaultPath = "./src/content/vault";
+  load: async ({
+    store,
+    parseData,
+    generateDigest,
+    logger,
+    renderMarkdown,
+  }) => {
+    const vaultPath = `./src/content/${config.vaultName || "vault"}`;
     store.clear();
 
     let fileCount = 0;
@@ -87,10 +94,14 @@ const vaultLoader: Loader = {
             const digest = generateDigest(contents);
             const parsedData = await parseData({ id, data });
 
+            // Render markdown content
+            const rendered = await renderMarkdown(body);
+
             store.set({
               id,
               data: parsedData,
               body,
+              rendered,
               digest,
             });
             fileCount++;

@@ -19,7 +19,7 @@ export async function getStaticPaths() {
   }
 
   // Load .canvas files from vault directory
-  const vaultPath = join(process.cwd(), 'src/content/vault');
+  const vaultPath = join(process.cwd(), `src/content/${config.vaultName || 'vault'}`);
   const files = await readdir(vaultPath);
   const canvasFiles = files.filter((f) => f.endsWith('.canvas'));
 
@@ -43,7 +43,7 @@ export async function getStaticPaths() {
 const { canvasName, canvasFile } = Astro.props;
 
 // Load canvas data
-const vaultPath = join(process.cwd(), 'src/content/vault');
+const vaultPath = join(process.cwd(), `src/content/${config.vaultName || 'vault'}`);
 const content = await readFile(join(vaultPath, canvasFile), 'utf-8');
 const canvasData: CanvasData = JSON.parse(content);
 

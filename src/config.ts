@@ -246,6 +246,8 @@ export interface SiteConfig {
   renderTitleAsAscii?: boolean;
   /** ASCII art content for title (used when renderTitleAsAscii is true) */
   asciiArt?: string;
+  /** Name of the vault directory in src/content/ */
+  vaultName?: string;
   /** Enable single-page-app style navigation */
   enableSPA: boolean;
   /** Enable Wikipedia-style link popovers */
@@ -307,6 +309,7 @@ export const config: SiteConfig = {
 |  _  | '_ \` _ \\ / _ \\ __| '__| | '_ \\ / _ \\
 | | | | | | | | |  __/ |_| |  | | | | |  __/
 \\_| |_/_| |_| |_|\\___|\\__|_|  |_|_| |_|\\___|`,
+  vaultName: "Ametrine",
   enableSPA: true,
   enablePopovers: true,
   analytics: null,

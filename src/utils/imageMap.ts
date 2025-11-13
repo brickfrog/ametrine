@@ -5,7 +5,10 @@
 
 // Import all images from vault (recursively scan subdirectories)
 const images = import.meta.glob<{ default: ImageMetadata }>(
-  "/src/content/vault/**/*.{png,jpg,jpeg,webp,gif,svg,avif}",
+  [
+    "/src/content/Ametrine/**/*.{png,jpg,jpeg,webp,gif,svg,avif}",
+    "/src/content/vault/**/*.{png,jpg,jpeg,webp,gif,svg,avif}",
+  ],
   { eager: true },
 );
 

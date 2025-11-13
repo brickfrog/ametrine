@@ -1,9 +1,9 @@
 {
 	"nodes":[
-		{"id":"0343d18c7c26c217","x":-240,"y":-100,"width":380,"height":400,"color":"6","type":"file","file":"Polished Ametrine.png"},
-		{"id":"90a7f8c5c96282ce","x":220,"y":-180,"width":250,"height":50,"color":"1","type":"text","text":"Canvas Demo\n"},
-		{"id":"38147f0aad9c026c","x":40,"y":400,"width":400,"height":400,"color":"5","type":"file","file":"all-notes.base"},
-		{"id":"3e2f1e69bf43473d","x":680,"y":220,"width":400,"height":400,"color":"2","type":"file","file":"quick-start.md"}
+		{"id":"0343d18c7c26c217","type":"file","file":"Assets/Polished Ametrine.png","x":-240,"y":-100,"width":380,"height":286,"color":"6"},
+		{"id":"90a7f8c5c96282ce","type":"text","text":"Canvas Demo\n","x":220,"y":-180,"width":250,"height":50,"color":"1"},
+		{"id":"38147f0aad9c026c","type":"file","file":"Examples/all-notes.base","x":40,"y":400,"width":400,"height":400,"color":"5"},
+		{"id":"3e2f1e69bf43473d","type":"file","file":"Documentation/quick-start.md","x":680,"y":220,"width":400,"height":400,"color":"2"}
 	],
 	"edges":[
 		{"id":"96e9e290f3561ca9","fromNode":"0343d18c7c26c217","fromSide":"right","toNode":"38147f0aad9c026c","toSide":"top","label":"Example Connection"},
