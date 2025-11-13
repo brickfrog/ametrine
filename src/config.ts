@@ -240,6 +240,12 @@ export interface SiteConfig {
   logo?: string;
   /** Logo alt text */
   logoAlt?: string;
+  /** Show logo image in sidebar header */
+  showSidebarLogo?: boolean;
+  /** Render title as ASCII art in sidebar header */
+  renderTitleAsAscii?: boolean;
+  /** ASCII art content for title (used when renderTitleAsAscii is true) */
+  asciiArt?: string;
   /** Enable single-page-app style navigation */
   enableSPA: boolean;
   /** Enable Wikipedia-style link popovers */
@@ -293,6 +299,14 @@ export const config: SiteConfig = {
   defaultDescription: "A digital garden built with Ametrine",
   logo: "ametrine.png",
   logoAlt: "Ametrine",
+  showSidebarLogo: true,
+  renderTitleAsAscii: true,
+  asciiArt: `  ___                 _        _
+ / _ \\               | |      (_)
+/ /_\\ \\_ __ ___   ___| |_ _ __ _ _ __   ___
+|  _  | '_ \` _ \\ / _ \\ __| '__| | '_ \\ / _ \\
+| | | | | | | | |  __/ |_| |  | | | | |  __/
+\\_| |_/_| |_| |_|\\___|\\__|_|  |_|_| |_|\\___|`,
   enableSPA: true,
   enablePopovers: true,
   analytics: null,

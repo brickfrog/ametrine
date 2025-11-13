@@ -8,6 +8,7 @@ import { LinkPreviewManager } from '../components/react/LinkPreviewManager';
 import QuickActions from '../components/QuickActions.astro';
 import Explorer from '../components/Explorer.astro';
 import Divider from '../components/Divider.astro';
+import SidebarHeader from '../components/SidebarHeader.astro';
 import Footer from '../components/Footer.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
 import { MarginaliaManager } from '../components/react/MarginaliaManager';
@@ -39,14 +40,15 @@ const logoSrc = logoPath ? `${basePath}/${logoPath}` : undefined;
   <!-- Mobile Navigation -->
   <MobileNav client:load>
       <!-- Header with title -->
-      <div class="flex items-center justify-between">
-        <h1 class="text-2xl font-bold font-header text-theme-dark">
-          <a href={baseHref} class="flex items-center gap-2 hover:text-theme-secondary transition-colors">
-            {logoSrc && <img src={logoSrc} alt={config.logoAlt || config.pageTitle} width="32" height="32" loading="lazy" class="w-8 h-8" />}
-            {config.pageTitle}
-          </a>
-        </h1>
-      </div>
+      <SidebarHeader
+        title={config.pageTitle}
+        logo={logoSrc}
+        logoAlt={config.logoAlt}
+        baseHref={baseHref}
+        showLogo={config.showSidebarLogo}
+        useTitleAsAscii={config.renderTitleAsAscii}
+        asciiArt={config.asciiArt}
+      />
 
       <div class="my-1">
         <Search client:idle transition:persist="search-bar" />
@@ -62,14 +64,15 @@ const logoSrc = logoPath ? `${basePath}/${logoPath}` : undefined;
     <aside class="w-80 hidden lg:block bg-theme-light">
       <div class="sidebar-scroll sticky top-0 max-h-screen overflow-y-auto p-6 space-y-6">
         <!-- Header with title -->
-        <div class="flex items-center justify-between">
-          <h1 class="text-2xl font-bold font-header text-theme-dark">
-            <a href={baseHref} class="flex items-center gap-2 hover:text-theme-secondary transition-colors">
-              {logoSrc && <img src={logoSrc} alt={config.logoAlt || config.pageTitle} width="32" height="32" loading="lazy" class="w-8 h-8" />}
-              {config.pageTitle}
-            </a>
-          </h1>
-        </div>
+        <SidebarHeader
+          title={config.pageTitle}
+          logo={logoSrc}
+          logoAlt={config.logoAlt}
+          baseHref={baseHref}
+          showLogo={config.showSidebarLogo}
+          useTitleAsAscii={config.renderTitleAsAscii}
+          asciiArt={config.asciiArt}
+        />
 
         <div class="my-1">
           <Search client:idle transition:persist="search-bar" />

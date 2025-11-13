@@ -1,0 +1,53 @@
+---
+/**
+ * SidebarHeader component
+ *
+ * Renders the site header with title (as text or ASCII art) and optional logo
+ * Used in both desktop sidebar and mobile navigation
+ */
+
+export interface Props {
+  title: string;
+  logo?: string;
+  logoAlt?: string;
+  baseHref: string;
+  showLogo?: boolean;
+  useTitleAsAscii?: boolean;
+  asciiArt?: string;
+}
+
+const {
+  title,
+  logo,
+  logoAlt = title,
+  baseHref,
+  showLogo = true,
+  useTitleAsAscii = false,
+  asciiArt
+} = Astro.props;
+
+// Use ASCII art if available and requested, otherwise fall back to title
+const titleContent = useTitleAsAscii && asciiArt ? asciiArt : title;
+---
+
+<div class="flex items-center justify-between">
+  <h1 class="text-2xl font-bold font-header text-theme-dark">
+    <a href={baseHref} class="flex items-center gap-2 hover:text-theme-secondary transition-colors">
+      {showLogo && logo && (
+        <img
+          src={logo}
+          alt={logoAlt}
+          width="32"
+          height="32"
+          loading="lazy"
+          class="w-8 h-8"
+        />
+      )}
+      {useTitleAsAscii && asciiArt ? (
+        <pre class="text-[0.5rem] leading-tight font-mono text-theme-dark whitespace-pre m-0 max-w-full overflow-hidden scale-x-[0.85] origin-left">{titleContent}</pre>
+      ) : (
+        <span>{titleContent}</span>
+      )}
+    </a>
+  </h1>
+</div>
