@@ -30,4 +30,6 @@ pnpm-debug.log*
 .serena/
 CLAUDE.md
 AGENT.md
-.serena/
+
+# Obsidian trash
+**/.trash/
