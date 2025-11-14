@@ -86,7 +86,7 @@ date: 2025-10-30
 
 This is my ==first note== in my digital garden!
 
-I can link to other notes like [[index|the home page]].
+I can link to other notes like [[documentation/index|the home page]].
 
 > [!success] It Works!
 > You're now running Ametrine successfully.
@@ -128,7 +128,7 @@ Link between notes using double brackets:
 `[[page#section]]`           # Link to a specific section
 ```
 
-Learn more in [[Wikilinks and Graph]].
+Learn more in [[documentation/wikilinks-and-graph]].
 
 ### Frontmatter
 
@@ -143,7 +143,7 @@ date: 2025-10-30
 ---
 ```
 
-See all available fields in [[Frontmatter Reference]].
+See all available fields in [[documentation/frontmatter-reference]].
 
 ### Graph Visualization
 
@@ -157,7 +157,7 @@ Use `==double equals==` to ==highlight important text==.
 
 ### 2. Marginalia
 
-Add side notes with `{{double curly braces}}` {{Like this!}}. See [[Marginalia Demo]] for more examples.
+Add side notes with `{{double curly braces}}` {{Like this!}}. See [[documentation/marginalia-demo]] for more examples.
 
 ### 3. Callouts
 
@@ -190,7 +190,7 @@ export const siteConfig = {
 }
 ```
 
-See [[Configuration Guide]] for all available options.
+See [[documentation/configuration-guide]] for all available options.
 
 ### Change Colors
 
@@ -225,15 +225,15 @@ logo: {
 Now that you're set up, explore more features:
 
 ### For Writing Content
-- [[Wikilinks and Graph]] - Master linking and navigation
-- [[Obsidian Features Demo]] - Learn content formatting
-- [[Marginalia Demo]] - Add side notes
-- [[Syntax Reference]] - Quick reference guide
+- [[documentation/wikilinks-and-graph]] - Master linking and navigation
+- [[documentation/obsidian-features-demo]] - Learn content formatting
+- [[documentation/marginalia-demo]] - Add side notes
+- [[documentation/syntax-reference]] - Quick reference guide
 
 ### For Customization
-- [[Configuration Guide]] - Complete config options
-- [[Deployment Guide]] - Deploy your site
-- [[Frontmatter Reference]] - All metadata fields
+- [[documentation/configuration-guide]] - Complete config options
+- [[documentation/deployment-guide]] - Deploy your site
+- [[documentation/frontmatter-reference]] - All metadata fields
 
 ### For Exploration
 - Press **Ctrl/Cmd+G** to open the graph
@@ -264,8 +264,8 @@ Check that:
 
 ## Getting Help
 
-- Check the [[index|documentation]]
-- Review [[Configuration Guide]] for setup issues
-- Explore [[Syntax Reference]] for formatting questions
+- Check the [[documentation/index|documentation]]
+- Review [[documentation/configuration-guide]] for setup issues
+- Explore [[documentation/syntax-reference]] for formatting questions
 
 Happy gardening!

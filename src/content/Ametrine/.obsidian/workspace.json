@@ -4,21 +4,17 @@
     "type": "split",
     "children": [
       {
-        "id": "ded21c564e3351f5",
+        "id": "e2de31e662c3a1d7",
         "type": "tabs",
         "children": [
           {
-            "id": "ea79292f321c1a9f",
+            "id": "a070222a1eab0bbb",
             "type": "leaf",
             "state": {
-              "type": "markdown",
-              "state": {
-                "file": "index.md",
-                "mode": "source",
-                "source": false
-              },
+              "type": "empty",
+              "state": {},
               "icon": "lucide-file",
-              "title": "index"
+              "title": "New tab"
             }
           }
         ]
@@ -169,33 +165,38 @@
       "bases:Create new base": false
     }
   },
-  "active": "ea79292f321c1a9f",
+  "active": "2404304b41483ef1",
   "lastOpenFiles": [
-    "Wikilinks and Graph.md",
+    "Test Note.md",
+    "Boop.md",
     "index.md",
+    "Subfolder/Subsubfolder/Howdy.md",
     "Documentation/wikilinks-and-graph.md",
-    "Examples/test-cards.base",
+    "Subfolder/Test Note.md",
+    "Subfolder/Subsubfolder",
+    "Subfolder",
+    "Documentation/deployment-guide.md",
+    "index.md.tmp.2042416.1763074396211",
+    "Documentation/wikilinks-and-graph.md.tmp.2042416.1763074284667",
+    "Documentation/wikilinks-and-graph.md.tmp.2042416.1763074283280",
+    "Documentation/wikilinks-and-graph.md.tmp.2042416.1763074281904",
+    "Documentation/wikilinks-and-graph.md.tmp.2042416.1763074280654",
+    "Documentation/wikilinks-and-graph.md.tmp.2042416.1763074279768",
+    "Documentation/wikilinks-and-graph.md.tmp.2042416.1763074278924",
+    "Documentation/wikilinks-and-graph.md.tmp.2042416.1763074278093",
+    "Wikilinks and Graph.md",
     "Examples/test-canvas.canvas",
-    "Examples/all-notes.base",
-    "Examples",
     "Documentation/syntax-reference.md",
     "Documentation/quick-start.md",
     "Documentation/obsidian-features-demo.md",
     "Documentation/marginalia-demo.md",
     "Documentation/frontmatter-reference.md",
-    "Documentation/deployment-guide.md",
     "Documentation/configuration-guide.md",
     "Documentation/bases-demo.md",
     "Documentation/advanced-features.md",
-    "Documentation",
     "Assets/Polished Ametrine.png",
-    "Assets",
     "assets/Polished Ametrine.png",
-    "assets",
-    "examples/test-cards.base",
     "examples/test-canvas.canvas",
-    "examples/all-notes.base",
-    "examples",
     "documentation/wikilinks-and-graph.md",
     "documentation/syntax-reference.md",
     "documentation/quick-start.md",
@@ -205,11 +206,6 @@
     "documentation/deployment-guide.md",
     "documentation/configuration-guide.md",
     "documentation/bases-demo.md",
-    "documentation/advanced-features.md",
-    "documentation",
-    "Examples/index.md",
-    "Assets/index.md",
-    "Assets/ametrine.md",
-    "Welcome.md"
+    "documentation/advanced-features.md"
   ]
 }

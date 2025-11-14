@@ -4,13 +4,13 @@ import tailwind from '@astrojs/tailwind';
 import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 import expressiveCode from 'astro-expressive-code';
-import { wikilinks } from './src/plugins/wikilinks.ts';
-import { links } from './src/plugins/links.ts';
-import { toc } from './src/plugins/toc.ts';
-import { highlights } from './src/plugins/highlights.ts';
-import { removeTitle } from './src/plugins/removeTitle.ts';
-import { marginalia } from './src/plugins/marginalia.ts';
-import { rehypeBaseUrl } from './src/plugins/rehype-base-url.ts';
+import { wikilinks } from './src/plugins/wikilinks';
+import { links } from './src/plugins/links';
+import { toc } from './src/plugins/toc';
+import { highlights } from './src/plugins/highlights';
+import { removeTitle } from './src/plugins/removeTitle';
+import { marginalia } from './src/plugins/marginalia';
+import { rehypeBaseUrl } from './src/plugins/rehype-base-url';
 import remarkMath from 'remark-math';
 import remarkGfm from 'remark-gfm';
 import remarkSmartyPants from 'remark-smartypants';
@@ -21,7 +21,7 @@ import rehypeCitation from 'rehype-citation';
 import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import { visit } from 'unist-util-visit';
-import { config } from './src/config.ts';
+import { config } from './src/config';
 
 // https://astro.build/config
 export default defineConfig({

@@ -3,7 +3,7 @@ import { getPublishedNotes, type Note } from '../utils/filterNotes';
 import { extractExternalLinks, groupLinksByDomain } from '../utils/extractExternalLinks';
 import { findRelatedNotes } from '../utils/findRelatedNotes';
 import { getCitedBibliography } from '../utils/parseBibliography';
-import { slugify } from '../utils/slugify';
+import { slugifyPath } from '../utils/slugify';
 import { config } from '../config';
 
 interface Props {
@@ -39,7 +39,7 @@ function extractWikilinks(content: string): string[] {
     if (rawFp) {
       const pageName = rawFp.split('#')[0].trim();
       if (pageName) {
-        const linkSlug = slugify(pageName);
+        const linkSlug = slugifyPath(pageName);
         links.push(linkSlug);
       }
     }

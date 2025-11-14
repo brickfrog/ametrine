@@ -4,6 +4,8 @@ import { readdir, readFile, stat } from "node:fs/promises";
 import { join, relative } from "node:path";
 import { load as yamlLoad } from "js-yaml";
 import { config } from "../config.ts";
+import { slugifyPath } from "../utils/slugify";
+import { buildSlugMap } from "../utils/slugMap";
 
 const vaultLoader: Loader = {
   name: "vault-loader",
@@ -20,6 +22,44 @@ const vaultLoader: Loader = {
     let fileCount = 0;
     let skipCount = 0;
 
+    // PASS 1: Collect all file IDs for slug map
+    const fileIds: Array<{ id: string; fullPath: string; entry: any }> = [];
+
+    async function collectFiles(dir: string): Promise<void> {
+      const entries = await readdir(dir, { withFileTypes: true });
+
+      for (const entry of entries) {
+        const fullPath = join(dir, entry.name);
+        const stats = await stat(fullPath);
+
+        if (stats.isDirectory()) {
+          if (!entry.name.startsWith(".")) {
+            await collectFiles(fullPath);
+          }
+        } else if (
+          stats.isFile() &&
+          (entry.name.endsWith(".md") || entry.name.endsWith(".mdx"))
+        ) {
+          const id = slugifyPath(
+            relative(vaultPath, fullPath)
+              .replace(/\\/g, "/")
+              .replace(/\.mdx?$/, ""),
+          );
+          fileIds.push({ id, fullPath, entry });
+        }
+      }
+    }
+
+    await collectFiles(vaultPath);
+
+    // Build slug map before rendering
+    buildSlugMap(fileIds, logger);
+
+    // Store on globalThis so wikilinks plugin can access it
+    (globalThis as any).__ametrineSlugMap = fileIds.map((f) => ({ id: f.id }));
+    logger.info(`[vault-loader] Stored ${fileIds.length} slugs on globalThis`);
+
+    // PASS 2: Process all files with rendering
     async function loadDir(dir: string): Promise<void> {
       const entries = await readdir(dir, { withFileTypes: true });
 
@@ -37,10 +77,11 @@ const vaultLoader: Loader = {
         ) {
           try {
             const contents = await readFile(fullPath, "utf-8");
-            const id = relative(vaultPath, fullPath)
-              .replace(/\\/g, "/")
-              .replace(/\.mdx?$/, "")
-              .toLowerCase();
+            const id = slugifyPath(
+              relative(vaultPath, fullPath)
+                .replace(/\\/g, "/")
+                .replace(/\.mdx?$/, ""),
+            );
 
             // Extract frontmatter manually
             const frontmatterMatch = contents.match(/^---\n([\s\S]*?)\n---/);
@@ -63,7 +104,7 @@ const vaultLoader: Loader = {
               !data.title ||
               (typeof data.title === "string" && data.title.trim() === "")
             ) {
-              const filename = id.split("/").pop() || id;
+              const filename = entry.name.replace(/\.mdx?$/, "");
               data.title = filename;
             }
 
@@ -84,6 +125,29 @@ const vaultLoader: Loader = {
               }
 
               data.tags = Array.from(expandedTags);
+            }
+
+            // Extract wikilinks from body and add to data.links if not already in frontmatter
+            if (
+              !data.links ||
+              (Array.isArray(data.links) && data.links.length === 0)
+            ) {
+              const wikilinkRegex =
+                /!?\[\[([^[\]|#\\]+)?(#+[^[\]|#\\]+)?(\\?\|[^[\]#]*)?\]\]/g;
+              const extractedLinks: string[] = [];
+              let match;
+              while ((match = wikilinkRegex.exec(body)) !== null) {
+                const rawFp = match[1];
+                if (rawFp) {
+                  const pageName = rawFp.split("#")[0].trim();
+                  if (pageName) {
+                    // Convert to slugified path (handles both "Page Name" and "Folder/Page Name")
+                    const slug = slugifyPath(pageName);
+                    extractedLinks.push(slug);
+                  }
+                }
+              }
+              data.links = [...new Set(extractedLinks)]; // Dedupe
             }
 
             // Remove file:// and zotero:// links from body

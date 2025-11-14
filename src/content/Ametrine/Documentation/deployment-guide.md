@@ -461,7 +461,7 @@ Use services like:
 
 ### Analytics
 
-See [[Configuration Guide#analytics-integration]] for setup instructions.
+See [[documentation/configuration-guide#analytics-integration]] for setup instructions.
 
 ### Error Tracking
 
@@ -494,7 +494,7 @@ Now that your site is deployed:
 
 - Share your garden on social media
 - Add more notes and build your knowledge base
-- Customize the [[Configuration Guide|configuration]]
+- Customize the [[documentation/configuration-guide|configuration]]
 - Monitor analytics and engagement
 - Join the Ametrine community
 

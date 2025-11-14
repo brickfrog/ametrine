@@ -46,6 +46,30 @@ export function wikilinks(options: WikilinkOptions = {}) {
   const opts = { ...defaultOptions, ...options };
 
   return function transformer(tree: Root, file: VFile) {
+    // Build local slug map from globalThis (set by vault loader)
+    const localSlugMap = new Map<string, string>();
+    const slugMapData = (globalThis as any).__ametrineSlugMap as
+      | Array<{ id: string }>
+      | undefined;
+
+    if (slugMapData) {
+      const seenFilenames = new Map<string, string>();
+      for (const entry of slugMapData) {
+        const filename = entry.id.split("/").pop() || entry.id;
+        if (seenFilenames.has(filename)) {
+          // Duplicate - remove from map
+          localSlugMap.delete(filename);
+        } else {
+          seenFilenames.set(filename, entry.id);
+          localSlugMap.set(filename, entry.id);
+        }
+      }
+    }
+
+    console.log(
+      `[wikilinks] Built local slug map with ${localSlugMap.size} entries`,
+    );
+
     // Track outgoing links for this file (used by link crawler later)
     const outgoingLinks: string[] = [];
 
@@ -70,12 +94,27 @@ export function wikilinks(options: WikilinkOptions = {}) {
 
           // Build the URL (absolute path for rehype plugin to rewrite)
           const [pageName, pageAnchor] = splitAnchor(`${fp}${anchor}`);
-          const slug = slugify(pageName);
-          const url = `/${slug}${pageAnchor}`;
+
+          // Slugify the page name first
+          const baseSlug = slugify(pageName);
+
+          // Resolve to full path using slug map (handles folder resolution)
+          // If pageName contains "/" it's already a full path, use as-is
+          // Otherwise lookup in map to find full directory path
+          let fullSlug = baseSlug;
+          if (!baseSlug.includes("/")) {
+            fullSlug = localSlugMap.get(baseSlug) || baseSlug;
+          }
+
+          console.log(
+            `[wikilinks] pageName="${pageName}" baseSlug="${baseSlug}" fullSlug="${fullSlug}"`,
+          );
+
+          const url = `/${fullSlug}${pageAnchor}`;
 
           // Track this link
           if (pageName) {
-            outgoingLinks.push(slug);
+            outgoingLinks.push(fullSlug);
           }
 
           // Determine display text

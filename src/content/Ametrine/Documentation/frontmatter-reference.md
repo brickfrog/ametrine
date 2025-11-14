@@ -359,7 +359,7 @@ metadata: {
 }
 ```
 
-See [[Configuration Guide#metadata-display]] for details.
+See [[documentation/configuration-guide#metadata-display]] for details.
 
 ## Examples
 
@@ -477,7 +477,7 @@ draft: true
 **Problem:** Custom fields don't appear
 
 **Solutions:**
-- Check [[Configuration Guide#metadata-display]]
+- Check [[documentation/configuration-guide#metadata-display]]
 - Verify field is in frontmatter
 - Try restarting dev server
 - Check browser console for errors
@@ -534,9 +534,9 @@ This provides:
 
 ## Next Steps
 
-- [[Syntax Reference]] - Content formatting syntax
-- [[Configuration Guide]] - Site-wide settings
-- [[Quick Start]] - Create your first note
-- [[Wikilinks and Graph]] - Link between notes
+- [[documentation/syntax-reference]] - Content formatting syntax
+- [[documentation/configuration-guide]] - Site-wide settings
+- [[documentation/quick-start]] - Create your first note
+- [[documentation/wikilinks-and-graph]] - Link between notes
 
 Master frontmatter to organize your digital garden effectively!

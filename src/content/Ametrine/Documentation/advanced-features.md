@@ -180,7 +180,7 @@ Defined in `src/config.ts`:
 - Purple accents (#9d7bd8)
 - Reduced eye strain
 
-See [[configuration-guide#colors]] to customize.
+See [[documentation/configuration-guide#colors]] to customize.
 
 ### Dark Mode for Diagrams
 
@@ -566,9 +566,9 @@ Ametrine follows accessibility best practices:
 
 Now that you've explored advanced features:
 
-- [[Configuration Guide]] - Customize these features
-- [[Wikilinks and Graph]] - Master connections
-- [[Syntax Reference]] - Quick reference guide
-- [[Deployment Guide]] - Deploy your garden
+- [[documentation/configuration-guide]] - Customize these features
+- [[documentation/wikilinks-and-graph]] - Master connections
+- [[documentation/syntax-reference]] - Quick reference guide
+- [[documentation/deployment-guide]] - Deploy your garden
 
 Experiment with each feature to find what works for your workflow!

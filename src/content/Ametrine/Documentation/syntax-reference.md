@@ -78,7 +78,7 @@ Regular text{{**Bold**, _italic_, and `code` in margins}}.
 ```
 Result: Regular text{{**Bold**, _italic_, and `code` in margins}}.
 
-See [[Marginalia Demo]] for comprehensive examples.
+See [[documentation/marginalia-demo]] for comprehensive examples.
 
 ## Callouts
 
@@ -182,7 +182,7 @@ Result:
 > - List item 1
 > - List item 2
 
-See [[Obsidian Features Demo]] for more examples.
+See [[documentation/obsidian-features-demo]] for more examples.
 
 ## Mermaid Diagrams
 
@@ -251,7 +251,7 @@ classDiagram
     }
 ```
 
-See [[Obsidian Features Demo]] for more diagram types.
+See [[documentation/obsidian-features-demo]] for more diagram types.
 
 ## Math (LaTeX)
 
@@ -314,7 +314,7 @@ Quote from source[@key2023, p. 42].
 Result: Quote from source[@key2023, p. 42].
 
 > [!note] Bibliography Required
-> Citations require a `bibliography.bib` file. See [[Configuration Guide#citations]].
+> Citations require a `bibliography.bib` file. See [[documentation/configuration-guide#citations]].
 
 ## Code Blocks
 
@@ -592,7 +592,7 @@ author: Your Name
 ---
 ```
 
-See [[Frontmatter Reference]] for all available fields.
+See [[documentation/frontmatter-reference]] for all available fields.
 
 ## Keyboard Shortcuts
 
@@ -670,15 +670,15 @@ Enable/disable features in `src/config.ts`:
 }
 ```
 
-See [[Configuration Guide]] for details.
+See [[documentation/configuration-guide]] for details.
 
 ## Resources
 
 ### Learn More
-- [[Wikilinks and Graph]] - Linking features
-- [[Obsidian Features Demo]] - Feature demonstrations
-- [[Marginalia Demo]] - Side notes examples
-- [[Advanced Features]] - Advanced functionality
+- [[documentation/wikilinks-and-graph]] - Linking features
+- [[documentation/obsidian-features-demo]] - Feature demonstrations
+- [[documentation/marginalia-demo]] - Side notes examples
+- [[documentation/advanced-features]] - Advanced functionality
 
 ### References
 - [Markdown Guide](https://www.markdownguide.org)

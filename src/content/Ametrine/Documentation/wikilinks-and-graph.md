@@ -14,7 +14,7 @@ Learn how to create connections between notes and visualize your knowledge netwo
 
 ## What Are Wikilinks?
 
-Wikilinks are ==double-bracket links== that connect notes together. They're inspired by Wikipedia's internal linking system and popularized by tools like [[Obsidian Features Demo|Obsidian]].
+Wikilinks are ==double-bracket links== that connect notes together. They're inspired by Wikipedia's internal linking system and popularized by tools like [[documentation/obsidian-features-demo|Obsidian]].
 
 Wikilinks are better than regular markdown links because:
 - Faster to write: `[[page]]` vs `[Page](page.md)`
@@ -33,7 +33,7 @@ Link to another note by its title:
 [[Quick Start]]
 ```
 
-Result: [[Quick Start]]
+Result: [[documentation/quick-start]]
 
 The link resolves to the note with matching `title` in frontmatter, case-insensitive.
 
@@ -45,7 +45,7 @@ Display different text than the page title:
 [[Configuration Guide|customizing your site]]
 ```
 
-Result: [[Configuration Guide|customizing your site]]
+Result: [[documentation/configuration-guide|customizing your site]]
 
 ### Link to a Section
 
@@ -55,7 +55,7 @@ Link directly to a heading within a page:
 [[Deployment Guide#netlify]]
 ```
 
-Result: [[Deployment Guide#netlify]]
+Result: [[documentation/deployment-guide#netlify]]
 
 ### Section with Custom Text
 
@@ -65,7 +65,7 @@ Combine both features:
 [[Configuration Guide#theme-customization|changing colors]]
 ```
 
-Result: [[Configuration Guide#theme-customization|changing colors]]
+Result: [[documentation/configuration-guide#theme-customization|changing colors]]
 
 ## Aliases
 
@@ -79,9 +79,9 @@ aliases: [Obsidian Demo, Feature Demo]
 ```
 
 Now all these link to the same page:
-- `[[Obsidian Features Demo]]` → [[Obsidian Features Demo]]
-- `[[obsidian-features-demo|Obsidian Demo]]` → [[obsidian-features-demo|Obsidian Demo]]
-- `[[obsidian-features-demo|Feature Demo]]` → [[obsidian-features-demo|Feature Demo]]
+- `[[Obsidian Features Demo]]` → [[documentation/obsidian-features-demo]]
+- `[[obsidian-features-demo|Obsidian Demo]]` → [[documentation/obsidian-features-demo|Obsidian Demo]]
+- `[[obsidian-features-demo|Feature Demo]]` → [[documentation/obsidian-features-demo|Feature Demo]]
 
 > [!note] Alias Matching
 > Aliases are case-insensitive and match exactly. Use them for common abbreviations or alternate terms.
@@ -91,8 +91,8 @@ Now all these link to the same page:
 Every note automatically tracks which other notes link to it. Backlinks appear at the bottom of each page in the "Links to this note" section.
 
 For example:
-- This page links to [[Quick Start]]
-- [[Quick Start]] shows this page in its backlinks
+- This page links to [[documentation/quick-start]]
+- [[documentation/quick-start]] shows this page in its backlinks
 - Backlinks create a ==bidirectional knowledge graph==
 
 Backlinks help you:
@@ -290,18 +290,18 @@ tags: [hub, digital-garden]
 Central hub for all digital gardening content.
 
 ## Core Concepts
-- [[index|What is a Digital Garden?]]
+- [[documentation/index|What is a Digital Garden?]]
 - `[[knowledge-management]]`
 
 ## Guides
-- [[Quick Start]]
-- [[Configuration Guide]]
-- [[Deployment Guide]]
+- [[documentation/quick-start]]
+- [[documentation/configuration-guide]]
+- [[documentation/deployment-guide]]
 
 ## Features
-- [[Wikilinks and Graph]]
-- [[Obsidian Features Demo]]
-- [[Marginalia Demo]]
+- [[documentation/wikilinks-and-graph]]
+- [[documentation/obsidian-features-demo]]
+- [[documentation/marginalia-demo]]
 ```
 
 This creates a hub with many outgoing links.
@@ -345,13 +345,13 @@ status: in-progress
 Using `[[ametrine]]` to build the new site.
 
 ## Tasks
-- [x] Choose template ([[Quick Start]])
-- [x] Configure theme ([[Configuration Guide#theme-customization]])
-- [ ] Deploy ([[Deployment Guide]])
+- [x] Choose template ([[documentation/quick-start]])
+- [x] Configure theme ([[documentation/configuration-guide#theme-customization]])
+- [ ] Deploy ([[documentation/deployment-guide]])
 
 ## Resources
-- [[Obsidian Features Demo]]
-- [[Syntax Reference]]
+- [[documentation/obsidian-features-demo]]
+- [[documentation/syntax-reference]]
 ```
 
 This links to relevant documentation and creates context.
@@ -370,7 +370,7 @@ Don't just link forward - think about backlinks:
 The text surrounding a link provides context for backlinks:
 
 Bad: "See `[[this-page]]`"
-Good: "Learn more about [[Configuration Guide|customizing themes]]"
+Good: "Learn more about [[documentation/configuration-guide|customizing themes]]"
 
 The backlink panel shows surrounding text, so good context helps readers.
 
@@ -444,9 +444,9 @@ Practice creating connections:
 
 Now that you understand linking:
 
-- [[Obsidian Features Demo]] - Learn content formatting
-- [[Marginalia Demo]] - Add side notes
-- [[Advanced Features]] - Explore search and popovers
-- [[Syntax Reference]] - Quick reference guide
+- [[documentation/obsidian-features-demo]] - Learn content formatting
+- [[documentation/marginalia-demo]] - Add side notes
+- [[documentation/advanced-features]] - Explore search and popovers
+- [[documentation/syntax-reference]] - Quick reference guide
 
 Build your knowledge graph, one link at a time!

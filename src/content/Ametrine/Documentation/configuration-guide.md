@@ -376,7 +376,7 @@ marginalia: {
 }
 ```
 
-Learn more in [[Marginalia Demo]].
+Learn more in [[documentation/marginalia-demo]].
 
 ### Tags
 
@@ -534,8 +534,8 @@ After making changes:
 
 ## Next Steps
 
-- [[Deployment Guide]] - Deploy your customized site
-- [[Syntax Reference]] - Learn content formatting options
-- [[Frontmatter Reference]] - Customize individual notes
+- [[documentation/deployment-guide]] - Deploy your customized site
+- [[documentation/syntax-reference]] - Learn content formatting options
+- [[documentation/frontmatter-reference]] - Customize individual notes
 
 See the TypeScript type definitions in `src/config.ts` for complete documentation of all options.

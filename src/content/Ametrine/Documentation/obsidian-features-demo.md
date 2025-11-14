@@ -158,4 +158,4 @@ graph LR
 
 ## Links
 
-These features work alongside existing Ametrine features like [[wikilinks-and-graph|wikilinks]], backlinks, and the knowledge graph.
+These features work alongside existing Ametrine features like [[documentation/wikilinks-and-graph|wikilinks]], backlinks, and the knowledge graph.

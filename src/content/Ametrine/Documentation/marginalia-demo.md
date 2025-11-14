@@ -37,7 +37,7 @@ Marginalia work alongside other Ametrine features:
 
 - ==Highlights== with marginalia {{You can combine these!}}
 - **Bold** and _italic_ text {{Formatting works normally}}
-- [[wikilinks-and-graph|wikilinks]] {{These link to other pages}}
+- [[documentation/wikilinks-and-graph|wikilinks]] {{These link to other pages}}
 - Code snippets {{Even in technical writing}}
 
 ### With Lists
