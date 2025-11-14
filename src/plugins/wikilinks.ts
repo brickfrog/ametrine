@@ -66,10 +66,6 @@ export function wikilinks(options: WikilinkOptions = {}) {
       }
     }
 
-    console.log(
-      `[wikilinks] Built local slug map with ${localSlugMap.size} entries`,
-    );
-
     // Track outgoing links for this file (used by link crawler later)
     const outgoingLinks: string[] = [];
 
@@ -105,10 +101,6 @@ export function wikilinks(options: WikilinkOptions = {}) {
           if (!baseSlug.includes("/")) {
             fullSlug = localSlugMap.get(baseSlug) || baseSlug;
           }
-
-          console.log(
-            `[wikilinks] pageName="${pageName}" baseSlug="${baseSlug}" fullSlug="${fullSlug}"`,
-          );
 
           const url = `/${fullSlug}${pageAnchor}`;
 

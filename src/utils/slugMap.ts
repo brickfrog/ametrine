@@ -51,27 +51,4 @@ export function buildSlugMap(entries: Array<{ id: string }>, logger?: any) {
       slugMap.set(filename, entry.id);
     }
   }
-  logger?.info(`[slug-map] Built map with ${slugMap.size} entries`);
-}
-
-/**
- * Resolve a page name to its full slug path
- * @param pageName The page name from a wikilink (may include folder path)
- * @returns The full slug path, or the original if not found
- */
-export function resolveSlug(pageName: string): string {
-  // If it already contains a path separator, use it as-is
-  if (pageName.includes("/")) {
-    console.log(`[resolveSlug] "${pageName}" already has /, returning as-is`);
-    return pageName;
-  }
-
-  // Look up in the slug map
-  const fullSlug = slugMap.get(pageName);
-  console.log(
-    `[resolveSlug] Map lookup: "${pageName}" → "${fullSlug || "NOT FOUND"}" (map size: ${slugMap.size})`,
-  );
-
-  // Return the full slug if found, otherwise use the bare name (root-level files)
-  return fullSlug || pageName;
 }
