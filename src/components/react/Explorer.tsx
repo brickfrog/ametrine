@@ -3,6 +3,7 @@ import { useStore } from "@nanostores/react";
 import { ChevronDown } from "lucide-react";
 import { FileTrieNode } from "../../utils/fileTrie";
 import type { ContentDetails } from "../../pages/static/contentIndex.json";
+import { logger } from "../../utils/logger";
 import {
   loadFolderStates,
   toggleFolder as toggleFolderState,
@@ -166,10 +167,10 @@ export function Explorer({
   const [currentSlug, setCurrentSlug] = useState<string>("");
   const [desktopCollapsed, setDesktopCollapsed] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
+  const hasRestoredScroll = useRef(false);
 
   const defaultCollapsed = defaultState === "collapsed";
 
-  // TODO(sweep:stack): React - Missing dependencies 'loadFolderStates', 'loadScrollPosition' in useEffect hook
   // Load data and initialize
   useEffect(() => {
     const init = async () => {
@@ -209,18 +210,17 @@ export function Explorer({
 
         setTrie(trieNode);
       } catch (error) {
-        // FIXME(sweep): Use logger.error instead of console.error for consistency
-        console.error("Failed to fetch content index:", error);
+        logger.error("Failed to fetch content index:", error);
       }
     };
 
     init();
-  }, [useSavedState]);
+  }, [useSavedState, loadFolderStates, loadScrollPosition]);
 
-  // TODO(sweep): Effect runs on every trie change but only needs to run once after initial load
-  // Restore scroll position
+  // Restore scroll position (only once after initial load)
   useEffect(() => {
-    if (contentRef.current && trie) {
+    if (contentRef.current && trie && !hasRestoredScroll.current) {
+      hasRestoredScroll.current = true;
       const saved = sessionStorage.getItem("explorerScrollTop");
       if (saved) {
         contentRef.current.scrollTop = parseInt(saved, 10);
@@ -235,7 +235,6 @@ export function Explorer({
     }
   }, [trie]);
 
-  // TODO(sweep:stack): React - Missing dependency 'saveScrollPosition' in useEffect hook
   // Save scroll position on unmount
   useEffect(() => {
     return () => {
@@ -243,7 +242,7 @@ export function Explorer({
         saveScrollPosition(contentRef.current.scrollTop);
       }
     };
-  }, []);
+  }, [saveScrollPosition]);
 
   if (!trie) {
     return null;

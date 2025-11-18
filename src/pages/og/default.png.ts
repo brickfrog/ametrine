@@ -4,6 +4,7 @@ import sharp from "sharp";
 import { config } from "../../config";
 import { getSatoriFonts } from "../../utils/ogImage";
 import { OgImageTemplate } from "../../templates/ogImageTemplate";
+import { logger } from "../../utils/logger";
 import fs from "fs/promises";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
@@ -33,8 +34,7 @@ export const GET: APIRoute = async () => {
       const logoExt = config.logo.split(".").pop();
       logoDataUrl = `data:image/${logoExt};base64,${logoBase64}`;
     } catch (error) {
-      // FIXME(sweep): Use logger.warn instead of console.warn for consistency
-      console.warn("Could not load logo for OG image:", error);
+      logger.warn("Could not load logo for OG image:", error);
     }
   }
 
