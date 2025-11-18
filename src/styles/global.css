@@ -105,11 +105,21 @@ a.external:hover {
   input[type="button"],
   input[type="submit"],
   [role="button"] {
-    min-height: 44px;
+    position: relative;
+  }
+
+  button::before,
+  a[href]::before,
+  input[type="button"]::before,
+  input[type="submit"]::before,
+  [role="button"]::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     min-width: 44px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    min-height: 44px;
   }
 }
 

@@ -135,7 +135,11 @@ function createExcerpt(content: string, maxLength: number = 300): string {
   return plain;
 }
 
-export const GET: APIRoute = async () => {
+/**
+ * Build the complete content index from all vault content
+ * This is exported so it can be used by both the API route and other components
+ */
+export async function buildContentIndex(): Promise<ContentIndexMap> {
   // Get all published notes from content collection
   const notes = await getPublishedNotes();
   const vaultName = config.vaultName || "vault";
@@ -319,6 +323,12 @@ export const GET: APIRoute = async () => {
 
     contentIndex[slug].links = Array.from(allLinks);
   }
+
+  return contentIndex;
+}
+
+export const GET: APIRoute = async () => {
+  const contentIndex = await buildContentIndex();
 
   return new Response(JSON.stringify(contentIndex, null, 2), {
     headers: {

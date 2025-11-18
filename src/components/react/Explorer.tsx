@@ -16,6 +16,7 @@ interface ExplorerProps {
   behavior?: "collapse" | "link";
   defaultState?: "collapsed" | "open";
   useSavedState?: boolean;
+  contentIndex?: Record<string, ContentDetails>;
 }
 
 type FullSlug = string;
@@ -162,6 +163,7 @@ export function Explorer({
   behavior = "link",
   defaultState = "collapsed",
   useSavedState = true,
+  contentIndex,
 }: ExplorerProps) {
   const [trie, setTrie] = useState<FileTrieNode<ContentDetails> | null>(null);
   const [currentSlug, setCurrentSlug] = useState<string>("");
@@ -185,37 +187,44 @@ export function Explorer({
         loadScrollPosition();
       }
 
-      // Fetch content index
-      try {
-        const response = await fetch(
-          `${import.meta.env.BASE_URL}/static/contentIndex.json`,
-        );
-        const data: Record<string, ContentDetails> = await response.json();
-        const entries = Object.entries(data) as [FullSlug, ContentDetails][];
-        const trieNode = FileTrieNode.fromEntries(entries);
-
-        // Sort: folders first, then alphabetical
-        trieNode.sort((a, b) => {
-          if ((!a.isFolder && !b.isFolder) || (a.isFolder && b.isFolder)) {
-            return a.displayName.localeCompare(b.displayName, undefined, {
-              numeric: true,
-              sensitivity: "base",
-            });
-          }
-          return a.isFolder ? -1 : 1;
-        });
-
-        // Filter out tags folder
-        trieNode.filter((node) => node.slugSegment !== "tags");
-
-        setTrie(trieNode);
-      } catch (error) {
-        logger.error("Failed to fetch content index:", error);
+      // Use provided contentIndex if available, otherwise fetch
+      let data: Record<string, ContentDetails>;
+      if (contentIndex) {
+        data = contentIndex;
+      } else {
+        try {
+          const response = await fetch(
+            `${import.meta.env.BASE_URL}/static/contentIndex.json`,
+          );
+          data = await response.json();
+        } catch (error) {
+          logger.error("Failed to fetch content index:", error);
+          return;
+        }
       }
+
+      const entries = Object.entries(data) as [FullSlug, ContentDetails][];
+      const trieNode = FileTrieNode.fromEntries(entries);
+
+      // Sort: folders first, then alphabetical
+      trieNode.sort((a, b) => {
+        if ((!a.isFolder && !b.isFolder) || (a.isFolder && b.isFolder)) {
+          return a.displayName.localeCompare(b.displayName, undefined, {
+            numeric: true,
+            sensitivity: "base",
+          });
+        }
+        return a.isFolder ? -1 : 1;
+      });
+
+      // Filter out tags folder
+      trieNode.filter((node) => node.slugSegment !== "tags");
+
+      setTrie(trieNode);
     };
 
     init();
-  }, [useSavedState, loadFolderStates, loadScrollPosition]);
+  }, [useSavedState, loadFolderStates, loadScrollPosition, contentIndex]);
 
   // Restore scroll position (only once after initial load)
   useEffect(() => {

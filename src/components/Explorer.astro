@@ -1,6 +1,23 @@
 ---
 // Explorer component - React island with nanostore state management
 import { Explorer as ExplorerComponent } from './react/Explorer';
+import { getContentIndex } from '../utils/contentIndexCache';
+
+interface Props {
+  id?: string;
+}
+
+const { id = 'explorer' } = Astro.props;
+
+// Get cached content index (same reference across all instances)
+const contentIndex = await getContentIndex();
 ---
 
-<ExplorerComponent client:load behavior="collapse" defaultState="collapsed" useSavedState={true} />
+<ExplorerComponent
+  client:load
+  behavior="collapse"
+  defaultState="collapsed"
+  useSavedState={true}
+  contentIndex={contentIndex}
+  transition:persist={id}
+/>

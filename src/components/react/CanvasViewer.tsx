@@ -243,9 +243,6 @@ export function CanvasViewer({
   canvasName: _canvasName,
   fileData,
 }: CanvasViewerProps) {
-  logger.debug("[CanvasViewer] canvasData:", canvasData);
-  logger.debug("[CanvasViewer] fileData:", fileData);
-
   // Convert Obsidian canvas data to React Flow format
   const initialNodes: Node[] = (canvasData.nodes || []).map((node) => {
     const nodeType = node.type === "text" ? "text" : "file";
