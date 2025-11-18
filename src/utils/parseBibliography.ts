@@ -3,6 +3,32 @@ import fs from "fs";
 import { Cite } from "@citation-js/core";
 // @ts-ignore - @citation-js/plugin-bibtex does not have type declarations
 import "@citation-js/plugin-bibtex";
+import { logger } from "./logger";
+
+// Citation-JS author type
+interface CitationAuthor {
+  literal?: string;
+  family?: string;
+  given?: string;
+}
+
+// Citation-JS data entry type
+interface CitationEntry {
+  "citation-key"?: string;
+  id?: string;
+  author?: CitationAuthor[];
+  issued?: {
+    "date-parts"?: number[][];
+  };
+  year?: string | number;
+  title?: string;
+  URL?: string;
+  url?: string;
+  type?: string;
+  publisher?: string;
+  "container-title"?: string;
+  journal?: string;
+}
 
 export interface BibliographyEntry {
   key: string;
@@ -26,8 +52,7 @@ export async function parseBibliography(
   try {
     const bibContent = fs.readFileSync(bibFilePath, "utf-8");
     const cite = new Cite(bibContent);
-    // TODO(sweep): Replace 'any[]' with proper Citation-JS type
-    const data = cite.data as any[];
+    const data = cite.data as CitationEntry[];
 
     for (const entry of data) {
       const key = entry["citation-key"] || entry.id;
@@ -36,9 +61,8 @@ export async function parseBibliography(
       // Extract author name(s)
       let authorStr: string | undefined;
       if (entry.author && Array.isArray(entry.author)) {
-        // TODO(sweep): Replace 'any' with proper author type from Citation-JS
         authorStr = entry.author
-          .map((a: any) => {
+          .map((a: CitationAuthor) => {
             if (a.literal) return a.literal;
             if (a.family && a.given) return `${a.given} ${a.family}`;
             if (a.family) return a.family;
@@ -60,8 +84,7 @@ export async function parseBibliography(
       });
     }
   } catch (error) {
-    // FIXME(sweep): Use logger.error instead of console.error for consistency
-    console.error("Error parsing bibliography:", error);
+    logger.error("Error parsing bibliography:", error);
   }
 
   return entries;
