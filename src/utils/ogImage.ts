@@ -1,5 +1,6 @@
 import type { SatoriOptions } from "satori";
 import { WORDS_PER_MINUTE } from "../constants/reading";
+import { logger } from "./logger";
 
 /**
  * Fetch a Google Font's TTF file
@@ -20,8 +21,7 @@ export async function fetchGoogleFont(
     const urlMatch =
       /url\((https:\/\/fonts\.gstatic\.com\/s\/.*?\.ttf)\)/g.exec(css);
     if (!urlMatch) {
-      // FIXME(sweep): Use logger.warn instead of console.warn for consistency
-      console.warn(
+      logger.warn(
         `Could not find TTF URL for font ${fontName} with weight ${weight}`,
       );
       return undefined;
@@ -33,8 +33,7 @@ export async function fetchGoogleFont(
 
     return fontBuffer;
   } catch (error) {
-    // FIXME(sweep): Use logger.error instead of console.error for consistency
-    console.error(`Error fetching font ${fontName}:`, error);
+    logger.error(`Error fetching font ${fontName}:`, error);
     return undefined;
   }
 }
@@ -72,8 +71,7 @@ export async function getSatoriFonts(
       });
     }
   } catch (error) {
-    // FIXME(sweep): Use logger.warn instead of console.warn for consistency
-    console.warn(
+    logger.warn(
       "Failed to fetch Google Fonts for OG images, using fallback fonts:",
       error,
     );
@@ -82,8 +80,7 @@ export async function getSatoriFonts(
   // If no fonts were successfully fetched, return empty array
   // Satori will use fallback system fonts
   if (fonts.length === 0) {
-    // FIXME(sweep): Use logger.warn instead of console.warn for consistency
-    console.warn(
+    logger.warn(
       "No fonts loaded for OG images, Satori will use system fallbacks",
     );
   }

@@ -2,6 +2,7 @@ import type { Note } from "./filterNotes";
 import { readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { config } from "../config";
+import { logger } from "./logger";
 
 /**
  * Extract the folder path from a note slug
@@ -43,8 +44,10 @@ async function scanVaultDirectories(
       }
     }
   } catch (err) {
-    // HACK(sweep): Silent error swallowing - at minimum should log for debugging
-    // Ignore errors (e.g., permission issues)
+    logger.warn(
+      `Failed to scan directory ${fullPath} (this may be expected for permission issues):`,
+      err,
+    );
   }
 
   return folders;
@@ -174,8 +177,10 @@ export async function getAllFilesInFolder(
       }
     }
   } catch (err) {
-    // HACK(sweep): Silent error swallowing - at minimum should log for debugging
-    // Folder doesn't exist or permission error
+    logger.warn(
+      `Failed to read files in folder ${folderPath} (folder may not exist):`,
+      err,
+    );
   }
 
   return files.sort((a, b) => a.name.localeCompare(b.name));
