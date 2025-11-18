@@ -17,6 +17,7 @@ import type { CanvasData } from "../../pages/static/contentIndex.json";
 import type { Note } from "../../utils/filterNotes";
 import type { BaseView } from "../../utils/bases/types";
 import { getCanvasColor } from "../../utils/canvas";
+import { logger } from "../../utils/logger";
 import { TableView } from "./TableView";
 import { ArrowUpRight } from "lucide-react";
 
@@ -88,8 +89,7 @@ function NotePreview({ slug }: { slug: string }) {
           }
         }
       } catch (error) {
-        // FIXME(sweep): Use logger.error instead of console.error for consistency
-        console.error("Failed to load note content:", error);
+        logger.error("Failed to load note content:", error);
       } finally {
         setLoading(false);
       }
@@ -243,9 +243,8 @@ export function CanvasViewer({
   canvasName: _canvasName,
   fileData,
 }: CanvasViewerProps) {
-  // FIXME(sweep): Remove debug console.log statements or use logger
-  console.log("[CanvasViewer] canvasData:", canvasData);
-  console.log("[CanvasViewer] fileData:", fileData);
+  logger.debug("[CanvasViewer] canvasData:", canvasData);
+  logger.debug("[CanvasViewer] fileData:", fileData);
 
   // Convert Obsidian canvas data to React Flow format
   const initialNodes: Node[] = (canvasData.nodes || []).map((node) => {

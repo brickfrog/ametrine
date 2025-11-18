@@ -92,8 +92,7 @@ export function parseBaseFile(content: string): BaseConfig {
       views,
       filters: parsed.filters as Filter | undefined,
       formulas: parsed.formulas as Record<string, string> | undefined,
-      // TODO(sweep): Replace 'any' with proper property value type
-      properties: parsed.properties as Record<string, any> | undefined,
+      properties: parsed.properties as Record<string, unknown> | undefined,
     };
 
     return config;
@@ -112,8 +111,7 @@ export function parseBaseFile(content: string): BaseConfig {
  * @param filter - Raw filter object/string
  * @returns Normalized filter
  */
-// TODO(sweep): Replace 'any' with proper type union (string | object | Filter)
-export function normalizeFilter(filter: any): Filter | undefined {
+export function normalizeFilter(filter: string | object | Filter | undefined | null): Filter | undefined {
   if (!filter) return undefined;
 
   // String expression - return as-is
@@ -138,8 +136,7 @@ export function normalizeFilter(filter: any): Filter | undefined {
     }
 
     // Normalize nested filters
-    // TODO(sweep): Replace 'any' with proper Record type
-    const normalized: any = {};
+    const normalized: Record<string, Filter | Filter[] | undefined> = {};
     for (const key of keys) {
       const value = filter[key];
       if (Array.isArray(value)) {

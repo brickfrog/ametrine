@@ -39,7 +39,6 @@ export function TableOfContents({
     setIsMounted(true);
   }, []);
 
-  // TODO(sweep:stack): React - Missing dependencies 'loadSavedProgress', 'getSavedProgress' in useEffect hook
   // Load saved progress on mount
   useEffect(() => {
     if (!slug) return;
@@ -47,7 +46,7 @@ export function TableOfContents({
     loadSavedProgress();
     const saved = getSavedProgress(slug);
     setSavedProgressPercent(saved);
-  }, [slug]);
+  }, [slug, loadSavedProgress, getSavedProgress]);
 
   // Calculate and update scroll progress
   const updateScrollProgress = useCallback(() => {
@@ -105,8 +104,7 @@ export function TableOfContents({
     };
   }, [slug]);
 
-  // TODO(sweep): Add dependencies or split into smaller effects for better optimization
-  // TOC heading tracking effect
+  // TOC heading tracking effect (runs once to set up IntersectionObserver)
   useEffect(() => {
     // Get all heading elements
     const headingElements = Array.from(

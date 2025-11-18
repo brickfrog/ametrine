@@ -44,9 +44,8 @@ export function fileInFolder(file: FileProperties, folder: string): boolean {
 /**
  * Check if file has a specific property
  */
-// TODO(sweep): Replace 'any' with proper type (unknown or specific value type)
 export function fileHasProperty(
-  note: Record<string, any>,
+  note: Record<string, unknown>,
   propertyName: string,
 ): boolean {
   return (
@@ -181,7 +180,7 @@ export const builtinFunctions: FunctionRegistry = {
 /**
  * Helper to check if a value is truthy (for filter expressions)
  */
-export function isTruthy(value: any): boolean {
+export function isTruthy(value: unknown): boolean {
   if (value === null || value === undefined) return false;
   if (typeof value === "boolean") return value;
   if (typeof value === "number") return value !== 0;

@@ -9,6 +9,7 @@ import type {
 import { builtinFunctions, isTruthy } from "./functions";
 import { wrapString, wrapList, wrapDate } from "./propertyWrappers";
 import { getFolderPath } from "../folderUtils";
+import { logger } from "../logger";
 
 /**
  * Extract embedded files from note body
@@ -78,8 +79,7 @@ function evaluateExpression(
 
     // Add custom functions to parser
     // Map our function names to parser-compatible names
-    // TODO(sweep): Replace 'any' with proper function signature type
-    const functions: Record<string, any> = {};
+    const functions: Record<string, (...args: unknown[]) => unknown> = {};
 
     // File property functions
     functions["fileHasTag"] = (tag: string) =>
@@ -126,7 +126,7 @@ function evaluateExpression(
     };
 
     // Create variables object with all context
-    const variables: Record<string, any> = {
+    const variables: Record<string, unknown> = {
       // File object with wrapped properties
       file: fileProxy,
 
@@ -163,8 +163,7 @@ function evaluateExpression(
     // Convert result to boolean
     return isTruthy(result);
   } catch (error) {
-    // FIXME(sweep): Use logger.error instead of console.error for consistency
-    console.error(`Error evaluating expression "${expression}":`, error);
+    logger.error(`Error evaluating expression "${expression}":`, error);
     // Return false for invalid expressions (fail safe)
     return false;
   }
@@ -244,26 +243,28 @@ export function filterNotes(
 /**
  * Get a property value from a note for display
  */
-export function getPropertyValue(note: Note, propertyName: string): any {
+export function getPropertyValue(note: Note, propertyName: string): unknown {
   // Handle file properties
   if (propertyName.startsWith("file.")) {
     const fileProps = createFileProperties(note);
     const prop = propertyName.substring(5); // Remove 'file.' prefix
 
     if (prop in fileProps) {
-      return (fileProps as any)[prop];
+      return (fileProps as Record<string, unknown>)[prop];
     }
     return undefined;
   }
 
   // Handle note properties (frontmatter)
   if (propertyName in note.data) {
-    return (note.data as any)[propertyName];
+    return (note.data as Record<string, unknown>)[propertyName];
   }
 
-  // Handle formula properties (not yet implemented)
+  // Handle formula properties
+  // Formula evaluation requires access to the base config formulas,
+  // which would need to be passed as an additional parameter.
+  // For now, return undefined for formula properties.
   if (propertyName.startsWith("formula.")) {
-    // TODO: Implement formula evaluation
     return undefined;
   }
 
@@ -273,7 +274,7 @@ export function getPropertyValue(note: Note, propertyName: string): any {
 /**
  * Format a property value for display
  */
-export function formatPropertyValue(value: any): string {
+export function formatPropertyValue(value: unknown): string {
   if (value === null || value === undefined) return "";
 
   // Date formatting

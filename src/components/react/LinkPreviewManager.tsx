@@ -2,6 +2,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { LinkPreviewPanel, type LinkPreviewData } from "./LinkPreviewPanel";
 import type { ContentDetails } from "../../pages/static/contentIndex.json";
 import { config } from "../../config";
+import { logger } from "../../utils/logger";
 
 interface PanelState {
   id: string;
@@ -29,8 +30,7 @@ export function LinkPreviewManager() {
           const parsed = JSON.parse(saved);
           return new Map(parsed);
         } catch (e) {
-          // FIXME(sweep): Use logger.error instead of console.error for consistency
-          console.error("Failed to restore panels:", e);
+          logger.error("Failed to restore panels:", e);
         }
       }
     }
@@ -52,13 +52,13 @@ export function LinkPreviewManager() {
   const activeSlugRef = useRef<string | null>(null);
 
   // Helper function to extract slug consistently
-  const extractSlug = (href: string): string => {
+  const extractSlug = useCallback((href: string): string => {
     const baseUrl = import.meta.env.BASE_URL || "/";
     return href
       .replace(new RegExp(`^${baseUrl.replace(/\/$/, "")}`), "")
       .replace(/^\//, "")
       .replace(/#.*$/, "");
-  };
+  }, []);
 
   // Save panels state to sessionStorage whenever it changes
   useEffect(() => {
@@ -81,11 +81,9 @@ export function LinkPreviewManager() {
       .then((data) => {
         setContentIndex(data);
       })
-      // FIXME(sweep): Use logger.error instead of console.error for consistency
-      .catch((err) => console.error("Failed to load content index:", err));
+      .catch((err) => logger.error("Failed to load content index:", err));
   }, []);
 
-  // TODO(sweep:stack): React - Missing dependencies 'extractSlug', 'showPreview' in useEffect hook - consider wrapping with useCallback
   // Setup hover listeners using event delegation
   useEffect(() => {
     if (!contentIndex || !config.popover?.enable) return;
@@ -188,9 +186,9 @@ export function LinkPreviewManager() {
         if (timeout) clearTimeout(timeout);
       });
     };
-  }, [contentIndex]);
+  }, [contentIndex, extractSlug, showPreview]);
 
-  const showPreview = async (
+  const showPreview = useCallback(async (
     slug: string,
     linkElement: HTMLElement,
     content: ContentDetails,
@@ -203,7 +201,16 @@ export function LinkPreviewManager() {
         hoverTimeoutRef.current[slug] = null;
       }
       // Bring to front
-      handleFocus(slug);
+      setPanels((prev) => {
+        const next = new Map(prev);
+        const panel = next.get(slug);
+        if (panel) {
+          const newZIndex = highestZIndex + 1;
+          setHighestZIndex(newZIndex);
+          next.set(slug, { ...panel, zIndex: newZIndex });
+        }
+        return next;
+      });
       return;
     }
 
@@ -292,7 +299,7 @@ export function LinkPreviewManager() {
 
     setHighestZIndex(highestZIndex + 1);
     setPanels((prev) => new Map(prev).set(slug, newPanel));
-  };
+  }, [panels, highestZIndex]);
 
   const handleClose = useCallback((id: string) => {
     // Clear any pending timeout for this panel

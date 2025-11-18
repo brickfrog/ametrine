@@ -5,6 +5,7 @@ import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { parse as parseYaml } from "yaml";
 import { config } from "../../config";
+import { logger } from "../../utils/logger";
 
 export interface CanvasNode {
   id: string;
@@ -244,8 +245,7 @@ export const GET: APIRoute = async () => {
               canvasData,
             };
           } catch (error) {
-            // FIXME(sweep): Use logger.error instead of console.error for consistency
-            console.error(
+            logger.error(
               `Failed to parse canvas file ${relativePath}:`,
               error,
             );
