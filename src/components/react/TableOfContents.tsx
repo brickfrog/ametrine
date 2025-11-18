@@ -39,6 +39,7 @@ export function TableOfContents({
     setIsMounted(true);
   }, []);
 
+  // TODO(sweep:stack): React - Missing dependencies 'loadSavedProgress', 'getSavedProgress' in useEffect hook
   // Load saved progress on mount
   useEffect(() => {
     if (!slug) return;
@@ -104,6 +105,7 @@ export function TableOfContents({
     };
   }, [slug]);
 
+  // TODO(sweep): Add dependencies or split into smaller effects for better optimization
   // TOC heading tracking effect
   useEffect(() => {
     // Get all heading elements

@@ -169,6 +169,7 @@ export function Explorer({
 
   const defaultCollapsed = defaultState === "collapsed";
 
+  // TODO(sweep:stack): React - Missing dependencies 'loadFolderStates', 'loadScrollPosition' in useEffect hook
   // Load data and initialize
   useEffect(() => {
     const init = async () => {
@@ -216,6 +217,7 @@ export function Explorer({
     init();
   }, [useSavedState]);
 
+  // TODO(sweep): Effect runs on every trie change but only needs to run once after initial load
   // Restore scroll position
   useEffect(() => {
     if (contentRef.current && trie) {
@@ -233,6 +235,7 @@ export function Explorer({
     }
   }, [trie]);
 
+  // TODO(sweep:stack): React - Missing dependency 'saveScrollPosition' in useEffect hook
   // Save scroll position on unmount
   useEffect(() => {
     return () => {

@@ -85,6 +85,7 @@ export function LinkPreviewManager() {
       .catch((err) => console.error("Failed to load content index:", err));
   }, []);
 
+  // TODO(sweep:stack): React - Missing dependencies 'extractSlug', 'showPreview' in useEffect hook - consider wrapping with useCallback
   // Setup hover listeners using event delegation
   useEffect(() => {
     if (!contentIndex || !config.popover?.enable) return;
