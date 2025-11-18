@@ -1,5 +1,5 @@
 import yaml from "js-yaml";
-import type { BaseConfig, BaseView, Filter } from "./types";
+import type { BaseConfig, BaseView, Filter, PropertyConfig } from "./types";
 
 /**
  * Raw YAML structure as loaded (before validation)
@@ -92,7 +92,9 @@ export function parseBaseFile(content: string): BaseConfig {
       views,
       filters: parsed.filters as Filter | undefined,
       formulas: parsed.formulas as Record<string, string> | undefined,
-      properties: parsed.properties as Record<string, unknown> | undefined,
+      properties: parsed.properties as
+        | Record<string, PropertyConfig>
+        | undefined,
     };
 
     return config;
@@ -111,7 +113,9 @@ export function parseBaseFile(content: string): BaseConfig {
  * @param filter - Raw filter object/string
  * @returns Normalized filter
  */
-export function normalizeFilter(filter: string | object | Filter | undefined | null): Filter | undefined {
+export function normalizeFilter(
+  filter: string | object | Filter | undefined | null,
+): Filter | undefined {
   if (!filter) return undefined;
 
   // String expression - return as-is
@@ -123,7 +127,8 @@ export function normalizeFilter(filter: string | object | Filter | undefined | n
   if (typeof filter === "object") {
     // Check for valid conjunctions
     const validConjunctions = ["and", "or", "not"];
-    const keys = Object.keys(filter);
+    const filterObj = filter as Record<string, unknown>;
+    const keys = Object.keys(filterObj);
 
     if (keys.length === 0) return undefined;
 
@@ -138,13 +143,13 @@ export function normalizeFilter(filter: string | object | Filter | undefined | n
     // Normalize nested filters
     const normalized: Record<string, Filter | Filter[] | undefined> = {};
     for (const key of keys) {
-      const value = filter[key];
+      const value = filterObj[key];
       if (Array.isArray(value)) {
         normalized[key] = value
           .map((v) => normalizeFilter(v))
           .filter((v) => v !== undefined);
       } else {
-        normalized[key] = normalizeFilter(value);
+        normalized[key] = normalizeFilter(value as Filter);
       }
     }
 

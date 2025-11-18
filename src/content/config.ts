@@ -92,7 +92,7 @@ const vaultLoader: Loader = {
               try {
                 data = (yamlLoad(frontmatterMatch[1]) as object) || {};
                 body = contents.slice(frontmatterMatch[0].length).trim();
-              } catch (_error) {
+              } catch {
                 logger.warn(`Skipping file with bad YAML: ${entry.name}`);
                 skipCount++;
                 continue;

@@ -82,14 +82,14 @@ function evaluateExpression(
     const functions: Record<string, (...args: unknown[]) => unknown> = {};
 
     // File property functions
-    functions["fileHasTag"] = (tag: string) =>
-      builtinFunctions["file.hasTag"](context.file, tag);
-    functions["fileInFolder"] = (folder: string) =>
-      builtinFunctions["file.inFolder"](context.file, folder);
-    functions["fileHasProperty"] = (prop: string) =>
-      builtinFunctions["file.hasProperty"](context.note, prop);
-    functions["fileHasLink"] = (link: string) =>
-      builtinFunctions["file.hasLink"](context.file, link);
+    functions["fileHasTag"] = (...args: unknown[]) =>
+      builtinFunctions["file.hasTag"](context.file, args[0] as string);
+    functions["fileInFolder"] = (...args: unknown[]) =>
+      builtinFunctions["file.inFolder"](context.file, args[0] as string);
+    functions["fileHasProperty"] = (...args: unknown[]) =>
+      builtinFunctions["file.hasProperty"](context.note, args[0] as string);
+    functions["fileHasLink"] = (...args: unknown[]) =>
+      builtinFunctions["file.hasLink"](context.file, args[0] as string);
 
     // String functions
     functions["contains"] = builtinFunctions["contains"];
@@ -158,7 +158,8 @@ function evaluateExpression(
     };
 
     // Evaluate expression
-    const result = parsed.evaluate(variables);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result = parsed.evaluate(variables as any);
 
     // Convert result to boolean
     return isTruthy(result);
@@ -250,7 +251,7 @@ export function getPropertyValue(note: Note, propertyName: string): unknown {
     const prop = propertyName.substring(5); // Remove 'file.' prefix
 
     if (prop in fileProps) {
-      return (fileProps as Record<string, unknown>)[prop];
+      return fileProps[prop as keyof FileProperties];
     }
     return undefined;
   }

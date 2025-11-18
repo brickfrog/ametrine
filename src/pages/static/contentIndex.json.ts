@@ -245,10 +245,7 @@ export const GET: APIRoute = async () => {
               canvasData,
             };
           } catch (error) {
-            logger.error(
-              `Failed to parse canvas file ${relativePath}:`,
-              error,
-            );
+            logger.error(`Failed to parse canvas file ${relativePath}:`, error);
           }
         }
       }

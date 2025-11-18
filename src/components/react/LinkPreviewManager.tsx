@@ -60,6 +60,118 @@ export function LinkPreviewManager() {
       .replace(/#.*$/, "");
   }, []);
 
+  const showPreview = useCallback(
+    async (slug: string, linkElement: HTMLElement, content: ContentDetails) => {
+      // Check if panel already exists
+      if (panels.has(slug)) {
+        // Clear any pending timeout for this slug
+        if (hoverTimeoutRef.current[slug]) {
+          clearTimeout(hoverTimeoutRef.current[slug]);
+          hoverTimeoutRef.current[slug] = null;
+        }
+        // Bring to front
+        setPanels((prev) => {
+          const next = new Map(prev);
+          const panel = next.get(slug);
+          if (panel) {
+            const newZIndex = highestZIndex + 1;
+            setHighestZIndex(newZIndex);
+            next.set(slug, { ...panel, zIndex: newZIndex });
+          }
+          return next;
+        });
+        return;
+      }
+
+      const anchorRect = linkElement.getBoundingClientRect();
+
+      // Calculate initial position and size
+      const viewport = { w: window.innerWidth, h: window.innerHeight };
+      const size = {
+        w: config.popover?.defaultSize.width ?? 560,
+        h: config.popover?.defaultSize.height ?? 380,
+      };
+
+      let x = anchorRect.left;
+      let y = anchorRect.bottom + 8; // LINK_PREVIEW.PANEL_MARGIN
+
+      // Flip above if no space below
+      if (y + size.h > viewport.h - 16) {
+        // LINK_PREVIEW.VIEWPORT_PADDING
+        y = anchorRect.top - 8 - size.h;
+      }
+
+      // Clamp horizontal position
+      if (x + size.w > viewport.w - 16) {
+        x = viewport.w - 16 - size.w;
+      }
+      if (x < 16) {
+        x = 16;
+      }
+      if (y < 16) {
+        y = 16;
+      }
+
+      const position = { x, y };
+
+      let htmlContent: string | undefined;
+
+      // Fetch full content if enabled
+      if (config.popover?.showFullContent) {
+        // Check cache first
+        if (config.popover?.cacheContent && contentCacheRef.current.has(slug)) {
+          htmlContent = contentCacheRef.current.get(slug);
+        } else {
+          try {
+            const response = await fetch(`${import.meta.env.BASE_URL}/${slug}`);
+            if (response.ok) {
+              const html = await response.text();
+              const parser = new DOMParser();
+              const doc = parser.parseFromString(html, "text/html");
+
+              // Extract article content
+              const article = doc.querySelector("article");
+              if (article) {
+                htmlContent = article.innerHTML;
+
+                // Cache if enabled
+                if (config.popover?.cacheContent) {
+                  contentCacheRef.current.set(slug, htmlContent);
+                }
+              }
+            }
+          } catch {
+            // Silently fail and use metadata only
+          }
+        }
+      }
+
+      const newPanel: PanelState = {
+        id: slug,
+        data: {
+          title: content.title,
+          url: `${import.meta.env.BASE_URL}/${slug}`,
+          excerpt: content.excerpt,
+          description: content.description,
+          author: content.author,
+          date: content.date,
+          tags: content.tags,
+          content: htmlContent,
+        },
+        anchorRect,
+        zIndex: highestZIndex + 1,
+        isPinned: false,
+        isMinimized: false,
+        position: position,
+        size: size,
+      };
+
+      setHighestZIndex(highestZIndex + 1);
+      setPanels((prev) => new Map(prev).set(slug, newPanel));
+    },
+    [panels, highestZIndex],
+  );
+
   // Save panels state to sessionStorage whenever it changes
   useEffect(() => {
     if (panels.size > 0) {
@@ -187,119 +299,6 @@ export function LinkPreviewManager() {
       });
     };
   }, [contentIndex, extractSlug, showPreview]);
-
-  const showPreview = useCallback(async (
-    slug: string,
-    linkElement: HTMLElement,
-    content: ContentDetails,
-  ) => {
-    // Check if panel already exists
-    if (panels.has(slug)) {
-      // Clear any pending timeout for this slug
-      if (hoverTimeoutRef.current[slug]) {
-        clearTimeout(hoverTimeoutRef.current[slug]);
-        hoverTimeoutRef.current[slug] = null;
-      }
-      // Bring to front
-      setPanels((prev) => {
-        const next = new Map(prev);
-        const panel = next.get(slug);
-        if (panel) {
-          const newZIndex = highestZIndex + 1;
-          setHighestZIndex(newZIndex);
-          next.set(slug, { ...panel, zIndex: newZIndex });
-        }
-        return next;
-      });
-      return;
-    }
-
-    const anchorRect = linkElement.getBoundingClientRect();
-
-    // Calculate initial position and size
-    const viewport = { w: window.innerWidth, h: window.innerHeight };
-    const size = {
-      w: config.popover?.defaultSize.width ?? 560,
-      h: config.popover?.defaultSize.height ?? 380,
-    };
-
-    let x = anchorRect.left;
-    let y = anchorRect.bottom + 8; // LINK_PREVIEW.PANEL_MARGIN
-
-    // Flip above if no space below
-    if (y + size.h > viewport.h - 16) {
-      // LINK_PREVIEW.VIEWPORT_PADDING
-      y = anchorRect.top - 8 - size.h;
-    }
-
-    // Clamp horizontal position
-    if (x + size.w > viewport.w - 16) {
-      x = viewport.w - 16 - size.w;
-    }
-    if (x < 16) {
-      x = 16;
-    }
-    if (y < 16) {
-      y = 16;
-    }
-
-    const position = { x, y };
-
-    let htmlContent: string | undefined;
-
-    // Fetch full content if enabled
-    if (config.popover?.showFullContent) {
-      // Check cache first
-      if (config.popover?.cacheContent && contentCacheRef.current.has(slug)) {
-        htmlContent = contentCacheRef.current.get(slug);
-      } else {
-        try {
-          const response = await fetch(`${import.meta.env.BASE_URL}/${slug}`);
-          if (response.ok) {
-            const html = await response.text();
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, "text/html");
-
-            // Extract article content
-            const article = doc.querySelector("article");
-            if (article) {
-              htmlContent = article.innerHTML;
-
-              // Cache if enabled
-              if (config.popover?.cacheContent) {
-                contentCacheRef.current.set(slug, htmlContent);
-              }
-            }
-          }
-        } catch {
-          // Silently fail and use metadata only
-        }
-      }
-    }
-
-    const newPanel: PanelState = {
-      id: slug,
-      data: {
-        title: content.title,
-        url: `${import.meta.env.BASE_URL}/${slug}`,
-        excerpt: content.excerpt,
-        description: content.description,
-        author: content.author,
-        date: content.date,
-        tags: content.tags,
-        content: htmlContent,
-      },
-      anchorRect,
-      zIndex: highestZIndex + 1,
-      isPinned: false,
-      isMinimized: false,
-      position: position,
-      size: size,
-    };
-
-    setHighestZIndex(highestZIndex + 1);
-    setPanels((prev) => new Map(prev).set(slug, newPanel));
-  }, [panels, highestZIndex]);
 
   const handleClose = useCallback((id: string) => {
     // Clear any pending timeout for this panel
