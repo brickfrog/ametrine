@@ -403,7 +403,7 @@ export const config: SiteConfig = {
     showExternalLinks: true,
     showRelated: true,
     relatedLimit: 10,
-    fetchMetadata: false,
+    fetchMetadata: true,
   },
   theme: {
     typography: {

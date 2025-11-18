@@ -4,6 +4,9 @@
  */
 
 import type { BibliographyEntry } from "./parseBibliography";
+import { fetchMetadata } from "./fetchMetadata";
+import { getOrFetchMetadata } from "./metadataCache";
+import { logger } from "./logger";
 
 export interface ExternalLink {
   url: string;
@@ -26,11 +29,15 @@ export interface GroupedLinks {
 
 /**
  * Extract all external HTTP(S) URLs from markdown content
+ * @param markdown - The markdown content to extract links from
+ * @param bibliographyEntries - Bibliography entries with URLs
+ * @param shouldFetchMetadata - Whether to fetch metadata for links (slower builds)
  */
-export function extractExternalLinks(
+export async function extractExternalLinks(
   markdown: string,
   bibliographyEntries: BibliographyEntry[] = [],
-): ExternalLink[] {
+  shouldFetchMetadata: boolean = false,
+): Promise<ExternalLink[]> {
   const links: ExternalLink[] = [];
 
   if (!markdown) return links;
@@ -100,13 +107,94 @@ export function extractExternalLinks(
 
   // Deduplicate by URL
   const seen = new Set<string>();
-  return links.filter((link) => {
+  const dedupedLinks = links.filter((link) => {
     if (seen.has(link.url)) {
       return false;
     }
     seen.add(link.url);
     return true;
   });
+
+  // Fetch metadata if enabled
+  if (shouldFetchMetadata) {
+    await enrichLinksWithMetadata(dedupedLinks);
+  }
+
+  return dedupedLinks;
+}
+
+/**
+ * Detect if link text is unhelpful (e.g., "links", "here", "click here")
+ */
+function isUnhelpfulLinkText(text: string | undefined): boolean {
+  if (!text) return true;
+
+  const normalized = text.toLowerCase().trim();
+  const unhelpfulPatterns = [
+    "link",
+    "links",
+    "here",
+    "click",
+    "click here",
+    "this",
+    "source",
+    "article",
+    "read more",
+    "more",
+  ];
+
+  return unhelpfulPatterns.includes(normalized) || normalized.length < 3;
+}
+
+/**
+ * Fetch and enrich links with metadata from their target pages
+ * Uses parallel fetching with concurrency limit
+ */
+async function enrichLinksWithMetadata(
+  links: ExternalLink[],
+  _maxConcurrent: number = 5,
+): Promise<void> {
+  // Filter links that need metadata (unhelpful title or no title, and not from bibliography)
+  const linksToEnrich = links.filter(
+    (link) => link.source !== "bibliography" && isUnhelpfulLinkText(link.title),
+  );
+
+  if (linksToEnrich.length === 0) {
+    return;
+  }
+
+  logger.info(
+    `Fetching metadata for ${linksToEnrich.length} external links...`,
+  );
+
+  // Batch requests with concurrency limit
+  const results = await Promise.allSettled(
+    linksToEnrich.map((link) =>
+      getOrFetchMetadata(link.url, fetchMetadata).then((metadata) => ({
+        link,
+        metadata,
+      })),
+    ),
+  );
+
+  // Apply fetched metadata to links
+  let successCount = 0;
+  for (const result of results) {
+    if (result.status === "fulfilled" && result.value.metadata) {
+      const { link, metadata } = result.value;
+      if (metadata.title) {
+        link.title = metadata.title;
+        successCount++;
+      }
+      if (metadata.author) {
+        link.author = metadata.author;
+      }
+    }
+  }
+
+  logger.info(
+    `Successfully fetched metadata for ${successCount}/${linksToEnrich.length} links`,
+  );
 }
 
 /**

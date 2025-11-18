@@ -22,7 +22,11 @@ const bibliographyEntries = config.citations?.enable
   : [];
 
 // Extract external links (merged with bibliography)
-const externalLinks = extractExternalLinks(note.body || "", bibliographyEntries);
+const externalLinks = await extractExternalLinks(
+  note.body || "",
+  bibliographyEntries,
+  config.linksAndContext?.fetchMetadata ?? false,
+);
 const groupedLinks = groupLinksByDomain(externalLinks);
 
 // Find backlinks
