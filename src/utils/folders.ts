@@ -43,6 +43,7 @@ async function scanVaultDirectories(
       }
     }
   } catch (err) {
+    // HACK(sweep): Silent error swallowing - at minimum should log for debugging
     // Ignore errors (e.g., permission issues)
   }
 
@@ -173,6 +174,7 @@ export async function getAllFilesInFolder(
       }
     }
   } catch (err) {
+    // HACK(sweep): Silent error swallowing - at minimum should log for debugging
     // Folder doesn't exist or permission error
   }
 

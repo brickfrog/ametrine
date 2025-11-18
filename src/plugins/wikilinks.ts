@@ -48,6 +48,7 @@ export function wikilinks(options: WikilinkOptions = {}) {
   return function transformer(tree: Root, file: VFile) {
     // Build local slug map from globalThis (set by vault loader)
     const localSlugMap = new Map<string, string>();
+    // TODO(sweep): Replace 'any' with proper globalThis augmentation type
     const slugMapData = (globalThis as any).__ametrineSlugMap as
       | Array<{ id: string }>
       | undefined;

@@ -244,6 +244,7 @@ export const GET: APIRoute = async () => {
               canvasData,
             };
           } catch (error) {
+            // FIXME(sweep): Use logger.error instead of console.error for consistency
             console.error(
               `Failed to parse canvas file ${relativePath}:`,
               error,

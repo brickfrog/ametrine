@@ -78,6 +78,7 @@ function evaluateExpression(
 
     // Add custom functions to parser
     // Map our function names to parser-compatible names
+    // TODO(sweep): Replace 'any' with proper function signature type
     const functions: Record<string, any> = {};
 
     // File property functions
@@ -162,6 +163,7 @@ function evaluateExpression(
     // Convert result to boolean
     return isTruthy(result);
   } catch (error) {
+    // FIXME(sweep): Use logger.error instead of console.error for consistency
     console.error(`Error evaluating expression "${expression}":`, error);
     // Return false for invalid expressions (fail safe)
     return false;

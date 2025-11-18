@@ -78,6 +78,7 @@ export const GET: APIRoute = async ({ props }) => {
       const logoExt = config.logo.split(".").pop();
       logoDataUrl = `data:image/${logoExt};base64,${logoBase64}`;
     } catch (error) {
+      // FIXME(sweep): Use logger.warn instead of console.warn for consistency
       console.warn("Could not load logo for OG image:", error);
     }
   }

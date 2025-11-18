@@ -174,6 +174,7 @@ export function marginalia(userOpts: MarginaliaOptions = {}) {
           buffer.push(node);
         } else {
           if (isParent(node) && Array.isArray(node.children)) {
+            // TODO(sweep): Replace 'any' cast with proper type assertion
             node.children = (await processChildren(
               node.children as RootContent[],
             )) as any;
@@ -190,6 +191,7 @@ export function marginalia(userOpts: MarginaliaOptions = {}) {
     }
 
     function isParent(node: RootContent): node is Parent & RootContent {
+      // TODO(sweep): Replace 'any' with proper type guard pattern
       return typeof (node as any).children !== "undefined";
     }
 

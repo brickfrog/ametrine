@@ -88,6 +88,7 @@ function NotePreview({ slug }: { slug: string }) {
           }
         }
       } catch (error) {
+        // FIXME(sweep): Use logger.error instead of console.error for consistency
         console.error("Failed to load note content:", error);
       } finally {
         setLoading(false);
@@ -242,6 +243,7 @@ export function CanvasViewer({
   canvasName: _canvasName,
   fileData,
 }: CanvasViewerProps) {
+  // FIXME(sweep): Remove debug console.log statements or use logger
   console.log("[CanvasViewer] canvasData:", canvasData);
   console.log("[CanvasViewer] fileData:", fileData);
 

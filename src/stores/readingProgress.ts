@@ -35,6 +35,7 @@ export function loadSavedProgress(): void {
       savedProgress.set(progressMap);
     }
   } catch (error) {
+    // FIXME(sweep): Use logger.error instead of console.error for consistency
     console.error("Failed to load reading progress:", error);
   }
 }
@@ -59,6 +60,7 @@ function saveProgressToStorage(): void {
 
     sessionStorage.setItem("readingProgress", JSON.stringify(limited));
   } catch (error) {
+    // FIXME(sweep): Use logger.error instead of console.error for consistency
     console.error("Failed to save reading progress:", error);
   }
 }
@@ -98,6 +100,7 @@ export function clearAllProgress(): void {
   try {
     sessionStorage.removeItem("readingProgress");
   } catch (error) {
+    // FIXME(sweep): Use logger.error instead of console.error for consistency
     console.error("Failed to clear reading progress:", error);
   }
 }

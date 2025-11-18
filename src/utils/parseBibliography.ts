@@ -26,6 +26,7 @@ export async function parseBibliography(
   try {
     const bibContent = fs.readFileSync(bibFilePath, "utf-8");
     const cite = new Cite(bibContent);
+    // TODO(sweep): Replace 'any[]' with proper Citation-JS type
     const data = cite.data as any[];
 
     for (const entry of data) {
@@ -35,6 +36,7 @@ export async function parseBibliography(
       // Extract author name(s)
       let authorStr: string | undefined;
       if (entry.author && Array.isArray(entry.author)) {
+        // TODO(sweep): Replace 'any' with proper author type from Citation-JS
         authorStr = entry.author
           .map((a: any) => {
             if (a.literal) return a.literal;
@@ -58,6 +60,7 @@ export async function parseBibliography(
       });
     }
   } catch (error) {
+    // FIXME(sweep): Use logger.error instead of console.error for consistency
     console.error("Error parsing bibliography:", error);
   }
 

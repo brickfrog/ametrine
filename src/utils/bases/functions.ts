@@ -44,6 +44,7 @@ export function fileInFolder(file: FileProperties, folder: string): boolean {
 /**
  * Check if file has a specific property
  */
+// TODO(sweep): Replace 'any' with proper type (unknown or specific value type)
 export function fileHasProperty(
   note: Record<string, any>,
   propertyName: string,

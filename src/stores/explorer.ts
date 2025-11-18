@@ -27,6 +27,7 @@ export function loadFolderStates(): void {
       folderStates.set(stateMap);
     }
   } catch (error) {
+    // FIXME(sweep): Use logger.error instead of console.error for consistency
     console.error("Failed to load folder states:", error);
   }
 }
@@ -42,6 +43,7 @@ export function saveFolderStates(): void {
     );
     localStorage.setItem("fileTree", JSON.stringify(states));
   } catch (error) {
+    // FIXME(sweep): Use logger.error instead of console.error for consistency
     console.error("Failed to save folder states:", error);
   }
 }
@@ -74,6 +76,7 @@ export function loadScrollPosition(): void {
       explorerScrollTop.set(parseInt(stored, 10));
     }
   } catch (error) {
+    // FIXME(sweep): Use logger.error instead of console.error for consistency
     console.error("Failed to load scroll position:", error);
   }
 }
@@ -84,6 +87,7 @@ export function saveScrollPosition(scrollTop: number): void {
     explorerScrollTop.set(scrollTop);
     sessionStorage.setItem("explorerScrollTop", scrollTop.toString());
   } catch (error) {
+    // FIXME(sweep): Use logger.error instead of console.error for consistency
     console.error("Failed to save scroll position:", error);
   }
 }

@@ -16,6 +16,7 @@ const images = import.meta.glob<{ default: ImageMetadata }>(
 export const imageMap = new Map<string, ImageMetadata>();
 
 for (const [path, module] of Object.entries(images)) {
+  // TODO(sweep): Handle edge case where pop() might return undefined
   const fileName = path.split("/").pop()!;
   imageMap.set(fileName, module.default);
 }

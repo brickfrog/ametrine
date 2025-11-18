@@ -208,6 +208,7 @@ export function Explorer({
 
         setTrie(trieNode);
       } catch (error) {
+        // FIXME(sweep): Use logger.error instead of console.error for consistency
         console.error("Failed to fetch content index:", error);
       }
     };

@@ -20,6 +20,7 @@ export async function fetchGoogleFont(
     const urlMatch =
       /url\((https:\/\/fonts\.gstatic\.com\/s\/.*?\.ttf)\)/g.exec(css);
     if (!urlMatch) {
+      // FIXME(sweep): Use logger.warn instead of console.warn for consistency
       console.warn(
         `Could not find TTF URL for font ${fontName} with weight ${weight}`,
       );
@@ -32,6 +33,7 @@ export async function fetchGoogleFont(
 
     return fontBuffer;
   } catch (error) {
+    // FIXME(sweep): Use logger.error instead of console.error for consistency
     console.error(`Error fetching font ${fontName}:`, error);
     return undefined;
   }
@@ -70,6 +72,7 @@ export async function getSatoriFonts(
       });
     }
   } catch (error) {
+    // FIXME(sweep): Use logger.warn instead of console.warn for consistency
     console.warn(
       "Failed to fetch Google Fonts for OG images, using fallback fonts:",
       error,
@@ -79,6 +82,7 @@ export async function getSatoriFonts(
   // If no fonts were successfully fetched, return empty array
   // Satori will use fallback system fonts
   if (fonts.length === 0) {
+    // FIXME(sweep): Use logger.warn instead of console.warn for consistency
     console.warn(
       "No fonts loaded for OG images, Satori will use system fallbacks",
     );

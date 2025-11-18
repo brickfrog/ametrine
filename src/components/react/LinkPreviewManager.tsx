@@ -29,6 +29,7 @@ export function LinkPreviewManager() {
           const parsed = JSON.parse(saved);
           return new Map(parsed);
         } catch (e) {
+          // FIXME(sweep): Use logger.error instead of console.error for consistency
           console.error("Failed to restore panels:", e);
         }
       }
@@ -80,6 +81,7 @@ export function LinkPreviewManager() {
       .then((data) => {
         setContentIndex(data);
       })
+      // FIXME(sweep): Use logger.error instead of console.error for consistency
       .catch((err) => console.error("Failed to load content index:", err));
   }, []);
 
