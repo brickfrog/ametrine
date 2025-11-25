@@ -10,12 +10,13 @@ import type { ContentNote } from '../utils/activityData';
 const notes = await getPublishedNotes();
 
 // Transform notes to ContentNote format
+// Uses resolved dates: created (from frontmatter > git > filesystem) and modified
 const contentNotes: ContentNote[] = notes.map((note) => ({
   id: note.id,
   slug: note.slug,
   title: note.data.title || note.slug,
-  date: note.data.date ? new Date(note.data.date).toISOString() : undefined,
-  updated: note.data.updated ? new Date(note.data.updated).toISOString() : undefined,
+  date: note.data.created ? new Date(note.data.created).toISOString() : undefined,
+  updated: note.data.modified ? new Date(note.data.modified).toISOString() : undefined,
 }));
 
 // Process activity data for heatmap

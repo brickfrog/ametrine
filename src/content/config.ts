@@ -6,6 +6,7 @@ import { load as yamlLoad } from "js-yaml";
 import { config } from "../config.ts";
 import { slugifyPath } from "../utils/slugify";
 import { buildSlugMap } from "../utils/slugMap";
+import { resolveDates } from "../utils/resolveDates";
 
 /** Process a single markdown file and add/update it in the store */
 async function processMarkdownFile(
@@ -93,6 +94,20 @@ async function processMarkdownFile(
     body = body.replace(/\[([^\]]+)\]\(zotero:\/\/[^)]+\)/g, "");
     body = body.replace(/file:\/\/[^\s)]+/g, "");
     body = body.replace(/zotero:\/\/[^\s)]+/g, "");
+
+    // Resolve dates from frontmatter > git > filesystem
+    const resolvedDates = await resolveDates({
+      frontmatter: {
+        created: data.created,
+        date: data.date,
+        updated: data.updated,
+        modified: data.modified,
+        lastmod: data.lastmod,
+      },
+      filePath: fullPath,
+    });
+    data.created = resolvedDates.created;
+    data.modified = resolvedDates.modified;
 
     const digest = generateDigest(contents);
     const parsedData = await parseData({ id, data });
@@ -244,9 +259,12 @@ const vault = defineCollection({
         .default([]),
       draft: z.boolean().optional().default(false),
       publish: z.boolean().optional(),
+      // Date fields - resolved automatically from frontmatter > git > filesystem
       created: z.coerce.date().optional(),
-      date: z.coerce.date().optional(),
-      updated: z.coerce.date().optional(),
+      date: z.coerce.date().optional(), // Alias for created
+      modified: z.coerce.date().optional(),
+      updated: z.coerce.date().optional(), // Alias for modified
+      lastmod: z.coerce.date().optional(), // Alias for modified
       author: z.union([z.string(), z.array(z.string()), z.null()]).optional(),
       links: z
         .union([z.array(z.string()), z.string()])

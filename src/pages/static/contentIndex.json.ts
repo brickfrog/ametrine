@@ -162,8 +162,8 @@ export async function buildContentIndex(): Promise<ContentIndexMap> {
       author: Array.isArray(note.data.author)
         ? note.data.author[0]
         : note.data.author || undefined,
-      date: (note.data.date || note.data.created)?.toISOString(),
-      updated: note.data.updated?.toISOString(),
+      date: note.data.created?.toISOString(),
+      updated: note.data.modified?.toISOString(),
       excerpt,
       type: "note",
     };
