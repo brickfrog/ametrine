@@ -4,17 +4,21 @@
     "type": "split",
     "children": [
       {
-        "id": "e2de31e662c3a1d7",
+        "id": "9a472dc4af2c5339",
         "type": "tabs",
         "children": [
           {
-            "id": "a070222a1eab0bbb",
+            "id": "b16a9b3893ca890a",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "Daily/2025-11-25.md",
+                "mode": "source",
+                "source": false
+              },
               "icon": "lucide-file",
-              "title": "New tab"
+              "title": "2025-11-25"
             }
           }
         ]
@@ -165,8 +169,13 @@
       "bases:Create new base": false
     }
   },
-  "active": "2404304b41483ef1",
+  "active": "b16a9b3893ca890a",
   "lastOpenFiles": [
+    "Daily/2025-11-25.md",
+    "Daily/2025-11-24.md",
+    "2025-11-24.md",
+    "Daily",
+    "Assets/Polished Ametrine.png",
     "Test Note.md",
     "Boop.md",
     "index.md",
@@ -183,7 +192,6 @@
     "Documentation/wikilinks-and-graph.md.tmp.2042416.1763074280654",
     "Documentation/wikilinks-and-graph.md.tmp.2042416.1763074279768",
     "Documentation/wikilinks-and-graph.md.tmp.2042416.1763074278924",
-    "Documentation/wikilinks-and-graph.md.tmp.2042416.1763074278093",
     "Wikilinks and Graph.md",
     "Examples/test-canvas.canvas",
     "Documentation/syntax-reference.md",
@@ -194,7 +202,6 @@
     "Documentation/configuration-guide.md",
     "Documentation/bases-demo.md",
     "Documentation/advanced-features.md",
-    "Assets/Polished Ametrine.png",
     "assets/Polished Ametrine.png",
     "examples/test-canvas.canvas",
     "documentation/wikilinks-and-graph.md",
@@ -203,9 +210,6 @@
     "documentation/obsidian-features-demo.md",
     "documentation/marginalia-demo.md",
     "documentation/frontmatter-reference.md",
-    "documentation/deployment-guide.md",
-    "documentation/configuration-guide.md",
-    "documentation/bases-demo.md",
-    "documentation/advanced-features.md"
+    "documentation/deployment-guide.md"
   ]
 }

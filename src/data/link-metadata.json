@@ -1,0 +1,40 @@
+{
+  "https://your-site.com": {
+    "fetchedAt": 1764046429337,
+    "title": "Your-Site.Com Website Hosting"
+  },
+  "https://twitter.com/username": {
+    "fetchedAt": 1764047128014
+  },
+  "https://github.com/brickfrog/ametrine": {
+    "fetchedAt": 1764047128098,
+    "title": "GitHub - brickfrog/ametrine: 🟣 opinionated astro-based static-site-generator for your obsidian notes",
+    "description": "🟣 opinionated astro-based static-site-generator for your obsidian notes - brickfrog/ametrine",
+    "image": "https://opengraph.githubassets.com/9f54489be35941fc779e7e71dad77b80637034e8bd3314f2cfc5b9777c331ecd/brickfrog/ametrine"
+  },
+  "https://wikipedia.org": {
+    "fetchedAt": 1764047128470,
+    "title": "Wikipedia, the free encyclopedia",
+    "description": "Wikipedia is a free online encyclopedia, created and edited by volunteers around the world and hosted by the Wikimedia Foundation.",
+    "image": "https://upload.wikimedia.org/wikipedia/en/thumb/8/80/Wikipedia-logo-v2.svg/2244px-Wikipedia-logo-v2.svg.png"
+  },
+  "https://your-domain.com": {
+    "fetchedAt": 1764047130316
+  },
+  "https://github.com/repo": {
+    "fetchedAt": 1764047130473,
+    "title": "repo - Overview",
+    "description": "GitHub is where repo builds software.",
+    "image": "https://avatars.githubusercontent.com/u/45478?v=4?s=400"
+  },
+  "https://url.com": {
+    "fetchedAt": 1764047130867,
+    "title": "URL.com - MediaOptions",
+    "description": "URL.com is a sought-after domain that MediaOptions can help broker for you. Contact us today to get the domain name your company needs!",
+    "image": "https://mediaoptions.com/wp-content/uploads/2023/07/media-options.png"
+  },
+  "https://en.wikipedia.org/wiki/Markdown": {
+    "fetchedAt": 1764047131595,
+    "title": "Markdown - Wikipedia"
+  }
+}
