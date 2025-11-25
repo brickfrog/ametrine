@@ -182,6 +182,37 @@ const vaultLoader: Loader = {
     (globalThis as any).__ametrineSlugMap = fileIds.map((f) => ({ id: f.id }));
     logger.info(`[vault-loader] Stored ${fileIds.length} slugs on globalThis`);
 
+    // Initialize content map for transclusion
+    const contentMap = new Map<string, { title: string; body: string }>();
+    (globalThis as any).__ametrineContentMap = contentMap;
+
+    // Pre-populate content map with raw bodies for transclusion
+    for (const { id, fullPath } of fileIds) {
+      try {
+        const contents = await readFile(fullPath, "utf-8");
+        const frontmatterMatch = contents.match(/^---\n([\s\S]*?)\n---/);
+        let data: any = {};
+        let body = contents;
+
+        if (frontmatterMatch) {
+          try {
+            data = (yamlLoad(frontmatterMatch[1]) as object) || {};
+            body = contents.slice(frontmatterMatch[0].length).trim();
+          } catch {
+            continue; // Skip files with bad YAML
+          }
+        }
+
+        const title = data.title || basename(fullPath).replace(/\.mdx?$/, "");
+        contentMap.set(id, { title, body });
+      } catch {
+        // Skip files that can't be read
+      }
+    }
+    logger.info(
+      `[vault-loader] Pre-populated content map with ${contentMap.size} entries`,
+    );
+
     // PASS 2: Process all files with rendering
     async function loadDir(dir: string): Promise<void> {
       const entries = await readdir(dir, { withFileTypes: true });

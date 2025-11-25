@@ -1,5 +1,10 @@
-import { describe, it, expect } from "vitest";
-import { wikilinkRegex } from "./wikilinks";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { wikilinkRegex, wikilinks } from "./wikilinks";
+import { unified } from "unified";
+import remarkParse from "remark-parse";
+import remarkRehype from "remark-rehype";
+import rehypeStringify from "rehype-stringify";
+import rehypeRaw from "rehype-raw";
 
 describe("wikilinkRegex", () => {
   // Helper to extract all matches
@@ -253,6 +258,178 @@ describe("wikilinkRegex", () => {
 
       expect(matches1).toHaveLength(1);
       expect(matches2).toHaveLength(2);
+    });
+  });
+});
+
+describe("wikilinks plugin embeds", () => {
+  // Helper to process markdown through the wikilinks plugin
+  async function processMarkdown(content: string): Promise<string> {
+    const processor = unified()
+      .use(remarkParse)
+      .use(wikilinks, { enableEmbeds: true })
+      .use(remarkRehype, { allowDangerousHtml: true })
+      .use(rehypeRaw)
+      .use(rehypeStringify);
+
+    const result = await processor.process(content);
+    return String(result);
+  }
+
+  beforeEach(() => {
+    // Set up mock slug map
+    (globalThis as any).__ametrineSlugMap = [
+      { id: "test-note" },
+      { id: "folder/nested-note" },
+      { id: "image" },
+    ];
+
+    // Set up mock content map
+    (globalThis as any).__ametrineContentMap = new Map([
+      [
+        "test-note",
+        {
+          title: "Test Note",
+          body: "# Test Note\n\nThis is test content.\n\n## Section A\n\nSection A content.\n\n## Section B\n\nSection B content.",
+        },
+      ],
+      [
+        "folder/nested-note",
+        {
+          title: "Nested Note",
+          body: "Content of nested note.",
+        },
+      ],
+    ]);
+  });
+
+  afterEach(() => {
+    delete (globalThis as any).__ametrineSlugMap;
+    delete (globalThis as any).__ametrineContentMap;
+  });
+
+  describe("media embeds", () => {
+    it("should convert image embed to img tag with API URL", async () => {
+      const result = await processMarkdown("![[image.png]]");
+
+      expect(result).toContain("<img");
+      expect(result).toContain('class="embed-image"');
+      expect(result).toContain('alt="image.png"');
+      expect(result).toContain("/api/image/image.png");
+    });
+
+    it("should convert video embed to video tag", async () => {
+      const result = await processMarkdown("![[video.mp4]]");
+
+      expect(result).toContain("<video");
+      expect(result).toContain('class="embed-video"');
+      expect(result).toContain("controls");
+      expect(result).toContain("/api/image/video.mp4");
+    });
+
+    it("should convert audio embed to audio tag", async () => {
+      const result = await processMarkdown("![[audio.mp3]]");
+
+      expect(result).toContain("<audio");
+      expect(result).toContain('class="embed-audio"');
+      expect(result).toContain("controls");
+      expect(result).toContain("/api/image/audio.mp3");
+    });
+
+    it("should convert PDF embed to iframe", async () => {
+      const result = await processMarkdown("![[document.pdf]]");
+
+      expect(result).toContain("<iframe");
+      expect(result).toContain('class="embed-pdf"');
+      expect(result).toContain("/api/image/document.pdf");
+    });
+
+    it("should handle various image extensions", async () => {
+      const extensions = [".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg"];
+
+      for (const ext of extensions) {
+        const result = await processMarkdown(`![[file${ext}]]`);
+        expect(result).toContain("<img");
+        expect(result).toContain(`/api/image/file${ext}`);
+      }
+    });
+
+    it("should URL-encode spaces in media paths", async () => {
+      const result = await processMarkdown("![[Polished Ametrine.png]]");
+
+      expect(result).toContain("<img");
+      expect(result).toContain("/api/image/Polished%20Ametrine.png");
+    });
+
+    it("should handle nested folder paths for media", async () => {
+      const result = await processMarkdown("![[Assets/My Image.png]]");
+
+      expect(result).toContain("/api/image/Assets/My%20Image.png");
+    });
+  });
+
+  describe("note embeds", () => {
+    it("should embed note content as blockquote", async () => {
+      const result = await processMarkdown("![[test-note]]");
+
+      expect(result).toContain("<blockquote");
+      expect(result).toContain('class="transclude"');
+      expect(result).toContain('data-slug="test-note"');
+      expect(result).toContain("This is test content");
+      expect(result).toContain("From: Test Note");
+    });
+
+    it("should show broken indicator for missing notes", async () => {
+      const result = await processMarkdown("![[nonexistent-note]]");
+
+      expect(result).toContain("transclude-broken");
+      expect(result).toContain("Note not found");
+    });
+
+    it("should extract content from specific heading", async () => {
+      const result = await processMarkdown("![[test-note#Section A]]");
+
+      expect(result).toContain("Section A content");
+      expect(result).toContain('data-heading="Section A"');
+      // Should NOT contain Section B content (only Section A and its content)
+    });
+
+    it("should match slugified heading links", async () => {
+      // Obsidian uses slugified headings like #section-a for "Section A"
+      const result = await processMarkdown("![[test-note#section-a]]");
+
+      expect(result).toContain("Section A content");
+      expect(result).toContain('data-heading="section-a"');
+    });
+
+    it("should resolve nested note paths", async () => {
+      const result = await processMarkdown("![[nested-note]]");
+
+      expect(result).toContain("Content of nested note");
+    });
+  });
+
+  describe("embed security", () => {
+    it("should escape HTML in data attributes", async () => {
+      // Test that malicious slugs are escaped
+      const result = await processMarkdown("![[test-note]]");
+
+      // Data attributes should be properly quoted
+      expect(result).toContain('data-slug="test-note"');
+    });
+  });
+
+  describe("embeds disabled", () => {
+    it("should leave embeds as-is when disabled", async () => {
+      const processor = unified()
+        .use(remarkParse)
+        .use(wikilinks, { enableEmbeds: false })
+        .use(remarkRehype)
+        .use(rehypeStringify);
+
+      const result = await processor.process("![[image.png]]");
+
+      expect(String(result)).toContain("![[image.png]]");
     });
   });
 });
