@@ -37,32 +37,37 @@ export function Search() {
   };
 
   useEffect(() => {
-    // Load data: try cache first, then fetch
-    let needsFetch = true;
-    const cached = localStorage.getItem("search-notes");
-    if (cached) {
-      try {
-        const notes = JSON.parse(cached);
-        if (notes && notes.length > 0) {
-          setAllNotes(preprocessNotes(notes));
-          needsFetch = false;
-        }
-      } catch {
-        logger.warn("Failed to parse cached search notes");
-      }
-    }
+    // Always fetch to check for content changes
+    fetch(`${import.meta.env.BASE_URL}/static/contentIndex.json`)
+      .then((res) => res.json())
+      .then((data: Record<string, ContentDetails>) => {
+        const notes = Object.values(data);
+        const noteCount = notes.length;
 
-    // Fetch if no cache or cache failed
-    if (needsFetch) {
-      fetch(`${import.meta.env.BASE_URL}/static/contentIndex.json`)
-        .then((res) => res.json())
-        .then((data: Record<string, ContentDetails>) => {
-          const notes = Object.values(data);
-          setAllNotes(preprocessNotes(notes));
-          localStorage.setItem("search-notes", JSON.stringify(notes));
-        })
-        .catch((err) => logger.error("Failed to load content index:", err));
-    }
+        // Check if cache is valid (same count means likely same content)
+        const cached = localStorage.getItem("search-notes-cache");
+        if (cached) {
+          try {
+            const { count, preprocessed } = JSON.parse(cached);
+            if (count === noteCount && preprocessed?.length > 0) {
+              // Cache hit - use preprocessed notes
+              setAllNotes(preprocessed);
+              return;
+            }
+          } catch {
+            logger.warn("Failed to parse cached search notes");
+          }
+        }
+
+        // Cache miss or invalid - preprocess and cache
+        const preprocessed = preprocessNotes(notes);
+        setAllNotes(preprocessed);
+        localStorage.setItem(
+          "search-notes-cache",
+          JSON.stringify({ count: noteCount, preprocessed }),
+        );
+      })
+      .catch((err) => logger.error("Failed to load content index:", err));
   }, []);
 
   useEffect(() => {
