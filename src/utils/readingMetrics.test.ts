@@ -1,6 +1,27 @@
 import { describe, it, expect } from "vitest";
 import { buildLinkGraph, calculateReadingMetrics } from "./readingMetrics";
+import { slugifyPath } from "./slugify";
 import type { Note } from "./filterNotes";
+
+// Extract wikilinks from markdown content (mirrors content loader logic)
+function extractLinksFromBody(content: string): string[] {
+  const wikilinkRegex =
+    /!?\[\[([^[\]|#\\]+)?(#+[^[\]|#\\]+)?(\\?\|[^[\]#]*)?\]\]/g;
+  const links: string[] = [];
+  const matches = content.matchAll(wikilinkRegex);
+  for (const match of matches) {
+    const [full, rawFp] = match;
+    // Skip image embeds
+    if (full.startsWith("!")) continue;
+    if (rawFp) {
+      const pageName = rawFp.split("#")[0].trim();
+      if (pageName) {
+        links.push(slugifyPath(pageName));
+      }
+    }
+  }
+  return [...new Set(links)];
+}
 
 // Helper to create minimal test notes
 function createNote(slug: string, title: string, body: string): Note {
@@ -11,6 +32,7 @@ function createNote(slug: string, title: string, body: string): Note {
     data: {
       title,
       draft: false,
+      links: extractLinksFromBody(body),
     },
   } as Note;
 }

@@ -2,7 +2,6 @@
  * Reading metrics and link analysis for stats page
  */
 
-import GithubSlugger from "github-slugger";
 import { WORDS_PER_MINUTE } from "../constants/reading";
 import type { Note } from "./filterNotes";
 
@@ -30,36 +29,6 @@ export interface ReadingMetrics {
   hubNotes: LinkedNote[];
   totalLinks: number;
   averageLinksPerNote: number;
-}
-
-// Wikilink regex (from wikilinks plugin)
-const wikilinkRegex =
-  /!?\[\[([^[\]|#\\]+)?(#+[^[\]|#\\]+)?(\\?\|[^[\]#]*)?\]\]/g;
-
-/**
- * Extract wikilink targets from markdown content
- * Uses a fresh slugger to avoid state pollution
- */
-function extractLinks(content: string | undefined): string[] {
-  const links: string[] = [];
-  const slugger = new GithubSlugger();
-
-  // Handle undefined or null content
-  if (!content) return links;
-
-  const matches = content.matchAll(wikilinkRegex);
-  for (const match of matches) {
-    const [_full, rawFp] = match;
-    if (rawFp) {
-      const pageName = rawFp.split("#")[0].trim();
-      if (pageName) {
-        const linkSlug = slugger.slug(pageName);
-        links.push(linkSlug);
-      }
-    }
-  }
-
-  return [...new Set(links)];
 }
 
 /**
@@ -91,12 +60,14 @@ export function buildLinkGraph(notes: Note[]): LinkGraph {
     incoming.set(note.slug, []);
   }
 
-  // Build outgoing links
+  // Build outgoing links using pre-extracted links from content loader
   for (const note of notes) {
-    const links = extractLinks(note.body);
+    // Normalize links to array (schema allows string | string[])
+    const rawLinks = note.data.links || [];
+    const links = Array.isArray(rawLinks) ? rawLinks : [rawLinks];
     // Filter to only valid note slugs and exclude self-references
     const validLinks = links.filter(
-      (slug) => slug !== note.slug && outgoing.has(slug),
+      (slug: string) => slug !== note.slug && outgoing.has(slug),
     );
     outgoing.set(note.slug, validLinks);
   }
