@@ -8,6 +8,24 @@ import { slugifyPath } from "../utils/slugify";
 import { buildSlugMap } from "../utils/slugMap";
 import { resolveDates } from "../utils/resolveDates";
 
+// Media file extensions to skip when extracting transclusion dependencies
+const MEDIA_EXTENSIONS =
+  /\.(png|jpg|jpeg|gif|webp|svg|avif|bmp|mp4|webm|ogv|mov|mkv|mp3|wav|ogg|m4a|flac|pdf)$/i;
+
+/** Extract note transclusion targets from markdown body (skips media embeds) */
+function extractTransclusions(body: string): string[] {
+  const regex = /!\[\[([^[\]|#\\]+)/g;
+  const results: string[] = [];
+  let match;
+  while ((match = regex.exec(body)) !== null) {
+    const target = match[1]?.trim();
+    if (target && !MEDIA_EXTENSIONS.test(target)) {
+      results.push(slugifyPath(target));
+    }
+  }
+  return results;
+}
+
 /** Process a single markdown file and add/update it in the store */
 async function processMarkdownFile(
   fullPath: string,
@@ -186,8 +204,14 @@ const vaultLoader: Loader = {
     const contentMap = new Map<string, { title: string; body: string }>();
     (globalThis as any).__ametrineContentMap = contentMap;
 
+    // Transclusion dependency tracking: targetSlug -> Set of slugs that transclude it
+    const transcludeDeps = new Map<string, Set<string>>();
+    // Mapping from slug to full path for resolving dependents
+    const idToPath = new Map<string, string>();
+
     // Pre-populate content map with raw bodies for transclusion
     for (const { id, fullPath } of fileIds) {
+      idToPath.set(id, fullPath);
       try {
         const contents = await readFile(fullPath, "utf-8");
         const frontmatterMatch = contents.match(/^---\n([\s\S]*?)\n---/);
@@ -205,12 +229,23 @@ const vaultLoader: Loader = {
 
         const title = data.title || basename(fullPath).replace(/\.mdx?$/, "");
         contentMap.set(id, { title, body });
+
+        // Build transclusion dependency map
+        for (const target of extractTransclusions(body)) {
+          if (!transcludeDeps.has(target)) {
+            transcludeDeps.set(target, new Set());
+          }
+          transcludeDeps.get(target)!.add(id);
+        }
       } catch {
         // Skip files that can't be read
       }
     }
     logger.info(
       `[vault-loader] Pre-populated content map with ${contentMap.size} entries`,
+    );
+    logger.info(
+      `[vault-loader] Built transclusion dependency map with ${transcludeDeps.size} targets`,
     );
 
     // PASS 2: Process all files with rendering
@@ -258,11 +293,54 @@ const vaultLoader: Loader = {
       watcher.add(watchGlob);
       logger.info(`[vault-loader] Watching ${watchGlob} for changes`);
 
-      // Handle file changes by re-processing the changed file
+      // Handle file changes by re-processing the changed file and its dependents
       watcher.on("change", async (changedPath: string) => {
         // Only handle markdown files (canvas/base handled elsewhere)
         if (!changedPath.match(/\.mdx?$/)) return;
 
+        const changedSlug = slugifyPath(
+          relative(vaultPath, changedPath)
+            .replace(/\\/g, "/")
+            .replace(/\.mdx?$/, ""),
+        );
+
+        // Update content map with new body
+        try {
+          const contents = await readFile(changedPath, "utf-8");
+          const frontmatterMatch = contents.match(/^---\n([\s\S]*?)\n---/);
+          let data: any = {};
+          let body = contents;
+
+          if (frontmatterMatch) {
+            try {
+              data = (yamlLoad(frontmatterMatch[1]) as object) || {};
+              body = contents.slice(frontmatterMatch[0].length).trim();
+            } catch {
+              // Bad YAML, skip content map update
+            }
+          }
+
+          const title =
+            data.title || basename(changedPath).replace(/\.mdx?$/, "");
+          contentMap.set(changedSlug, { title, body });
+
+          // Update transclusion dependencies for this file
+          // First, remove old dependencies
+          for (const [_target, deps] of transcludeDeps) {
+            deps.delete(changedSlug);
+          }
+          // Then add new dependencies
+          for (const target of extractTransclusions(body)) {
+            if (!transcludeDeps.has(target)) {
+              transcludeDeps.set(target, new Set());
+            }
+            transcludeDeps.get(target)!.add(changedSlug);
+          }
+        } catch {
+          // Failed to read, continue anyway
+        }
+
+        // Reprocess the changed file
         logger.info(`[vault-loader] Reloading changed file: ${changedPath}`);
         await processMarkdownFile(
           changedPath,
@@ -273,6 +351,28 @@ const vaultLoader: Loader = {
           renderMarkdown,
           logger,
         );
+
+        // Reprocess files that transclude this file
+        const dependents = transcludeDeps.get(changedSlug);
+        if (dependents && dependents.size > 0) {
+          logger.info(
+            `[vault-loader] Cascading to ${dependents.size} files that transclude ${changedSlug}`,
+          );
+          for (const depId of dependents) {
+            const depPath = idToPath.get(depId);
+            if (depPath) {
+              await processMarkdownFile(
+                depPath,
+                vaultPath,
+                store,
+                parseData,
+                generateDigest,
+                renderMarkdown,
+                logger,
+              );
+            }
+          }
+        }
       });
     }
   },

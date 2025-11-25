@@ -527,6 +527,26 @@ body.dark .transclude-broken {
   background: rgba(158, 158, 158, 0.15);
 }
 
+/* Reset Tailwind Typography blockquote styles for transclusion */
+.prose .transclude {
+  font-style: normal;
+  quotes: none;
+}
+
+.prose .transclude::before,
+.prose .transclude::after {
+  content: none;
+}
+
+.prose .transclude .transclude-content {
+  text-align: left;
+  font-style: normal;
+}
+
+.prose .transclude .transclude-source {
+  font-style: normal;
+}
+
 /* Override Mermaid library SVG text colors for theme consistency */
 .mermaid .messageText {
   fill: var(--color-dark) !important; /* Required to override Mermaid SVG defaults */
