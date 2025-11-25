@@ -1,5 +1,5 @@
 import type { Note } from "../filterNotes";
-import { Parser } from "expr-eval";
+import jexlModule from "jexl";
 import type {
   Filter,
   FileProperties,
@@ -10,6 +10,17 @@ import { builtinFunctions, isTruthy } from "./functions";
 import { wrapString, wrapList, wrapDate } from "./propertyWrappers";
 import { getFolderPath } from "../folderUtils";
 import { logger } from "../logger";
+
+// Create a single jexl instance with custom functions registered
+const jexl = new jexlModule.Jexl();
+
+// Register custom functions
+jexl.addFunction("contains", builtinFunctions["contains"]);
+jexl.addFunction("startsWith", builtinFunctions["startsWith"]);
+jexl.addFunction("endsWith", builtinFunctions["endsWith"]);
+jexl.addFunction("now", builtinFunctions["now"]);
+jexl.addFunction("today", builtinFunctions["today"]);
+jexl.addFunction("date", builtinFunctions["date"]);
 
 /**
  * Extract embedded files from note body
@@ -74,36 +85,6 @@ function evaluateExpression(
   context: EvaluationContext,
 ): boolean {
   try {
-    // Create parser with built-in functions
-    const parser = new Parser();
-
-    // Add custom functions to parser
-    // Map our function names to parser-compatible names
-    const functions: Record<string, (...args: unknown[]) => unknown> = {};
-
-    // File property functions
-    functions["fileHasTag"] = (...args: unknown[]) =>
-      builtinFunctions["file.hasTag"](context.file, args[0] as string);
-    functions["fileInFolder"] = (...args: unknown[]) =>
-      builtinFunctions["file.inFolder"](context.file, args[0] as string);
-    functions["fileHasProperty"] = (...args: unknown[]) =>
-      builtinFunctions["file.hasProperty"](context.note, args[0] as string);
-    functions["fileHasLink"] = (...args: unknown[]) =>
-      builtinFunctions["file.hasLink"](context.file, args[0] as string);
-
-    // String functions
-    functions["contains"] = builtinFunctions["contains"];
-    functions["startsWith"] = builtinFunctions["startsWith"];
-    functions["endsWith"] = builtinFunctions["endsWith"];
-
-    // Date functions
-    functions["now"] = builtinFunctions["now"];
-    functions["today"] = builtinFunctions["today"];
-    functions["date"] = builtinFunctions["date"];
-
-    // Parse expression and create evaluable expression
-    const parsed = parser.parse(expression);
-
     // Create a file proxy object that returns wrapped properties
     const fileProxy = {
       name: wrapString(context.file.name),
@@ -118,48 +99,28 @@ function evaluateExpression(
       links: wrapList(context.file.links),
       embeds: wrapList(context.file.embeds),
       properties: context.file.properties,
-      // Helper methods
-      hasTag: functions["fileHasTag"],
-      inFolder: functions["fileInFolder"],
-      hasProperty: functions["fileHasProperty"],
-      hasLink: functions["fileHasLink"],
+      // Helper methods bound to this context
+      hasTag: (tag: string) =>
+        builtinFunctions["file.hasTag"](context.file, tag),
+      inFolder: (folder: string) =>
+        builtinFunctions["file.inFolder"](context.file, folder),
+      hasProperty: (prop: string) =>
+        builtinFunctions["file.hasProperty"](context.note, prop),
+      hasLink: (link: string) =>
+        builtinFunctions["file.hasLink"](context.file, link),
     };
 
     // Create variables object with all context
     const variables: Record<string, unknown> = {
-      // File object with wrapped properties
+      // File object with wrapped properties (supports file.name syntax)
       file: fileProxy,
-
-      // Also support file.property syntax for backward compatibility
-      "file.name": fileProxy.name,
-      "file.basename": fileProxy.basename,
-      "file.path": fileProxy.path,
-      "file.folder": fileProxy.folder,
-      "file.ext": fileProxy.ext,
-      "file.size": fileProxy.size,
-      "file.ctime": fileProxy.ctime,
-      "file.mtime": fileProxy.mtime,
-      "file.tags": fileProxy.tags,
-      "file.links": fileProxy.links,
-      "file.embeds": fileProxy.embeds,
-      "file.properties": fileProxy.properties,
-      "file.hasTag": fileProxy.hasTag,
-      "file.inFolder": fileProxy.inFolder,
-      "file.hasProperty": fileProxy.hasProperty,
-      "file.hasLink": fileProxy.hasLink,
 
       // Note properties (flat access)
       ...context.note,
-
-      // Date functions
-      now: functions["now"],
-      today: functions["today"],
-      date: functions["date"],
     };
 
-    // Evaluate expression
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const result = parsed.evaluate(variables as any);
+    // Evaluate expression synchronously
+    const result = jexl.evalSync(expression, variables);
 
     // Convert result to boolean
     return isTruthy(result);
