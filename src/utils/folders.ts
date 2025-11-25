@@ -3,6 +3,13 @@ import { readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { config } from "../config";
 import { logger } from "./logger";
+import { slugifyPath } from "./slugify";
+
+/**
+ * Cache mapping slugified folder paths to actual filesystem paths
+ * e.g., "daily" -> "Daily"
+ */
+const slugToFsPathCache = new Map<string, string>();
 
 /**
  * Extract the folder path from a note slug
@@ -20,26 +27,44 @@ export function getFolderPath(slug: string): string {
 
 /**
  * Recursively scan filesystem for all directories in vault
+ * Returns slugified folder paths and populates the slug-to-fs mapping
+ *
+ * @param basePath - The vault base path (e.g., "./src/content/Ametrine")
+ * @param fsPath - The actual filesystem path relative to basePath (for reading)
+ * @param slugPath - The slugified path for route generation
  */
 async function scanVaultDirectories(
   basePath: string,
-  currentPath: string = "",
+  fsPath: string = "",
+  slugPath: string = "",
 ): Promise<string[]> {
   const folders: string[] = [];
-  const fullPath = currentPath ? join(basePath, currentPath) : basePath;
+  const fullPath = fsPath ? join(basePath, fsPath) : basePath;
 
   try {
     const entries = await readdir(fullPath, { withFileTypes: true });
 
     for (const entry of entries) {
       if (entry.isDirectory() && !entry.name.startsWith(".")) {
-        const folderPath = currentPath
-          ? `${currentPath}/${entry.name}`
-          : entry.name;
-        folders.push(folderPath);
+        // Track actual filesystem path for reading
+        const newFsPath = fsPath ? `${fsPath}/${entry.name}` : entry.name;
+        // Slugify for route generation (matches how note slugs are created)
+        const slugifiedName = slugifyPath(entry.name);
+        const newSlugPath = slugPath
+          ? `${slugPath}/${slugifiedName}`
+          : slugifiedName;
+
+        // Cache the mapping from slugified path to filesystem path
+        slugToFsPathCache.set(newSlugPath, newFsPath);
+
+        folders.push(newSlugPath);
 
         // Recursively scan subdirectories
-        const subfolders = await scanVaultDirectories(basePath, folderPath);
+        const subfolders = await scanVaultDirectories(
+          basePath,
+          newFsPath,
+          newSlugPath,
+        );
         folders.push(...subfolders);
       }
     }
@@ -51,6 +76,14 @@ async function scanVaultDirectories(
   }
 
   return folders;
+}
+
+/**
+ * Resolve a slugified folder path to its actual filesystem path
+ * Falls back to the slug itself if no mapping exists
+ */
+function resolveToFsPath(slugPath: string): string {
+  return slugToFsPathCache.get(slugPath) || slugPath;
 }
 
 /**
@@ -151,12 +184,15 @@ export function getFolderDisplayName(folderPath: string): string {
 
 /**
  * Get all files in a folder (including non-markdown files)
+ * Accepts slugified folder paths and resolves them to actual filesystem paths
  */
 export async function getAllFilesInFolder(
   folderPath: string,
 ): Promise<Array<{ name: string; type: string; path: string }>> {
   const vaultPath = `./src/content/${config.vaultName || "vault"}`;
-  const fullPath = join(vaultPath, folderPath);
+  // Resolve slugified path to actual filesystem path
+  const fsPath = resolveToFsPath(folderPath);
+  const fullPath = join(vaultPath, fsPath);
   const files: Array<{ name: string; type: string; path: string }> = [];
 
   try {
@@ -165,6 +201,7 @@ export async function getAllFilesInFolder(
     for (const entry of entries) {
       if (entry.isFile() && !entry.name.startsWith(".")) {
         const ext = entry.name.split(".").pop()?.toLowerCase() || "";
+        // Use slugified path for the returned path (matches URL routing)
         const relativePath = folderPath
           ? `${folderPath}/${entry.name}`
           : entry.name;
