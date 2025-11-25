@@ -125,17 +125,16 @@ function getNavigationUrl(fileData: FileNodeData): string | null {
 
   if (fileData.type === "base" && fileData.baseName && fileData.view?.name) {
     const viewSlug = fileData.view.name.toLowerCase().replace(/\s+/g, "-");
-    return `${baseUrl}/base/${fileData.baseName}/${viewSlug}`;
+    return `${baseUrl}/base/${fileData.baseName.toLowerCase()}/${viewSlug}`;
   }
 
   if (fileData.type === "image" && fileData.file) {
-    // Extract filename without extension and directory
-    const fileName = fileData.file.split("/").pop() || fileData.file;
-    const nameWithoutExt = fileName.replace(
+    // Preserve full path, remove extension, and lowercase
+    const pathWithoutExt = fileData.file.replace(
       /\.(png|jpg|jpeg|webp|gif|svg|avif)$/i,
       "",
     );
-    return `${baseUrl}/image/${nameWithoutExt}`;
+    return `${baseUrl}/image/${pathWithoutExt.toLowerCase()}`;
   }
 
   return null;
