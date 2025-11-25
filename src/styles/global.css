@@ -670,7 +670,15 @@ h2#bibliography {
 .links-and-context-outer {
   margin-top: 3rem;
   padding: 1.5rem;
+  background-color: var(--color-highlight);
+  border-radius: 8px;
+  border: 1px solid var(--color-gray);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.links-and-context-outer[open] {
   background-color: var(--color-light);
+  border-color: transparent;
 }
 
 .context-summary-outer {
