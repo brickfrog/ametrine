@@ -34,6 +34,7 @@
     "@tanstack/react-table": "^8.21.3",
     "@types/marked": "^6.0.0",
     "@xyflow/react": "^12.9.3",
+    "ansi_up": "^6.0.6",
     "astro": "^5.16.0",
     "astro-expressive-code": "^0.41.3",
     "class-variance-authority": "^0.7.1",

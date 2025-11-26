@@ -34,6 +34,7 @@ const FileNode = memo(({ node, currentSlug }: FileNodeProps) => {
   const isBase = node.data?.type === "base";
   const isImage = node.data?.type === "image";
   const isCanvas = node.data?.type === "canvas";
+  const isNotebook = node.data?.type === "notebook";
   const href =
     (isBase || isImage || isCanvas) && node.data?.links?.[0]
       ? `${import.meta.env.BASE_URL}/${node.data.links[0]}`
@@ -64,6 +65,11 @@ const FileNode = memo(({ node, currentSlug }: FileNodeProps) => {
         {isCanvas && (
           <span className="text-xs px-1 py-0.5 bg-theme-tertiary text-theme-dark rounded font-bold">
             CANVAS
+          </span>
+        )}
+        {isNotebook && (
+          <span className="text-xs px-1 py-0.5 bg-theme-tertiary text-theme-dark rounded font-bold">
+            JUPYTER
           </span>
         )}
       </a>

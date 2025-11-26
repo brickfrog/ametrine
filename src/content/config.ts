@@ -7,6 +7,12 @@ import { config } from "../config.ts";
 import { slugifyPath } from "../utils/slugify";
 import { buildSlugMap } from "../utils/slugMap";
 import { resolveDates } from "../utils/resolveDates";
+import {
+  parseNotebook,
+  extractFrontmatter,
+  extractNotebookLinks,
+  renderNotebook,
+} from "../utils/notebook";
 
 // Media file extensions to skip when extracting transclusion dependencies
 const MEDIA_EXTENSIONS =
@@ -147,6 +153,92 @@ async function processMarkdownFile(
   }
 }
 
+/** Process a single notebook file and add/update it in the store */
+async function processNotebookFile(
+  fullPath: string,
+  vaultPath: string,
+  store: any,
+  parseData: any,
+  generateDigest: any,
+  logger: any,
+): Promise<boolean> {
+  try {
+    const contents = await readFile(fullPath, "utf-8");
+    const filename = basename(fullPath);
+    const id = slugifyPath(
+      relative(vaultPath, fullPath)
+        .replace(/\\/g, "/")
+        .replace(/\.ipynb$/, ""),
+    );
+
+    // Parse notebook JSON
+    const notebook = parseNotebook(contents);
+
+    // Extract frontmatter from notebook metadata
+    const frontmatter = extractFrontmatter(notebook, filename);
+    const data: any = {
+      title: frontmatter.title,
+      description: frontmatter.description,
+      tags: frontmatter.tags || [],
+      draft: frontmatter.draft ?? false,
+      author: frontmatter.author,
+      aliases: frontmatter.aliases || [],
+      type: "notebook", // Mark as notebook for UI badges
+    };
+
+    // Expand hierarchical tags
+    if (data.tags && Array.isArray(data.tags)) {
+      const expandedTags = new Set<string>();
+      for (const tag of data.tags) {
+        if (typeof tag === "string") {
+          expandedTags.add(tag);
+          const parts = tag.split("/");
+          for (let i = 1; i < parts.length; i++) {
+            expandedTags.add(parts.slice(0, i).join("/"));
+          }
+        }
+      }
+      data.tags = Array.from(expandedTags);
+    }
+
+    // Extract wikilinks from markdown cells
+    data.links = extractNotebookLinks(notebook);
+
+    // Resolve dates from frontmatter > git > filesystem
+    const resolvedDates = await resolveDates({
+      frontmatter: {
+        created: frontmatter.created
+          ? new Date(frontmatter.created)
+          : undefined,
+        modified: frontmatter.modified
+          ? new Date(frontmatter.modified)
+          : undefined,
+      },
+      filePath: fullPath,
+    });
+    data.created = resolvedDates.created;
+    data.modified = resolvedDates.modified;
+
+    // Render notebook to HTML
+    const { html } = await renderNotebook(notebook);
+
+    const digest = generateDigest(contents);
+    const parsedData = await parseData({ id, data });
+
+    store.set({
+      id,
+      data: parsedData,
+      body: contents, // Store raw JSON for potential re-processing
+      rendered: { html },
+      digest,
+    });
+    return true;
+  } catch (err) {
+    logger.warn(`Error loading notebook ${fullPath}: ${err}`);
+    return false;
+  }
+}
+
 const vaultLoader: Loader = {
   name: "vault-loader",
   load: async ({
@@ -179,12 +271,13 @@ const vaultLoader: Loader = {
           }
         } else if (
           stats.isFile() &&
-          (entry.name.endsWith(".md") || entry.name.endsWith(".mdx"))
+          (entry.name.endsWith(".md") ||
+            entry.name.endsWith(".mdx") ||
+            entry.name.endsWith(".ipynb"))
         ) {
+          const ext = entry.name.endsWith(".ipynb") ? /\.ipynb$/ : /\.mdx?$/;
           const id = slugifyPath(
-            relative(vaultPath, fullPath)
-              .replace(/\\/g, "/")
-              .replace(/\.mdx?$/, ""),
+            relative(vaultPath, fullPath).replace(/\\/g, "/").replace(ext, ""),
           );
           fileIds.push({ id, fullPath, entry });
         }
@@ -278,6 +371,20 @@ const vaultLoader: Loader = {
           } else {
             skipCount++;
           }
+        } else if (stats.isFile() && entry.name.endsWith(".ipynb")) {
+          const success = await processNotebookFile(
+            fullPath,
+            vaultPath,
+            store,
+            parseData,
+            generateDigest,
+            logger,
+          );
+          if (success) {
+            fileCount++;
+          } else {
+            skipCount++;
+          }
         }
       }
     }
@@ -289,12 +396,28 @@ const vaultLoader: Loader = {
 
     // Watch for file changes in dev mode
     if (watcher) {
-      const watchGlob = `${vaultPath}/**/*.{md,mdx,base,canvas}`;
+      const watchGlob = `${vaultPath}/**/*.{md,mdx,ipynb,base,canvas}`;
       watcher.add(watchGlob);
       logger.info(`[vault-loader] Watching ${watchGlob} for changes`);
 
       // Handle file changes by re-processing the changed file and its dependents
       watcher.on("change", async (changedPath: string) => {
+        // Handle notebook files separately
+        if (changedPath.endsWith(".ipynb")) {
+          logger.info(
+            `[vault-loader] Reloading changed notebook: ${changedPath}`,
+          );
+          await processNotebookFile(
+            changedPath,
+            vaultPath,
+            store,
+            parseData,
+            generateDigest,
+            logger,
+          );
+          return;
+        }
+
         // Only handle markdown files (canvas/base handled elsewhere)
         if (!changedPath.match(/\.mdx?$/)) return;
 

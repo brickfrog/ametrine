@@ -160,6 +160,118 @@ a.external:hover {
   word-wrap: break-word;
 }
 
+/* Jupyter Notebook Styles */
+.notebook-container {
+  margin: 1rem 0;
+}
+
+.notebook-cell {
+  margin: 1.5rem 0;
+  border-left: 3px solid var(--color-gray);
+  padding-left: 1rem;
+}
+
+.notebook-code-cell {
+  border-left-color: var(--color-secondary);
+}
+
+/* Notebook code cells - use expressive-code CSS variables */
+.notebook-code-cell .shiki {
+  background: var(--ec-codeBg) !important;
+  border-radius: 4px;
+  padding: 0.75rem;
+  overflow-x: auto;
+  margin: 0;
+}
+
+/* Dark theme: switch to dark syntax colors */
+[data-theme='dark'] .notebook-code-cell .shiki span {
+  color: var(--shiki-dark) !important;
+}
+
+.notebook-code-cell .cell-input {
+  margin-bottom: 0.5rem;
+}
+
+.notebook-code-cell .cell-outputs {
+  margin-top: 0.5rem;
+}
+
+.cell-execution-count {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--color-darkgray);
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.cell-execution-count::before {
+  content: 'In [';
+}
+
+.cell-execution-count::after {
+  content: ']:';
+}
+
+.cell-output {
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+  background: var(--color-lightgray);
+  border-radius: 4px;
+  overflow-x: auto;
+}
+
+.cell-output img {
+  max-width: 100%;
+  height: auto;
+}
+
+.cell-output pre {
+  margin: 0;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.875rem;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.cell-output-stream {
+  background: var(--color-lightgray);
+}
+
+.cell-output-stderr {
+  background: rgba(220, 38, 38, 0.05);
+  border-left: 3px solid #dc2626;
+}
+
+.cell-output-error {
+  background: var(--ec-codeBg);
+  border-left: 3px solid #dc2626;
+}
+
+.cell-output-error .error-header {
+  color: #dc2626;
+  margin-bottom: 0.5rem;
+}
+
+.cell-output-error .error-traceback {
+  font-size: 0.8rem;
+}
+
+/* ANSI color classes for terminal output */
+.ansi-bold { font-weight: bold; }
+.ansi-red { color: #dc2626; }
+.ansi-green { color: #16a34a; }
+.ansi-yellow { color: #ca8a04; }
+.ansi-blue { color: #2563eb; }
+.ansi-magenta { color: #9333ea; }
+.ansi-cyan { color: #0891b2; }
+.ansi-white { color: var(--color-dark); }
+.ansi-bright-red { color: #ef4444; }
+.ansi-bright-green { color: #22c55e; }
+.ansi-bright-yellow { color: #eab308; }
+.ansi-bright-blue { color: #3b82f6; }
+.ansi-bright-magenta { color: #a855f7; }
+.ansi-bright-cyan { color: #06b6d4; }
 
 /* Link Preview Panel Styles */
 .lp-panel {

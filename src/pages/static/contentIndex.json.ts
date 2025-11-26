@@ -52,7 +52,7 @@ export interface ContentDetails {
   date?: string;
   updated?: string;
   excerpt: string;
-  type?: "note" | "base" | "image" | "canvas" | "tag";
+  type?: "note" | "base" | "image" | "canvas" | "tag" | "notebook";
   extension?: string;
   canvasData?: CanvasData;
 }
@@ -165,7 +165,7 @@ export async function buildContentIndex(): Promise<ContentIndexMap> {
       date: note.data.created?.toISOString(),
       updated: note.data.modified?.toISOString(),
       excerpt,
-      type: "note",
+      type: note.data.type === "notebook" ? "notebook" : "note",
     };
   }
 
