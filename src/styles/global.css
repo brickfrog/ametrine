@@ -89,6 +89,22 @@ a.internal-link:hover {
   color: var(--color-tertiary);
 }
 
+/* Ghost links - wikilinks to non-existent notes */
+.ghost-link {
+  color: var(--color-gray);
+  font-style: italic;
+  cursor: default;
+  position: relative;
+}
+
+.ghost-link::after {
+  content: "?";
+  font-size: 0.65em;
+  vertical-align: super;
+  margin-left: 1px;
+  opacity: 0.7;
+}
+
 a.external {
   color: var(--color-secondary);
   text-decoration: underline;

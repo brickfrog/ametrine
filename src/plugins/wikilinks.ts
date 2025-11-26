@@ -358,7 +358,20 @@ export function wikilinks(options: WikilinkOptions = {}) {
           // Determine display text for regular links
           const displayText = alias || pageName || url;
 
-          // Return a link node
+          // Check if target note exists
+          const noteExists = slugMapData?.some(
+            (entry) => entry.id === fullSlug,
+          );
+
+          if (!noteExists && opts.markBroken) {
+            // Ghost link - note doesn't exist yet
+            return {
+              type: "html",
+              value: `<span class="ghost-link" data-target="${escapeHtml(fullSlug)}">${escapeHtml(displayText)}</span>`,
+            };
+          }
+
+          // Return a link node for existing notes
           return {
             type: "link",
             url,
