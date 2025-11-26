@@ -7,7 +7,9 @@ date: 2025-10-30
 
 # Ametrine
 
-Digital garden template built with Astro and Obsidian-compatible markdown.
+Ametrine is a digital garden template built with Astro and Obsidian-compatible markdown, originally inspired by [Quartz](https://github.com/jackyzha0/quartz) {{thus the [name](https://en.wikipedia.org/wiki/Ametrine)}}, stripped down to an opinionated default.
+
+**Note**: Most of these are sample notes for me testing out the build, if this gets popular will rewrite in a more tutorial-esque fashion.
 
 ## Features
 
