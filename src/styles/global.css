@@ -1170,26 +1170,6 @@ h6 > a:hover {
 }
 
 /* ============================================ */
-/* DARK MODE TYPOGRAPHY REFINEMENTS             */
-/* ============================================ */
-
-/* Subtle typographic adjustments for better dark mode legibility */
-.dark .prose {
-  line-height: 1.5; /* Slightly more generous than light mode's 1.4 */
-  letter-spacing: 0.01em; /* Subtle tracking increase for light-on-dark */
-}
-
-/* Reduce heading weight in dark mode for better rendering */
-.dark h1,
-.dark h2,
-.dark h3,
-.dark h4,
-.dark h5,
-.dark h6 {
-  font-weight: 500; /* One step lighter than light mode */
-}
-
-/* ============================================ */
 /* ACCESSIBILITY FEATURES                       */
 /* ============================================ */
 
