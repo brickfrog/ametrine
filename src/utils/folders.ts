@@ -29,7 +29,7 @@ export function getFolderPath(slug: string): string {
  * Recursively scan filesystem for all directories in vault
  * Returns slugified folder paths and populates the slug-to-fs mapping
  *
- * @param basePath - The vault base path (e.g., "./src/content/Ametrine")
+ * @param basePath - The vault base path (e.g., "./src/content/vault")
  * @param fsPath - The actual filesystem path relative to basePath (for reading)
  * @param slugPath - The slugified path for route generation
  */

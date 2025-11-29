@@ -3,14 +3,23 @@
  * Maps wikilink image names to their proper import paths
  */
 
-// Import all images from vault (recursively scan subdirectories)
-const images = import.meta.glob<{ default: ImageMetadata }>(
-  [
-    "/src/content/Ametrine/**/*.{png,jpg,jpeg,webp,gif,svg,avif}",
-    "/src/content/vault/**/*.{png,jpg,jpeg,webp,gif,svg,avif}",
-  ],
+import { config } from "../config";
+
+// Import all images from content directory (recursively scan subdirectories)
+const allImages = import.meta.glob<{ default: ImageMetadata }>(
+  "/src/content/**/*.{png,jpg,jpeg,webp,gif,svg,avif}",
   { eager: true },
 );
+
+// Filter images to only include those from the configured vault
+const images: Record<string, { default: ImageMetadata }> = {};
+const vaultPath = `/src/content/${config.vaultName}/`;
+
+for (const [path, module] of Object.entries(allImages)) {
+  if (path.startsWith(vaultPath)) {
+    images[path] = module;
+  }
+}
 
 // Create a map of filename -> ImageMetadata
 export const imageMap = new Map<string, ImageMetadata>();

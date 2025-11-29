@@ -24,14 +24,21 @@ export const getStaticPaths: GetStaticPaths = async () => {
     return [];
   }
 
-  // Import all media files from content directories
-  const mediaFiles = import.meta.glob<{ default: string }>(
-    [
-      "/src/content/Ametrine/**/*.{png,jpg,jpeg,gif,webp,svg,avif,mp4,webm,mp3,wav,ogg,pdf}",
-      "/src/content/vault/**/*.{png,jpg,jpeg,gif,webp,svg,avif,mp4,webm,mp3,wav,ogg,pdf}",
-    ],
+  // Import all media files from content directory
+  const allMediaFiles = import.meta.glob<{ default: string }>(
+    "/src/content/**/*.{png,jpg,jpeg,gif,webp,svg,avif,mp4,webm,mp3,wav,ogg,pdf}",
     { eager: false, query: "?url" },
   );
+
+  // Filter to only include files from the configured vault
+  const vaultPath = `/src/content/${config.vaultName}/`;
+  const mediaFiles: Record<string, () => Promise<{ default: string }>> = {};
+
+  for (const [path, loader] of Object.entries(allMediaFiles)) {
+    if (path.startsWith(vaultPath)) {
+      mediaFiles[path] = loader;
+    }
+  }
 
   const paths = await Promise.all(
     Object.keys(mediaFiles).map(async (filePath) => {

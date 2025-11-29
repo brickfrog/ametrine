@@ -1,5 +1,6 @@
 ---
 import BaseLayout from './BaseLayout.astro';
+import { config } from '../config';
 
 interface Props {
   title: string;
@@ -17,7 +18,7 @@ const homeHref = import.meta.env.BASE_URL ?? "/";
       <div class="sticky top-0 p-4">
         <div class="mb-4">
           <h1 class="text-2xl font-bold">
-            <a href={homeHref} class="hover:text-theme-secondary transition-colors">Ametrine</a>
+            <a href={homeHref} class="hover:text-theme-secondary transition-colors">{config.pageTitle}</a>
           </h1>
         </div>
         <slot name="left" />

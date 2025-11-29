@@ -9,14 +9,24 @@ export async function getStaticPaths() {
     return [];
   }
 
-  // Import all images from vault directory recursively
-  const images = import.meta.glob<{ default: ImageMetadata }>(['/src/content/Ametrine/**/*.{png,jpg,jpeg,webp,gif,svg,avif}', '/src/content/vault/**/*.{png,jpg,jpeg,webp,gif,svg,avif}'], { eager: false });
+  // Import all images from content directory recursively
+  const allImages = import.meta.glob<{ default: ImageMetadata }>('/src/content/**/*.{png,jpg,jpeg,webp,gif,svg,avif}', { eager: false });
+
+  // Filter to only include images from the configured vault
+  const vaultPath = `/src/content/${config.vaultName}/`;
+  const images: Record<string, () => Promise<{ default: ImageMetadata }>> = {};
+
+  for (const [path, loader] of Object.entries(allImages)) {
+    if (path.startsWith(vaultPath)) {
+      images[path] = loader;
+    }
+  }
 
   const paths = await Promise.all(Object.keys(images).map(async (imagePath) => {
     const imageModule = await images[imagePath]();
 
     // Extract relative path from vault root
-    // e.g., /src/content/Ametrine/Assets/image.png -> Assets/image
+    // e.g., /src/content/vault/Assets/image.png -> Assets/image
     const pathMatch = imagePath.match(/\/content\/[^/]+\/(.+)$/);
     const relativePath = pathMatch ? pathMatch[1] : imagePath.split('/').pop() || '';
     const slug = relativePath.replace(/\.[^.]+$/, '').toLowerCase();
