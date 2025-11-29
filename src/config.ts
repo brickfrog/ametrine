@@ -368,7 +368,7 @@ export const config: SiteConfig = {
   },
   citations: {
     enable: false,
-    bibliographyFile: "./src/content/bibliography.bib",
+    bibliographyFile: "", // Dynamically constructed below
     suppressBibliography: true,
     linkCitations: false,
     csl: "apa",
@@ -442,5 +442,10 @@ export const config: SiteConfig = {
     enableCanvas: true,
   },
 };
+
+// Construct dynamic paths based on vaultName
+if (config.citations) {
+  config.citations.bibliographyFile = `./src/content/${config.vaultName}/bibliography.bib`;
+}
 
 export default config;

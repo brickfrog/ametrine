@@ -314,7 +314,7 @@ Quote from source[@key2023, p. 42].
 Result: Quote from source[@key2023, p. 42].
 
 > [!note] Bibliography Required
-> Citations require a `bibliography.bib` file. See [[documentation/configuration-guide#citations]].
+> Citations require a `bibliography.bib` file in your vault directory. See [[documentation/configuration-guide#citations]].
 
 ## Code Blocks
 

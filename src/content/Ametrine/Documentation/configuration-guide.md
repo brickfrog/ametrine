@@ -342,7 +342,7 @@ Enable academic citations with BibTeX:
 ```typescript
 citations: {
   enable: true,
-  bibliographyFile: "./bibliography.bib",  // Path to .bib file
+  bibliographyFile: "./src/content/vault/bibliography.bib",  // Path to .bib file in vault
   suppressBibliography: true,              // Don't auto-generate bibliography
   linkCitations: false,                    // Make citations clickable
   csl: "apa"  // "apa" | "mla" | "chicago" | "vancouver" | "harvard1"

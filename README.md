@@ -28,8 +28,7 @@ A modern digital garden built with Astro, featuring wikilinks, backlinks, graph 
 ├── src/
 │   ├── components/      # Astro and React components
 │   ├── content/
-│   │   ├── vault/       # Your notes (.md), bases (.base), canvases (.canvas)
-│   │   └── bibliography.bib  # Citation references
+│   │   └── vault/       # Your notes (.md), bases (.base), canvases (.canvas), bibliography.bib
 │   ├── layouts/         # Page layouts
 │   ├── pages/           # Routes and API endpoints
 │   ├── plugins/         # Remark/Rehype plugins
