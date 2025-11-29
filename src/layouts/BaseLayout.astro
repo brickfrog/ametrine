@@ -305,6 +305,20 @@ const breadcrumbItems = slug ? slug.split('/').filter(Boolean).map((segment, idx
             const div = document.createElement('div');
             div.className = 'mermaid';
             div.innerHTML = svg;
+
+            // Fix invalid ARIA roles in mermaid SVG
+            const svgElement = div.querySelector('svg');
+            if (svgElement) {
+              // Remove any role attribute from SVG and all descendants
+              svgElement.removeAttribute('role');
+              svgElement.querySelectorAll('[role]').forEach(el => {
+                el.removeAttribute('role');
+              });
+              // Set proper accessibility attributes
+              svgElement.setAttribute('role', 'img');
+              svgElement.setAttribute('aria-label', 'Mermaid diagram');
+            }
+
             div.dataset.mermaidSource = mermaidCode; // Store source for re-rendering
             div.dataset.mermaidProcessed = 'true';
 
@@ -376,6 +390,19 @@ const breadcrumbItems = slug ? slug.split('/').filter(Boolean).map((segment, idx
             // Re-render with new theme
             const { svg } = await window.mermaid.render(id, mermaidCode);
             div.innerHTML = svg;
+
+            // Fix invalid ARIA roles in re-rendered SVG
+            const svgElement = div.querySelector('svg');
+            if (svgElement) {
+              // Remove any role attribute from SVG and all descendants
+              svgElement.removeAttribute('role');
+              svgElement.querySelectorAll('[role]').forEach(el => {
+                el.removeAttribute('role');
+              });
+              // Set proper accessibility attributes
+              svgElement.setAttribute('role', 'img');
+              svgElement.setAttribute('aria-label', 'Mermaid diagram');
+            }
           } catch (error) {
             console.error('Mermaid re-render error:', error);
           }

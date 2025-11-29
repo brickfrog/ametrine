@@ -64,10 +64,14 @@ Open your browser to `http://localhost:4321` {{The port might be different if 43
 
 ### 1. Create a New File
 
-Create a new markdown file in `src/content/vault/`:
+Create a new markdown file in your vault directory (check `config.vaultName` in `src/config.ts`):
 
 ```bash
-touch src/content/vault/my-first-note.md
+# For the demo vault (Ametrine):
+touch src/content/Ametrine/my-first-note.md
+
+# For template users (vault):
+# touch src/content/vault/my-first-note.md
 ```
 
 ### 2. Add Frontmatter and Content
@@ -114,7 +118,7 @@ my-garden/
 ```
 
 > [!note] Content Organization
-> You can create subfolders in `src/content/vault/` to organize your content. Ametrine will automatically discover all markdown files.
+> You can create subfolders in your vault directory (`src/content/<vaultName>/`) to organize your content. Ametrine will automatically discover all markdown files.
 
 ## Key Concepts
 
@@ -250,7 +254,7 @@ If port 4321 is taken, Astro will automatically use the next available port. Che
 ### Notes Not Showing Up
 
 Make sure:
-1. Files are in `src/content/vault/`
+1. Files are in your vault directory (`src/content/<vaultName>/`, check `config.vaultName` in `src/config.ts`)
 2. Files have `.md` extension
 3. Frontmatter includes at least `title`
 4. The dev server is running
@@ -258,7 +262,7 @@ Make sure:
 ### Wikilinks Not Working
 
 Check that:
-1. The target file exists in `src/content/vault/`
+1. The target file exists in your vault directory
 2. You're using the correct syntax: `[[Page Name]]`
 3. The file name matches (case-insensitive)
 

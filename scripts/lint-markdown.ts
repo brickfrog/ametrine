@@ -1,6 +1,7 @@
 import { glob } from "fast-glob";
 import { readFile } from "node:fs/promises";
 import { parse as parseYaml } from "yaml";
+import { config } from "../src/config";
 
 /**
  * Markdown linting script inspired by Gwern's markdown-lint.sh
@@ -184,18 +185,33 @@ class MarkdownLinter {
     if (!this.config.checkMalformedWikilinks) return;
 
     const lines = content.split("\n");
+    let inCodeBlock = false;
 
     lines.forEach((line, index) => {
+      // Track code fence blocks
+      if (line.trim().startsWith("```")) {
+        inCodeBlock = !inCodeBlock;
+        return;
+      }
+
+      // Skip lines inside code blocks or indented code blocks
+      if (inCodeBlock || line.startsWith("    ")) {
+        return;
+      }
+
+      // Skip inline code
+      const lineWithoutInlineCode = line.replace(/`[^`]+`/g, "");
+
       // Check for single brackets that might be incomplete wikilinks
       const singleOpenBracket = /(?<!\[)\[(?!\[)(?![^\]]*\]\()/g;
       const singleCloseBracket = /(?<!\])\](?!\])/g;
 
-      if (line.match(singleOpenBracket) || line.match(singleCloseBracket)) {
+      if (lineWithoutInlineCode.match(singleOpenBracket) || lineWithoutInlineCode.match(singleCloseBracket)) {
         // This might be valid markdown, so only warn if it looks suspicious
         if (
-          line.includes("[[") ||
-          line.includes("]]") ||
-          line.match(/\[\w+\s+\w+\](?!\()/)
+          lineWithoutInlineCode.includes("[[") ||
+          lineWithoutInlineCode.includes("]]") ||
+          lineWithoutInlineCode.match(/\[\w+\s+\w+\](?!\()/)
         ) {
           this.addWarning({
             file,
@@ -207,7 +223,7 @@ class MarkdownLinter {
       }
 
       // Check for incomplete wikilinks
-      if (line.includes("[[") && !line.includes("]]")) {
+      if (lineWithoutInlineCode.includes("[[") && !lineWithoutInlineCode.includes("]]")) {
         this.addError({
           file,
           line: startLine + index + 1,
@@ -215,7 +231,7 @@ class MarkdownLinter {
           message: "Unclosed wikilink: [[ without matching ]]",
         });
       }
-      if (line.includes("]]") && !line.includes("[[")) {
+      if (lineWithoutInlineCode.includes("]]") && !lineWithoutInlineCode.includes("[[")) {
         this.addError({
           file,
           line: startLine + index + 1,
@@ -225,7 +241,7 @@ class MarkdownLinter {
       }
 
       // Check for empty wikilinks
-      if (line.match(/\[\[\s*\]\]/)) {
+      if (lineWithoutInlineCode.match(/\[\[\s*\]\]/)) {
         this.addError({
           file,
           line: startLine + index + 1,
@@ -247,18 +263,28 @@ class MarkdownLinter {
     if (!this.config.checkUnbalancedBrackets) return;
 
     const lines = content.split("\n");
+    let inCodeBlock = false;
 
     lines.forEach((line, index) => {
-      // Skip code blocks
-      if (line.trim().startsWith("```") || line.trim().startsWith("    ")) {
+      // Track code fence blocks
+      if (line.trim().startsWith("```")) {
+        inCodeBlock = !inCodeBlock;
         return;
       }
 
+      // Skip lines inside code blocks or indented code blocks
+      if (inCodeBlock || line.startsWith("    ")) {
+        return;
+      }
+
+      // Skip inline code
+      const lineWithoutInlineCode = line.replace(/`[^`]+`/g, "");
+
       // Count brackets
-      const openSquare = (line.match(/\[/g) || []).length;
-      const closeSquare = (line.match(/\]/g) || []).length;
-      const openParen = (line.match(/\(/g) || []).length;
-      const closeParen = (line.match(/\)/g) || []).length;
+      const openSquare = (lineWithoutInlineCode.match(/\[/g) || []).length;
+      const closeSquare = (lineWithoutInlineCode.match(/\]/g) || []).length;
+      const openParen = (lineWithoutInlineCode.match(/\(/g) || []).length;
+      const closeParen = (lineWithoutInlineCode.match(/\)/g) || []).length;
 
       if (openSquare !== closeSquare) {
         this.addWarning({
@@ -312,7 +338,7 @@ class MarkdownLinter {
   async lintAll() {
     console.log("🔍 Linting markdown files...\n");
 
-    const files = await glob("src/content/vault/**/*.md");
+    const files = await glob(`src/content/${config.vaultName}/**/*.md`);
     console.log(`📝 Found ${files.length} markdown files\n`);
 
     for (const file of files) {

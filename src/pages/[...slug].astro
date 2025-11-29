@@ -28,10 +28,12 @@ export async function getStaticPaths() {
 
   // Generate paths for folders (including empty folders from filesystem)
   const folders = await getAllFolders(notes);
-  const folderPaths = folders.map((folder) => ({
-    params: { slug: folder },
-    props: { note: undefined, isFolder: true, folderPath: folder },
-  }));
+  const folderPaths = folders
+    .filter((folder) => folder !== "") // Root folder is handled by index.astro
+    .map((folder) => ({
+      params: { slug: folder },
+      props: { note: undefined, isFolder: true, folderPath: folder },
+    }));
 
   return [...notePaths, ...folderPaths];
 }

@@ -1,6 +1,7 @@
 import { glob } from 'fast-glob';
 import { readFile } from 'node:fs/promises';
 import { slugify, slugifyPath, resetSlugger } from '../src/utils/slugify';
+import { config } from '../src/config';
 
 /**
  * Validates all wikilinks in the vault to ensure they point to existing notes
@@ -97,12 +98,13 @@ function parseWikilinksWithAnchors(content: string): Array<{ slug: string; ancho
 
 /**
  * Convert file path to slug
- * src/content/vault/foo.md -> foo
- * src/content/vault/nested/bar.md -> nested/bar
+ * src/content/<vault>/foo.md -> foo
+ * src/content/<vault>/nested/bar.md -> nested/bar
  */
 function pathToSlug(filePath: string): string {
+  const vaultPath = `src/content/${config.vaultName}/`;
   return filePath
-    .replace('src/content/vault/', '')
+    .replace(vaultPath, '')
     .replace(/\.md$/, '');
 }
 
@@ -111,7 +113,7 @@ async function validateLinks() {
 
   try {
     // Find all markdown files in the vault
-    const files = await glob('src/content/vault/**/*.md');
+    const files = await glob(`src/content/${config.vaultName}/**/*.md`);
 
     // Build notes array with slugs
     const notes: Note[] = files.map(filePath => ({
