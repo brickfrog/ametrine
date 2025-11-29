@@ -254,7 +254,7 @@ function formatDate(date: Date | undefined) {
       <div slot="right" class="space-y-6">
         <!-- Graph -->
         <div>
-          <Graph currentSlug={note!.slug} />
+          <Graph currentSlug={note!.slug} instance="desktop" />
         </div>
 
         <!-- Table of Contents -->
@@ -264,6 +264,11 @@ function formatDate(date: Date | undefined) {
         {config.tags?.enable && config.tags?.showInSidebar && note!.data.tags && (
           <Tags tags={Array.isArray(note!.data.tags) ? note!.data.tags : []} variant="sidebar" />
         )}
+      </div>
+
+      <!-- Mobile Bottom (Graph) -->
+      <div slot="mobile-bottom">
+        <Graph currentSlug={note!.slug} instance="mobile" />
       </div>
     </ContentLayout>
   )

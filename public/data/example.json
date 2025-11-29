@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1,
+    "title": "First Example Item",
+    "description": "This is loaded from a static JSON file",
+    "category": "demo"
+  },
+  {
+    "id": 2,
+    "title": "Second Example Item",
+    "description": "You can load this at build time or runtime",
+    "category": "demo"
+  },
+  {
+    "id": 3,
+    "title": "Third Example Item",
+    "description": "Perfect for storing static data that changes infrequently",
+    "category": "tutorial"
+  }
+]

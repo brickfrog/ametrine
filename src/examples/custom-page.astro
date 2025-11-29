@@ -1,0 +1,131 @@
+---
+/**
+ * Example: Custom Page
+ *
+ * This demonstrates how to create a custom page with:
+ * - Full-width layout (no sidebars)
+ * - Loading static JSON data
+ * - Using React components with API integration
+ * - Custom styling and structure
+ *
+ * To use this page:
+ * 1. Copy to /src/pages/example.astro
+ * 2. Visit http://localhost:4321/example
+ */
+
+import ContentLayout from '../layouts/ContentLayout.astro';
+import { ApiWidget } from './ApiWidget';
+
+// Load static data at build time
+const response = await fetch(new URL('../../public/data/example.json', import.meta.url));
+const items = await response.json();
+
+interface Item {
+  id: number;
+  title: string;
+  description: string;
+  category: string;
+}
+---
+
+<ContentLayout
+  title="Custom Page Example"
+  description="An example showing how to create custom pages in ametrine"
+  slug="example"
+  marginalia={[]}
+  isFolder={true}
+>
+  <!-- Full-width custom layout -->
+  <div class="space-y-8 max-w-4xl mx-auto">
+    <header class="border-b border-theme-gray pb-4">
+      <h1 class="text-4xl font-bold text-theme-dark mb-2">
+        Custom Page Example
+      </h1>
+      <p class="text-theme-darkgray">
+        This page demonstrates loading static data and using React components with external APIs.
+      </p>
+    </header>
+
+    <!-- Section 1: Static Data -->
+    <section>
+      <h2 class="text-2xl font-semibold text-theme-dark mb-4">
+        Static Data from JSON
+      </h2>
+      <p class="text-theme-darkgray mb-4">
+        This data is loaded from <code class="text-sm bg-theme-lightgray px-2 py-1 rounded">/public/data/example.json</code> at build time.
+      </p>
+
+      <div class="grid gap-4 md:grid-cols-2">
+        {items.map((item: Item) => (
+          <div class="border border-theme-gray rounded-lg p-4 bg-theme-lightgray">
+            <div class="flex items-start justify-between mb-2">
+              <h3 class="font-semibold text-theme-dark">{item.title}</h3>
+              <span class="text-xs px-2 py-1 bg-theme-secondary text-theme-light rounded">
+                {item.category}
+              </span>
+            </div>
+            <p class="text-sm text-theme-darkgray">{item.description}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- Section 2: API Integration -->
+    <section>
+      <h2 class="text-2xl font-semibold text-theme-dark mb-4">
+        External API Integration
+      </h2>
+      <p class="text-theme-darkgray mb-4">
+        This React component fetches data from an external API with caching using
+        <code class="text-sm bg-theme-lightgray px-2 py-1 rounded">api-client.ts</code>.
+      </p>
+
+      <ApiWidget client:load />
+    </section>
+
+    <!-- Section 3: Documentation -->
+    <section class="bg-theme-lightgray rounded-lg p-6">
+      <h2 class="text-2xl font-semibold text-theme-dark mb-4">
+        How This Works
+      </h2>
+
+      <div class="space-y-4 text-theme-dark">
+        <div>
+          <h3 class="font-semibold mb-2">1. Loading Static Data</h3>
+          <p class="text-sm text-theme-darkgray">
+            The JSON data is loaded in the frontmatter using <code>fetch()</code>.
+            This happens at build time, so the data is embedded in the HTML.
+          </p>
+        </div>
+
+        <div>
+          <h3 class="font-semibold mb-2">2. React Component with API</h3>
+          <p class="text-sm text-theme-darkgray">
+            The <code>ApiWidget</code> component uses <code>cachedFetch()</code>
+            from the api-client utility. This provides automatic caching and ETag support.
+          </p>
+        </div>
+
+        <div>
+          <h3 class="font-semibold mb-2">3. Full-Width Layout</h3>
+          <p class="text-sm text-theme-darkgray">
+            Using <code>isFolder={true}</code> in ContentLayout removes prose styling
+            and allows full-width custom layouts without sidebars.
+          </p>
+        </div>
+      </div>
+
+      <div class="mt-6 pt-4 border-t border-theme-gray">
+        <p class="text-sm text-theme-darkgray">
+          See <code>/docs/extensibility.md</code> for full documentation on extending ametrine.
+        </p>
+      </div>
+    </section>
+  </div>
+</ContentLayout>
+
+<style>
+  code {
+    font-family: 'IBM Plex Mono', monospace;
+  }
+</style>

@@ -2,14 +2,17 @@
 // Interactive Graph component with pan/zoom and fullscreen modal
 interface Props {
   currentSlug?: string;
+  instance?: string;
 }
 
-const { currentSlug } = Astro.props;
+const { currentSlug, instance = 'default' } = Astro.props;
+const graphId = `graph-local-${instance}`;
+const globalGraphId = `graph-global-${instance}`;
 ---
 
-<div class="graph">
+<div class="graph" data-instance={instance}>
   <div class="graph-outer">
-    <div id="graph-local" class="graph-container" data-current-slug={currentSlug}></div>
+    <div id={graphId} class="graph-container" data-current-slug={currentSlug}></div>
     <button class="global-graph-icon" aria-label="Open global graph">
       <svg
         version="1.1"
@@ -38,7 +41,7 @@ const { currentSlug } = Astro.props;
 
   <div class="global-graph-outer">
     <div class="global-graph-container">
-      <div id="graph-global" class="graph-canvas"></div>
+      <div id={globalGraphId} class="graph-canvas"></div>
       <div class="time-controls">
         <div class="time-control-row">
           <label class="time-label">
@@ -125,11 +128,11 @@ const { currentSlug } = Astro.props;
     });
     eventListeners = [];
 
-    // Clear graph containers
-    const localContainer = document.getElementById('graph-local');
-    const globalContainer = document.getElementById('graph-global');
-    if (localContainer) localContainer.innerHTML = '';
-    if (globalContainer) globalContainer.innerHTML = '';
+    // Clear all graph containers
+    const containers = document.querySelectorAll('.graph-container, .graph-canvas');
+    containers.forEach(container => {
+      (container as HTMLElement).innerHTML = '';
+    });
 
     // Reset state
     globalGraphActive = false;
@@ -298,12 +301,12 @@ const { currentSlug } = Astro.props;
     }
   }
 
-  function updateGraph(currentSlug: string | null) {
+  function updateGraph(currentSlug: string | null, globalGraphId: string) {
     if (!fullGraphData || !currentMaxDate) return;
 
     let filteredData = filterByDate(fullGraphData, currentMaxDate, currentDateField, showUndated);
     filteredData = filterByTags(filteredData, showTags);
-    renderGraph('graph-global', filteredData, true, currentSlug);
+    renderGraph(globalGraphId, filteredData, true, currentSlug);
     updateTimeLabels();
   }
 
@@ -456,20 +459,42 @@ const { currentSlug } = Astro.props;
 
     const data = await loadGraphData();
 
-    // Get current slug from data attribute
-    const container = document.getElementById('graph-local');
-    const currentSlug = container?.getAttribute('data-current-slug') || null;
+    // Find the visible graph container (important when multiple instances exist)
+    const containers = document.querySelectorAll('.graph-container');
+    let container: HTMLElement | null = null;
+
+    // Find the first visible container
+    for (const c of Array.from(containers)) {
+      const htmlElement = c as HTMLElement;
+      if (htmlElement.offsetParent !== null) {
+        container = htmlElement;
+        break;
+      }
+    }
+
+    if (!container) {
+      console.warn('No visible graph container found');
+      return;
+    }
+
+    const currentSlug = container.getAttribute('data-current-slug') || null;
+    const containerId = container.id || 'graph-local';
+
+    // Get the instance name from the parent graph element
+    const graphElement = container.closest('.graph') as HTMLElement;
+    const instance = graphElement?.dataset.instance || 'default';
+    const globalGraphId = `graph-global-${instance}`;
 
     // Filter data for local graph view
     let localData = currentSlug ? filterLocalGraph(data, currentSlug) : data;
     localData = filterByTags(localData, showTags);
 
     // Render local graph with current node highlighted
-    renderGraph('graph-local', localData, false, currentSlug);
+    renderGraph(containerId, localData, false, currentSlug);
 
-    // Setup fullscreen toggle
-    const toggleButton = document.querySelector('.global-graph-icon');
-    const globalOuter = document.querySelector('.global-graph-outer');
+    // Setup fullscreen toggle (only for the visible instance)
+    const toggleButton = graphElement?.querySelector('.global-graph-icon');
+    const globalOuter = graphElement?.querySelector('.global-graph-outer');
 
     function showGlobalGraph() {
       if (!globalGraphActive) {
@@ -495,7 +520,7 @@ const { currentSlug } = Astro.props;
               const progress = parseInt(slider.value) / 100;
               const timeRange = dateRange!.max.getTime() - dateRange!.min.getTime();
               currentMaxDate = new Date(dateRange!.min.getTime() + progress * timeRange);
-              updateGraph(currentSlug);
+              updateGraph(currentSlug, globalGraphId);
             };
             addEventListener(slider, 'input', sliderHandler);
           }
@@ -513,7 +538,7 @@ const { currentSlug } = Astro.props;
                 currentMaxDate = dateRange.max;
                 const slider = document.getElementById('timeSlider') as HTMLInputElement;
                 if (slider) slider.value = '100';
-                updateGraph(currentSlug);
+                updateGraph(currentSlug, globalGraphId);
               }
             };
             addEventListener(radio, 'change', radioHandler);
@@ -524,7 +549,7 @@ const { currentSlug } = Astro.props;
           if (undatedCheckbox) {
             const checkboxHandler = () => {
               showUndated = undatedCheckbox.checked;
-              updateGraph(currentSlug);
+              updateGraph(currentSlug, globalGraphId);
             };
             addEventListener(undatedCheckbox, 'change', checkboxHandler);
           }
@@ -541,7 +566,7 @@ const { currentSlug } = Astro.props;
             // Update both local and global graphs
             let localData = currentSlug ? filterLocalGraph(data, currentSlug) : data;
             localData = filterByTags(localData, showTags);
-            renderGraph('graph-local', localData, false, currentSlug);
+            renderGraph(containerId, localData, false, currentSlug);
 
             // Update global graph
             if (globalGraphActive) {
@@ -550,21 +575,21 @@ const { currentSlug } = Astro.props;
                 globalData = filterByDate(globalData, currentMaxDate, currentDateField, showUndated);
               }
               globalData = filterByTags(globalData, showTags);
-              renderGraph('graph-global', globalData, true, currentSlug);
+              renderGraph(globalGraphId, globalData, true, currentSlug);
             }
           };
           addEventListener(tagsCheckbox, 'change', checkboxHandler);
         }
 
         let filteredData = filterByTags(data, showTags);
-        renderGraph('graph-global', filteredData, true, currentSlug);
+        renderGraph(globalGraphId, filteredData, true, currentSlug);
       }
     }
 
     function hideGlobalGraph() {
       globalGraphActive = false;
       globalOuter?.classList.remove('active');
-      const container = document.getElementById('graph-global');
+      const container = document.getElementById(globalGraphId);
       if (container) container.innerHTML = '';
     }
 

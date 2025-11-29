@@ -49,11 +49,15 @@ const hasNotes = notes.length > 0;
     )}
 
     <div slot="right" class="space-y-6">
-      <Graph currentSlug={indexNote.slug} />
+      <Graph currentSlug={indexNote.slug} instance="desktop" />
       <TableOfContents toc={indexToc} slug={indexNote.slug} />
       {config.tags?.enable && config.tags?.showInSidebar && indexNote.data.tags && (
         <Tags tags={Array.isArray(indexNote.data.tags) ? indexNote.data.tags : []} variant="sidebar" />
       )}
+    </div>
+
+    <div slot="mobile-bottom">
+      <Graph currentSlug={indexNote.slug} instance="mobile" />
     </div>
   </ContentLayout>
 ) : (

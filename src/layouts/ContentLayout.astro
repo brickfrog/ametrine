@@ -93,6 +93,12 @@ const logoSrc = logoPath ? `${basePath}/${logoPath}` : undefined;
       <div class="marginalia-column">
         <MarginaliaManager marginalia={marginalia} client:load />
       </div>
+
+      <!-- Mobile bottom content (graph, etc.) -->
+      <div class="xl:hidden mt-8">
+        <slot name="mobile-bottom" />
+      </div>
+
       <Footer />
     </main>
 
