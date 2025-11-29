@@ -7,6 +7,7 @@ import { logger } from "./logger";
 const CACHE_DIR = join(process.cwd(), "src", "data");
 const CACHE_FILE = join(CACHE_DIR, "link-metadata.json");
 const CACHE_MAX_AGE_MS = 90 * 24 * 60 * 60 * 1000; // 90 days
+const FAILURE_CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000; // 1 day for failed fetches
 
 export interface MetadataCache {
   [url: string]: LinkMetadata;
@@ -72,8 +73,10 @@ export async function getCachedMetadata(
   }
 
   // Check if cache entry is expired
+  // Use shorter TTL for failed fetches to retry sooner
+  const maxAge = cached.failed ? FAILURE_CACHE_MAX_AGE_MS : CACHE_MAX_AGE_MS;
   const age = Date.now() - cached.fetchedAt;
-  if (age > CACHE_MAX_AGE_MS) {
+  if (age > maxAge) {
     logger.debug(
       `Cache expired for ${url} (${Math.floor(age / 1000 / 60 / 60 / 24)} days old)`,
     );
@@ -97,8 +100,8 @@ export async function setCachedMetadata(
 }
 
 /**
- * Get metadata from cache or return null
- * Does not save to cache - use setCachedMetadata for that
+ * Get metadata from cache or fetch and cache it
+ * Caches both successful and failed fetches (failures with shorter TTL)
  */
 export async function getOrFetchMetadata(
   url: string,
@@ -107,13 +110,21 @@ export async function getOrFetchMetadata(
   // Check cache first
   const cached = await getCachedMetadata(url);
   if (cached) {
-    return cached;
+    // Return null for cached failures instead of the failure object
+    return cached.failed ? null : cached;
   }
 
   // Fetch if not cached
   const metadata = await fetcher(url);
   if (metadata) {
+    // Cache successful fetch
     await setCachedMetadata(url, metadata);
+  } else {
+    // Cache failed fetch with shorter TTL
+    await setCachedMetadata(url, {
+      fetchedAt: Date.now(),
+      failed: true,
+    });
   }
 
   return metadata;

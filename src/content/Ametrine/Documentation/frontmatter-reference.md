@@ -397,7 +397,7 @@ updated: 2025-10-31
 author: Team Lead
 status: completed
 priority: 5
-source_url: https://project-docs.com/retro
+source_url: https://github.com/brickfrog/ametrine
 contributors: [Alice, Bob, Charlie]
 verified: true
 archived: false

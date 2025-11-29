@@ -3,6 +3,7 @@ import { LinkPreviewPanel, type LinkPreviewData } from "./LinkPreviewPanel";
 import type { ContentDetails } from "../../pages/static/contentIndex.json";
 import { config } from "../../config";
 import { logger } from "../../utils/logger";
+import { fetchContentIndex } from "../../utils/fetchContentIndex";
 
 interface PanelState {
   id: string;
@@ -188,8 +189,7 @@ export function LinkPreviewManager() {
 
   // Load content index
   useEffect(() => {
-    fetch(`${import.meta.env.BASE_URL}/static/contentIndex.json`)
-      .then((res) => res.json())
+    fetchContentIndex()
       .then((data) => {
         setContentIndex(data);
       })

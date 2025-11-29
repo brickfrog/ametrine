@@ -7,6 +7,8 @@ import {
 } from "react";
 import { logger } from "../utils/logger";
 
+const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
+
 export interface ContentDetails {
   slug: string;
   title: string;
@@ -35,9 +37,12 @@ export function ContentIndexProvider({ children }: { children: ReactNode }) {
     const cached = localStorage.getItem("search-notes");
     if (cached) {
       try {
-        const notes = JSON.parse(cached);
-        if (notes && notes.length > 0) {
-          setAllNotes(notes);
+        const { data, timestamp } = JSON.parse(cached);
+        const age = Date.now() - timestamp;
+
+        // Use cache if fresh
+        if (age < CACHE_TTL_MS && data && data.length > 0) {
+          setAllNotes(data);
           setIsLoading(false);
           return;
         }
@@ -46,7 +51,7 @@ export function ContentIndexProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    // Fetch if no cache
+    // Fetch if no cache or cache expired
     fetch(`${import.meta.env.BASE_URL}/static/contentIndex.json`)
       .then((res) => {
         if (!res.ok) throw new Error(`Failed to fetch: ${res.statusText}`);
@@ -55,7 +60,16 @@ export function ContentIndexProvider({ children }: { children: ReactNode }) {
       .then((data: Record<string, ContentDetails>) => {
         const notes = Object.values(data);
         setAllNotes(notes);
-        localStorage.setItem("search-notes", JSON.stringify(notes));
+
+        // Cache with timestamp
+        localStorage.setItem(
+          "search-notes",
+          JSON.stringify({
+            data: notes,
+            timestamp: Date.now(),
+          }),
+        );
+
         setIsLoading(false);
       })
       .catch((err) => {

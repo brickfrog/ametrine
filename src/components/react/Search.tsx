@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import ReactMarkdown from "react-markdown";
 import { UI, TIMING } from "../../constants/spacing";
 import { logger } from "../../utils/logger";
+import { fetchContentIndex } from "../../utils/fetchContentIndex";
 
 export interface ContentDetails {
   slug: string;
@@ -18,6 +19,8 @@ interface SearchableNote extends ContentDetails {
   _contentLower: string;
   _tagsLower: string[];
 }
+
+const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
 
 // Escape special regex characters
 function escapeRegex(str: string): string {
@@ -52,7 +55,7 @@ export function Search() {
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [results, setResults] = useState<ContentDetails[]>([]);
-  const [allNotes, setAllNotes] = useState<SearchableNote[]>([]);
+  const [searchableNotes, setSearchableNotes] = useState<SearchableNote[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const modalRef = useRef<HTMLDivElement>(null);
   const resultsContainerRef = useRef<HTMLDivElement>(null);
@@ -73,35 +76,39 @@ export function Search() {
   }, [results, selectedIndex]);
 
   useEffect(() => {
-    // Always fetch to check for content changes
-    fetch(`${import.meta.env.BASE_URL}/static/contentIndex.json`)
-      .then((res) => res.json())
+    // Check cache first
+    const cached = localStorage.getItem("search-notes-cache");
+    if (cached) {
+      try {
+        const { data, timestamp } = JSON.parse(cached);
+        const age = Date.now() - timestamp;
+
+        // Use cache if fresh
+        if (age < CACHE_TTL_MS && data?.length > 0) {
+          setSearchableNotes(data);
+          return;
+        }
+      } catch {
+        logger.warn("Failed to parse cached search notes");
+      }
+    }
+
+    // Fetch using shared utility
+    fetchContentIndex()
       .then((data: Record<string, ContentDetails>) => {
         const notes = Object.values(data);
-        const noteCount = notes.length;
-
-        // Check if cache is valid (same count means likely same content)
-        const cached = localStorage.getItem("search-notes-cache");
-        if (cached) {
-          try {
-            const { count, preprocessed } = JSON.parse(cached);
-            if (count === noteCount && preprocessed?.length > 0) {
-              // Cache hit - use preprocessed notes
-              setAllNotes(preprocessed);
-              return;
-            }
-          } catch {
-            logger.warn("Failed to parse cached search notes");
-          }
-        }
-
-        // Cache miss or invalid - preprocess and cache
         const preprocessed = preprocessNotes(notes);
-        setAllNotes(preprocessed);
+
+        // Cache with timestamp
         localStorage.setItem(
           "search-notes-cache",
-          JSON.stringify({ count: noteCount, preprocessed }),
+          JSON.stringify({
+            data: preprocessed,
+            timestamp: Date.now(),
+          }),
         );
+
+        setSearchableNotes(preprocessed);
       })
       .catch((err) => logger.error("Failed to load content index:", err));
   }, []);
@@ -204,7 +211,7 @@ export function Search() {
     }
 
     const searchQuery = debouncedQuery.toLowerCase();
-    const filtered = allNotes.filter(
+    const filtered = searchableNotes.filter(
       (note) =>
         note._titleLower.includes(searchQuery) ||
         note._contentLower.includes(searchQuery) ||
@@ -212,7 +219,7 @@ export function Search() {
     );
 
     setResults(filtered.slice(0, UI.SEARCH_RESULTS_LIMIT));
-  }, [debouncedQuery, allNotes]);
+  }, [debouncedQuery, searchableNotes]);
 
   if (!isOpen) {
     return (

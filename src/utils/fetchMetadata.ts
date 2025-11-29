@@ -6,6 +6,7 @@ export interface LinkMetadata {
   image?: string;
   author?: string;
   fetchedAt: number;
+  failed?: boolean; // True if fetch failed, used for shorter cache TTL
 }
 
 /**

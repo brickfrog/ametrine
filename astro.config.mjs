@@ -27,6 +27,10 @@ import { config } from './src/config';
 export default defineConfig({
   site: config.baseUrl,
   base: config.basePath || '/',
+  prefetch: {
+    defaultStrategy: 'tap', // Only prefetch on click, not hover - prevents duplicate requests
+    prefetchAll: true,
+  },
   vite: {
     resolve: {
       preserveSymlinks: true, // Don't resolve symlinks to absolute paths

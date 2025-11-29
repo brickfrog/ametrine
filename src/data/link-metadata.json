@@ -36,5 +36,33 @@
   "https://en.wikipedia.org/wiki/Markdown": {
     "fetchedAt": 1764047131595,
     "title": "Markdown - Wikipedia"
+  },
+  "http://localhost:4321": {
+    "fetchedAt": 1764420198194,
+    "failed": true
+  },
+  "https://username.github.io',": {
+    "fetchedAt": 1764420198203,
+    "failed": true
+  },
+  "https://username.github.io/repo-name": {
+    "fetchedAt": 1764420198251,
+    "failed": true
+  },
+  "https://plausible.io": {
+    "fetchedAt": 1764420393514,
+    "failed": true
+  },
+  "https://analytics.umami.is": {
+    "fetchedAt": 1764420393515,
+    "failed": true
+  },
+  "https://notes.yoursite.com": {
+    "fetchedAt": 1764420393560,
+    "failed": true
+  },
+  "https://github.com/username/repo": {
+    "fetchedAt": 1764420393657,
+    "failed": true
   }
 }

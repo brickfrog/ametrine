@@ -2,13 +2,25 @@ import type { SatoriOptions } from "satori";
 import { WORDS_PER_MINUTE } from "../constants/reading";
 import { logger } from "./logger";
 
+// In-memory cache for Google Fonts during build
+// Key: "FontName-weight" -> Buffer
+const fontCache = new Map<string, Buffer>();
+
 /**
  * Fetch a Google Font's TTF file
+ * Caches fonts in memory to avoid refetching during build
  */
 export async function fetchGoogleFont(
   fontName: string,
   weight: number = 400,
 ): Promise<Buffer | undefined> {
+  const cacheKey = `${fontName}-${weight}`;
+
+  // Check cache first
+  if (fontCache.has(cacheKey)) {
+    logger.debug(`Using cached font: ${fontName} (${weight})`);
+    return fontCache.get(cacheKey);
+  }
   try {
     const normalizedFont = fontName.replaceAll(" ", "+");
 
@@ -30,6 +42,10 @@ export async function fetchGoogleFont(
     // Fetch the font file
     const fontResponse = await fetch(urlMatch[1]);
     const fontBuffer = Buffer.from(await fontResponse.arrayBuffer());
+
+    // Cache the result
+    fontCache.set(cacheKey, fontBuffer);
+    logger.debug(`Cached font: ${fontName} (${weight})`);
 
     return fontBuffer;
   } catch (error) {
