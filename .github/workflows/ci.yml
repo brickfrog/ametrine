@@ -1,17 +1,21 @@
 name: CI
 
-# This workflow runs for all repositories (including template users).
-# It validates code quality through formatting, linting, tests, and builds.
+# This workflow only runs for the original demo repository by default.
+# Template users: To enable CI, change the repository check below to your username/repo.
+# Or remove the 'if' condition to enable for all pushes/PRs.
 
 on:
   push:
     branches: [master, main]
   pull_request:
     branches: [master, main]
+  workflow_dispatch: # Allow manual trigger
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    # Only auto-run for the original demo repository
+    if: github.repository == 'brickfrog/ametrine'
 
     strategy:
       matrix:
