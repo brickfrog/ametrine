@@ -100,7 +100,7 @@ const fieldsToDisplay = metaConfig.fields
 // Auto-detect unknown frontmatter fields (property inspector)
 const knownFields = new Set([
   // Core schema fields
-  'title', 'description', 'tags', 'draft', 'publish', 'date', 'updated', 'author', 'links', 'aliases',
+  'title', 'description', 'tags', 'draft', 'publish', 'date', 'updated', 'created', 'author', 'links', 'aliases',
   // Configured fields
   ...metaConfig.fields.map(f => f.key),
   // Computed fields that might appear in frontmatter
