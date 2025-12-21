@@ -21,6 +21,18 @@ jexl.addFunction("endsWith", builtinFunctions["endsWith"]);
 jexl.addFunction("now", builtinFunctions["now"]);
 jexl.addFunction("today", builtinFunctions["today"]);
 jexl.addFunction("date", builtinFunctions["date"]);
+jexl.addFunction("hasTag", builtinFunctions["file.hasTag"]);
+jexl.addFunction("inFolder", builtinFunctions["file.inFolder"]);
+jexl.addFunction("hasProperty", builtinFunctions["file.hasProperty"]);
+jexl.addFunction("hasLink", builtinFunctions["file.hasLink"]);
+
+function normalizeExpression(expression: string): string {
+  return expression
+    .replace(/\bfile\.hasTag\s*\(/g, "hasTag(_file, ")
+    .replace(/\bfile\.inFolder\s*\(/g, "inFolder(_file, ")
+    .replace(/\bfile\.hasProperty\s*\(/g, "hasProperty(_note, ")
+    .replace(/\bfile\.hasLink\s*\(/g, "hasLink(_file, ");
+}
 
 /**
  * Extract embedded files from note body
@@ -114,13 +126,16 @@ function evaluateExpression(
     const variables: Record<string, unknown> = {
       // File object with wrapped properties (supports file.name syntax)
       file: fileProxy,
+      _file: context.file,
+      _note: context.note,
 
       // Note properties (flat access)
       ...context.note,
     };
 
     // Evaluate expression synchronously
-    const result = jexl.evalSync(expression, variables);
+    const normalized = normalizeExpression(expression);
+    const result = jexl.evalSync(normalized, variables);
 
     // Convert result to boolean
     return isTruthy(result);

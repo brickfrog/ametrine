@@ -2,6 +2,7 @@
 import ContentLayout from '../../layouts/ContentLayout.astro';
 import { config } from '../../config';
 import { getImage } from 'astro:assets';
+import { slugifyPath } from '../../utils/slugify';
 
 export async function getStaticPaths() {
   // Check if image feature is enabled
@@ -29,7 +30,7 @@ export async function getStaticPaths() {
     // e.g., /src/content/vault/Assets/image.png -> Assets/image
     const pathMatch = imagePath.match(/\/content\/[^/]+\/(.+)$/);
     const relativePath = pathMatch ? pathMatch[1] : imagePath.split('/').pop() || '';
-    const slug = relativePath.replace(/\.[^.]+$/, '').toLowerCase();
+    const slug = slugifyPath(relativePath.replace(/\.[^.]+$/, ''));
 
     const file = imagePath.split('/').pop() || '';
     const nameWithoutExt = file.replace(/\.[^.]+$/, '');
@@ -44,6 +45,7 @@ export async function getStaticPaths() {
         nameWithoutExt,
         extension,
         imageModule: imageModule.default,
+        slug,
       },
     };
   }));
@@ -51,7 +53,7 @@ export async function getStaticPaths() {
   return paths;
 }
 
-const { fileName, nameWithoutExt, extension, imageModule } = Astro.props;
+const { fileName, nameWithoutExt, extension, imageModule, slug } = Astro.props;
 
 const pageTitle = nameWithoutExt;
 const pageDescription = `Image: ${fileName}`;
@@ -63,7 +65,7 @@ const optimizedImage = await getImage({ src: imageModule });
 <ContentLayout
   title={pageTitle}
   description={pageDescription}
-  slug={`image/${nameWithoutExt}`}
+  slug={`image/${slug}`}
   hideBreadcrumbs={true}
 >
   <div class="image-viewer">

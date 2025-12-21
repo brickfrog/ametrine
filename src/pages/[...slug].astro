@@ -16,6 +16,7 @@ import {
   getAllFilesInFolder,
 } from '../utils/folders';
 import { config } from '../config';
+import { slugifyPath } from '../utils/slugify';
 
 export async function getStaticPaths() {
   const notes = await getPublishedNotes();
@@ -191,7 +192,12 @@ function formatDate(date: Date | undefined) {
                 const isImage = ['png', 'jpg', 'jpeg', 'webp', 'gif', 'avif', 'svg'].includes(file.type);
                 const isCanvas = file.type === 'canvas';
                 const isBase = file.type === 'base';
-                const fileSlug = file.path.replace(/\.(png|jpg|jpeg|webp|gif|avif|svg|canvas|base)$/i, '').toLowerCase();
+                const fileSlug = slugifyPath(
+                  file.path.replace(
+                    /\.(png|jpg|jpeg|webp|gif|avif|svg|canvas|base)$/i,
+                    '',
+                  ),
+                );
 
                 let fileUrl = '';
                 if (isImage) {

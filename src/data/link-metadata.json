@@ -38,31 +38,39 @@
     "title": "Markdown - Wikipedia"
   },
   "http://localhost:4321": {
-    "fetchedAt": 1764420198194,
+    "fetchedAt": 1766329588925,
     "failed": true
   },
   "https://username.github.io',": {
-    "fetchedAt": 1764420198203,
+    "fetchedAt": 1766329588957,
     "failed": true
   },
   "https://username.github.io/repo-name": {
-    "fetchedAt": 1764420198251,
+    "fetchedAt": 1766329589033,
     "failed": true
   },
   "https://plausible.io": {
-    "fetchedAt": 1764420393514,
+    "fetchedAt": 1766329588700,
     "failed": true
   },
   "https://analytics.umami.is": {
-    "fetchedAt": 1764420393515,
+    "fetchedAt": 1766329588677,
     "failed": true
   },
   "https://notes.yoursite.com": {
-    "fetchedAt": 1764420393560,
+    "fetchedAt": 1766329588896,
     "failed": true
   },
   "https://github.com/username/repo": {
-    "fetchedAt": 1764420393657,
+    "fetchedAt": 1766329588793,
+    "failed": true
+  },
+  "http://localhost:4321/my-first-note": {
+    "fetchedAt": 1766329589119,
+    "failed": true
+  },
+  "https://github.com/yourusername/ametrine.git": {
+    "fetchedAt": 1766329589299,
     "failed": true
   }
 }

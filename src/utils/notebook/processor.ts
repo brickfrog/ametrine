@@ -3,7 +3,8 @@
  */
 
 import { load as yamlLoad } from "js-yaml";
-import { slugifyPath } from "../slugify";
+import { slugMap } from "../slugMap";
+import { extractWikilinkTargets } from "../wikilinks";
 import type {
   Notebook,
   NotebookCell,
@@ -103,29 +104,22 @@ export function extractFrontmatter(
  * Extract wikilinks from all markdown cells in a notebook
  * Returns slugified link targets
  */
-export function extractNotebookLinks(notebook: Notebook): string[] {
-  const links: string[] = [];
-  const wikilinkRegex =
-    /!?\[\[([^[\]|#\\]+)?(#+[^[\]|#\\]+)?(\\?\|[^[\]#]*)?\]\]/g;
+export function extractNotebookLinks(
+  notebook: Notebook,
+  slugLookup: Map<string, string> = slugMap,
+): string[] {
+  const links = new Set<string>();
 
   for (const cell of notebook.cells) {
     if (!isMarkdownCell(cell)) continue;
 
     const source = cellSourceToString(cell.source);
-    let match;
-
-    while ((match = wikilinkRegex.exec(source)) !== null) {
-      const rawFp = match[1];
-      if (rawFp) {
-        const pageName = rawFp.split("#")[0].trim();
-        if (pageName) {
-          links.push(slugifyPath(pageName));
-        }
-      }
+    for (const link of extractWikilinkTargets(source, slugLookup)) {
+      links.add(link);
     }
   }
 
-  return [...new Set(links)]; // Deduplicate
+  return Array.from(links);
 }
 
 /**

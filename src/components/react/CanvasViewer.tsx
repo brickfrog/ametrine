@@ -17,6 +17,7 @@ import type { CanvasData } from "../../pages/static/contentIndex.json";
 import type { Note } from "../../utils/filterNotes";
 import type { BaseView } from "../../utils/bases/types";
 import { getCanvasColor } from "../../utils/canvas";
+import { slugifyPath } from "../../utils/slugify";
 import { logger } from "../../utils/logger";
 import { TableView } from "./TableView";
 import { ArrowUpRight } from "lucide-react";
@@ -124,17 +125,18 @@ function getNavigationUrl(fileData: FileNodeData): string | null {
   }
 
   if (fileData.type === "base" && fileData.baseName && fileData.view?.name) {
-    const viewSlug = fileData.view.name.toLowerCase().replace(/\s+/g, "-");
-    return `${baseUrl}/base/${fileData.baseName.toLowerCase()}/${viewSlug}`;
+    const viewSlug = slugifyPath(fileData.view.name);
+    const baseSlug = slugifyPath(fileData.baseName);
+    return `${baseUrl}/base/${baseSlug}/${viewSlug}`;
   }
 
   if (fileData.type === "image" && fileData.file) {
-    // Preserve full path, remove extension, and lowercase
+    // Preserve full path, remove extension, and slugify segments
     const pathWithoutExt = fileData.file.replace(
       /\.(png|jpg|jpeg|webp|gif|svg|avif)$/i,
       "",
     );
-    return `${baseUrl}/image/${pathWithoutExt.toLowerCase()}`;
+    return `${baseUrl}/image/${slugifyPath(pathWithoutExt)}`;
   }
 
   return null;

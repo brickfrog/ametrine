@@ -1,4 +1,4 @@
-import fs from "fs";
+import { readFile, stat } from "node:fs/promises";
 // @ts-ignore - @citation-js/core does not have type declarations
 import { Cite } from "@citation-js/core";
 // @ts-ignore - @citation-js/plugin-bibtex does not have type declarations
@@ -41,53 +41,91 @@ export interface BibliographyEntry {
   journal?: string;
 }
 
+const bibliographyCache = new Map<
+  string,
+  { mtimeMs: number; entries: Map<string, BibliographyEntry> }
+>();
+const bibliographyLoads = new Map<
+  string,
+  Promise<Map<string, BibliographyEntry>>
+>();
+
 /**
  * Parse a BibTeX file and return structured bibliography entries
  */
 export async function parseBibliography(
   bibFilePath: string,
 ): Promise<Map<string, BibliographyEntry>> {
-  const entries = new Map<string, BibliographyEntry>();
-
   try {
-    const bibContent = fs.readFileSync(bibFilePath, "utf-8");
-    const cite = new Cite(bibContent);
-    const data = cite.data as CitationEntry[];
+    const stats = await stat(bibFilePath);
+    const cached = bibliographyCache.get(bibFilePath);
+    if (cached && cached.mtimeMs === stats.mtimeMs) {
+      return cached.entries;
+    }
 
-    for (const entry of data) {
-      const key = entry["citation-key"] || entry.id;
-      if (!key) continue;
+    const inFlight = bibliographyLoads.get(bibFilePath);
+    if (inFlight) {
+      return inFlight;
+    }
 
-      // Extract author name(s)
-      let authorStr: string | undefined;
-      if (entry.author && Array.isArray(entry.author)) {
-        authorStr = entry.author
-          .map((a: CitationAuthor) => {
-            if (a.literal) return a.literal;
-            if (a.family && a.given) return `${a.given} ${a.family}`;
-            if (a.family) return a.family;
-            return "";
-          })
-          .filter(Boolean)
-          .join(", ");
+    const loadPromise = (async () => {
+      const entries = new Map<string, BibliographyEntry>();
+
+      try {
+        const bibContent = await readFile(bibFilePath, "utf-8");
+        const cite = new Cite(bibContent);
+        const data = cite.data as CitationEntry[];
+
+        for (const entry of data) {
+          const key = entry["citation-key"] || entry.id;
+          if (!key) continue;
+
+          // Extract author name(s)
+          let authorStr: string | undefined;
+          if (entry.author && Array.isArray(entry.author)) {
+            authorStr = entry.author
+              .map((a: CitationAuthor) => {
+                if (a.literal) return a.literal;
+                if (a.family && a.given) return `${a.given} ${a.family}`;
+                if (a.family) return a.family;
+                return "";
+              })
+              .filter(Boolean)
+              .join(", ");
+          }
+
+          entries.set(key, {
+            key,
+            author: authorStr,
+            year: entry.issued?.["date-parts"]?.[0]?.[0] || entry.year,
+            title: entry.title,
+            url: entry.URL || entry.url,
+            type: entry.type,
+            publisher: entry.publisher,
+            journal: entry["container-title"] || entry.journal,
+          });
+        }
+
+        bibliographyCache.set(bibFilePath, {
+          mtimeMs: stats.mtimeMs,
+          entries,
+        });
+      } catch (error) {
+        logger.error("Error parsing bibliography:", error);
       }
 
-      entries.set(key, {
-        key,
-        author: authorStr,
-        year: entry.issued?.["date-parts"]?.[0]?.[0] || entry.year,
-        title: entry.title,
-        url: entry.URL || entry.url,
-        type: entry.type,
-        publisher: entry.publisher,
-        journal: entry["container-title"] || entry.journal,
-      });
-    }
+      return entries;
+    })().finally(() => {
+      bibliographyLoads.delete(bibFilePath);
+    });
+
+    bibliographyLoads.set(bibFilePath, loadPromise);
+    return await loadPromise;
   } catch (error) {
-    logger.error("Error parsing bibliography:", error);
+    logger.error("Error reading bibliography:", error);
   }
 
-  return entries;
+  return new Map();
 }
 
 /**

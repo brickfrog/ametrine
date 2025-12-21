@@ -4,6 +4,7 @@ import type {
   ContentIndexMap,
 } from "../pages/static/contentIndex.json";
 import type { Note } from "./filterNotes";
+import { slugifyPath } from "./slugify";
 
 /**
  * Build a map of node IDs to node data for quick lookups
@@ -29,8 +30,9 @@ export function resolveCanvasFile(
 
   // Try direct slug match (without extension)
   const nameWithoutExt = cleanPath.replace(/\.[^.]+$/, "");
-  if (contentIndex[nameWithoutExt]) {
-    return contentIndex[nameWithoutExt];
+  const slugCandidate = slugifyPath(nameWithoutExt);
+  if (contentIndex[slugCandidate]) {
+    return contentIndex[slugCandidate];
   }
 
   // Try searching by filePath
@@ -175,24 +177,26 @@ export function findNoteByPath(
 
   // Remove .md extension
   const pathWithoutExt = canvasPath.replace(/\.md$/, "");
+  const slugCandidate = slugifyPath(pathWithoutExt);
 
   // Try direct slug match
-  let note = allNotes.find((n) => n.slug === pathWithoutExt);
+  let note = allNotes.find((n) => n.slug === slugCandidate);
   if (note) return note;
 
   // Try filename match (last part of path)
   const filename = canvasPath.split("/").pop()?.replace(/\.md$/, "");
   if (filename) {
-    note = allNotes.find((n) => n.id.includes(filename));
+    const filenameSlug = slugifyPath(filename);
+    note = allNotes.find(
+      (n) => n.slug === filenameSlug || n.slug.endsWith(`/${filenameSlug}`),
+    );
     if (note) return note;
   }
 
   // Try fuzzy match on path
   note = allNotes.find((n) => {
-    const notePath = n.id.replace(/\.md$/, "");
-    return (
-      notePath.endsWith(pathWithoutExt) || pathWithoutExt.endsWith(notePath)
-    );
+    const notePath = n.slug.replace(/\.md$/, "");
+    return notePath.endsWith(slugCandidate) || slugCandidate.endsWith(notePath);
   });
 
   return note || null;

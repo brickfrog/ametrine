@@ -3,7 +3,7 @@ import { getPublishedNotes, type Note } from '../utils/filterNotes';
 import { extractExternalLinks, groupLinksByDomain } from '../utils/extractExternalLinks';
 import { findRelatedNotes } from '../utils/findRelatedNotes';
 import { getCitedBibliography } from '../utils/parseBibliography';
-import { slugifyPath } from '../utils/slugify';
+import { buildSlugLookup, extractWikilinkTargets } from '../utils/wikilinks';
 import { config } from '../config';
 
 interface Props {
@@ -15,6 +15,7 @@ const { note, slug } = Astro.props;
 
 // Get all notes for backlinks and related notes
 const allNotes = await getPublishedNotes();
+const slugLookup = buildSlugLookup(allNotes.map((note) => note.slug));
 
 // Get cited bibliography entries
 const bibliographyEntries = config.citations?.enable
@@ -29,31 +30,8 @@ const externalLinks = await extractExternalLinks(
 );
 const groupedLinks = groupLinksByDomain(externalLinks);
 
-// Find backlinks
-const wikilinkRegex = /!?\[\[([^[\]|#\\]+)?(#+[^[\]|#\\]+)?(\\?\|[^[\]#]*)?\]\]/g;
-
-function extractWikilinks(content: string): string[] {
-  const links: string[] = [];
-
-  if (!content) return links;
-
-  const matches = content.matchAll(wikilinkRegex);
-  for (const match of matches) {
-    const [_full, rawFp] = match;
-    if (rawFp) {
-      const pageName = rawFp.split('#')[0].trim();
-      if (pageName) {
-        const linkSlug = slugifyPath(pageName);
-        links.push(linkSlug);
-      }
-    }
-  }
-
-  return [...new Set(links)];
-}
-
 const backlinks = allNotes.filter((n) => {
-  const links = extractWikilinks(n.body || "");
+  const links = extractWikilinkTargets(n.body || "", slugLookup);
   return links.includes(slug) && n.slug !== slug;
 });
 

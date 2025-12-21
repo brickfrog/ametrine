@@ -10,12 +10,13 @@ import type { FileProperties, FunctionRegistry } from "./types";
  * Includes nested tags (e.g., hasTag("parent") matches "parent/child")
  */
 export function fileHasTag(file: FileProperties, tag: string): boolean {
-  if (!file.tags || file.tags.length === 0) return false;
+  const tags = normalizeList<string>(file.tags);
+  if (tags.length === 0) return false;
 
   // Normalize tag (remove # if present)
   const normalizedTag = tag.startsWith("#") ? tag.slice(1) : tag;
 
-  return file.tags.some((t) => {
+  return tags.some((t) => {
     const normalizedFileTag = t.startsWith("#") ? t.slice(1) : t;
     // Exact match or nested tag match
     return (
@@ -60,12 +61,13 @@ export function fileHasProperty(
  * linkPath can be a slug or file path
  */
 export function fileHasLink(file: FileProperties, linkPath: string): boolean {
-  if (!file.links || file.links.length === 0) return false;
+  const links = normalizeList<string>(file.links);
+  if (links.length === 0) return false;
 
   // Normalize link path (remove .md extension if present)
   const normalizedLink = linkPath.replace(/\.md$/, "");
 
-  return file.links.some((link) => {
+  return links.some((link) => {
     const normalizedFileLink = link.replace(/\.md$/, "");
     return (
       normalizedFileLink === normalizedLink ||
@@ -176,6 +178,15 @@ export const builtinFunctions: FunctionRegistry = {
   now: now,
   today: today,
 };
+
+function normalizeList<T>(value: unknown): T[] {
+  if (!value) return [];
+  if (Array.isArray(value)) return value as T[];
+  if (typeof (value as Iterable<T>)[Symbol.iterator] === "function") {
+    return Array.from(value as Iterable<T>);
+  }
+  return [];
+}
 
 /**
  * Helper to check if a value is truthy (for filter expressions)

@@ -2,6 +2,7 @@ import { findAndReplace } from "mdast-util-find-and-replace";
 import type { Root } from "mdast";
 import type { VFile } from "vfile";
 import { slugifyPath } from "../utils/slugify";
+import { resolveWikilinkTarget } from "../utils/wikilinks";
 import { marked } from "marked";
 
 // Global type augmentation for slug map and content map
@@ -76,7 +77,10 @@ function mediaPathToUrl(path: string): string {
  * Pre-process wikilinks in content for use with marked
  * Converts embeds to HTML and links to markdown links
  */
-function preprocessWikilinks(content: string): string {
+function preprocessWikilinks(
+  content: string,
+  slugLookup: Map<string, string>,
+): string {
   // Use a fresh regex to avoid global state issues
   const regex = /!?\[\[([^[\]|#\\]+)?(#+[^[\]|#\\]+)?(\\?\|[^[\]#]*)?\]\]/g;
 
@@ -111,13 +115,13 @@ function preprocessWikilinks(content: string): string {
         return `<iframe src="${escapeHtml(url)}" class="embed-pdf"></iframe>`;
       }
       // Note embeds in transcluded content - just show as link to avoid infinite recursion
-      const slug = slugify(fp);
-      return `<a href="/${escapeHtml(slug)}${escapeHtml(anchor)}" class="internal-link">${escapeHtml(displayText)}</a>`;
+      const resolved = resolveWikilinkTarget(fp, slugLookup) || slugify(fp);
+      return `<a href="/${escapeHtml(resolved)}${escapeHtml(anchor)}" class="internal-link">${escapeHtml(displayText)}</a>`;
     }
 
     // Regular links
-    const slug = slugify(fp);
-    return `[${displayText}](/${slug}${anchor})`;
+    const resolved = resolveWikilinkTarget(fp, slugLookup) || slugify(fp);
+    return `[${displayText}](/${resolved}${anchor})`;
   });
 }
 
@@ -329,7 +333,10 @@ export function wikilinks(options: WikilinkOptions = {}) {
                 }
 
                 // Pre-process wikilinks in the content before marked
-                const processedContent = preprocessWikilinks(contentToEmbed);
+                const processedContent = preprocessWikilinks(
+                  contentToEmbed,
+                  localSlugMap,
+                );
 
                 // Convert markdown to HTML using marked
                 const renderedHtml = marked.parse(processedContent, {

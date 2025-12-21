@@ -9,8 +9,9 @@ import { parse as parseYaml } from 'yaml';
 import type { CanvasData } from '../../pages/static/contentIndex.json';
 import { findNoteByPath, isImageExtension } from '../../utils/canvas';
 import { config } from '../../config';
-import { imageMap } from '../../utils/imageMap';
+import { getImageFromPath } from '../../utils/imageMap';
 import { getImage } from 'astro:assets';
+import { slugifyPath } from '../../utils/slugify';
 
 export async function getStaticPaths() {
   // Check if canvas feature is enabled
@@ -43,7 +44,7 @@ export async function getStaticPaths() {
   const canvasFiles = await scanForCanvasFiles(vaultPath);
 
   const paths = canvasFiles.map(({ file, relativePath }) => {
-    const canvasName = relativePath.replace(/\.canvas$/, '').toLowerCase();
+    const canvasName = slugifyPath(relativePath.replace(/\.canvas$/, ''));
 
     return {
       params: {
@@ -113,21 +114,20 @@ for (const node of canvasData.nodes || []) {
     }
   } else if (isImageExtension(filePath)) {
     // Image file - get optimized image from imageMap
-    const fileName = filePath.split('/').pop() || filePath;
-    const nameWithoutExt = fileName.replace(/\.[^.]+$/, '');
     let optimizedSrc = '';
 
-    // Look up the image in imageMap (which now includes subdirectories)
-    const imageMetadata = imageMap.get(fileName);
+    // Look up the image in imageMap (path-aware, basename fallback for uniques)
+    const imageMetadata = getImageFromPath(filePath);
 
     if (imageMetadata) {
       // Get optimized image src
       const optimizedImage = await getImage({ src: imageMetadata });
       optimizedSrc = optimizedImage.src;
     } else {
-      console.warn(`Image ${fileName} not found in imageMap, using image route fallback`);
+      console.warn(`Image ${filePath} not found in imageMap, using image route fallback`);
       // Fallback to image route URL
-      optimizedSrc = `${import.meta.env.BASE_URL}/image/${nameWithoutExt}`;
+      const imageSlug = slugifyPath(filePath.replace(/\.[^.]+$/, ''));
+      optimizedSrc = `${import.meta.env.BASE_URL}/image/${imageSlug}`;
     }
 
     fileData[node.id] = {

@@ -152,7 +152,7 @@ function isUnhelpfulLinkText(text: string | undefined): boolean {
  */
 async function enrichLinksWithMetadata(
   links: ExternalLink[],
-  _maxConcurrent: number = 5,
+  maxConcurrent: number = 5,
 ): Promise<void> {
   // Filter links that need metadata (unhelpful title or no title, and not from bibliography)
   const linksToEnrich = links.filter(
@@ -167,27 +167,28 @@ async function enrichLinksWithMetadata(
     `Fetching metadata for ${linksToEnrich.length} external links...`,
   );
 
-  // Batch requests with concurrency limit
-  const results = await Promise.allSettled(
-    linksToEnrich.map((link) =>
-      getOrFetchMetadata(link.url, fetchMetadata).then((metadata) => ({
-        link,
-        metadata,
-      })),
-    ),
-  );
-
-  // Apply fetched metadata to links
   let successCount = 0;
-  for (const result of results) {
-    if (result.status === "fulfilled" && result.value.metadata) {
-      const { link, metadata } = result.value;
-      if (metadata.title) {
-        link.title = metadata.title;
-        successCount++;
-      }
-      if (metadata.author) {
-        link.author = metadata.author;
+  for (let i = 0; i < linksToEnrich.length; i += maxConcurrent) {
+    const batch = linksToEnrich.slice(i, i + maxConcurrent);
+    const results = await Promise.allSettled(
+      batch.map((link) =>
+        getOrFetchMetadata(link.url, fetchMetadata).then((metadata) => ({
+          link,
+          metadata,
+        })),
+      ),
+    );
+
+    for (const result of results) {
+      if (result.status === "fulfilled" && result.value.metadata) {
+        const { link, metadata } = result.value;
+        if (metadata.title) {
+          link.title = metadata.title;
+          successCount++;
+        }
+        if (metadata.author) {
+          link.author = metadata.author;
+        }
       }
     }
   }

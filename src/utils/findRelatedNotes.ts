@@ -1,36 +1,11 @@
 import type { Note } from "./filterNotes";
 import { getFolderPath } from "./folderUtils";
+import { buildSlugLookup, extractWikilinkTargets } from "./wikilinks";
 
 export interface RelatedNote {
   note: Note;
   score: number;
   reason: string;
-}
-
-/**
- * Extract wikilink targets from markdown content
- */
-function extractWikilinks(content: string): Set<string> {
-  const links = new Set<string>();
-  if (!content) return links;
-
-  const wikilinkRegex =
-    /!?\[\[([^[\]|#\\]+)?(#+[^[\]|#\\]+)?(\\?\|[^[\]#]*)?\]\]/g;
-  const matches = content.matchAll(wikilinkRegex);
-
-  for (const match of matches) {
-    const [_full, rawFp] = match;
-    if (rawFp) {
-      const pageName = rawFp.split("#")[0].trim();
-      if (pageName) {
-        // Simple slug conversion - convert to lowercase and replace spaces
-        const slug = pageName.toLowerCase().replace(/\s+/g, "-");
-        links.add(slug);
-      }
-    }
-  }
-
-  return links;
 }
 
 /**
@@ -114,12 +89,16 @@ export function findRelatedNotes(
   allNotes: Note[],
   limit: number = 10,
 ): RelatedNote[] {
+  const slugLookup = buildSlugLookup(allNotes.map((note) => note.slug));
+
   // Calculate tag weights (IDF)
   const tagWeights = calculateTagWeights(allNotes);
 
   const currentTags = new Set(currentNote.data.tags || []);
   const currentFolder = getFolderPath(currentNote.slug);
-  const currentLinks = extractWikilinks(currentNote.body || "");
+  const currentLinks = new Set(
+    extractWikilinkTargets(currentNote.body || "", slugLookup),
+  );
 
   // Phase 1: Build candidate list with metadata scores
   const candidates = new Map<
@@ -166,7 +145,9 @@ export function findRelatedNotes(
     }
 
     // Score by bidirectional backlinks (strongest signal)
-    const noteLinks = extractWikilinks(note.body || "");
+    const noteLinks = new Set(
+      extractWikilinkTargets(note.body || "", slugLookup),
+    );
     const currentLinksToNote =
       currentLinks.has(note.slug) || currentLinks.has(note.id);
     const noteLinksToCurrentNote =

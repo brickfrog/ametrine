@@ -1,5 +1,6 @@
 ---
 import type { BaseView } from '../../utils/bases/types';
+import { slugifyPath } from '../../utils/slugify';
 
 interface Props {
   views: BaseView[];
@@ -38,7 +39,7 @@ function getViewTypeIcon(type: string) {
   {hasMultipleViews && (
     <div class="view-dropdown hidden" role="menu">
       {views.map(view => {
-        const viewSlug = view.name.toLowerCase().replace(/\s+/g, '-');
+        const viewSlug = slugifyPath(view.name);
         const isActive = view.name === currentView.name;
 
         return (

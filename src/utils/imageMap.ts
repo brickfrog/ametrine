@@ -13,7 +13,8 @@ const allImages = import.meta.glob<{ default: ImageMetadata }>(
 
 // Filter images to only include those from the configured vault
 const images: Record<string, { default: ImageMetadata }> = {};
-const vaultPath = `/src/content/${config.vaultName}/`;
+const vaultName = config.vaultName || "vault";
+const vaultPath = `/src/content/${vaultName}/`;
 
 for (const [path, module] of Object.entries(allImages)) {
   if (path.startsWith(vaultPath)) {
@@ -21,14 +22,46 @@ for (const [path, module] of Object.entries(allImages)) {
   }
 }
 
-// Create a map of filename -> ImageMetadata
+// Create a map of relative path -> ImageMetadata (and unique filename fallback)
 export const imageMap = new Map<string, ImageMetadata>();
+const filenameCounts = new Map<string, number>();
+const entries: Array<{
+  relativePath: string;
+  fileName: string;
+  metadata: ImageMetadata;
+}> = [];
 
 for (const [path, module] of Object.entries(images)) {
-  const fileName = path.split("/").pop();
-  if (fileName) {
-    imageMap.set(fileName, module.default);
+  const relativePath = path.slice(vaultPath.length);
+  const fileName = relativePath.split("/").pop();
+  if (!fileName) continue;
+
+  entries.push({ relativePath, fileName, metadata: module.default });
+  filenameCounts.set(fileName, (filenameCounts.get(fileName) || 0) + 1);
+}
+
+for (const entry of entries) {
+  imageMap.set(entry.relativePath, entry.metadata);
+  if (filenameCounts.get(entry.fileName) === 1) {
+    imageMap.set(entry.fileName, entry.metadata);
   }
+}
+
+function normalizePath(path: string): string {
+  let normalized = path
+    .replace(/\\/g, "/")
+    .replace(/^\.?\//, "")
+    .replace(/^\/+/, "");
+  const vaultPrefix = `src/content/${vaultName}/`;
+  if (normalized.startsWith(vaultPrefix)) {
+    normalized = normalized.slice(vaultPrefix.length);
+  }
+  return normalized;
+}
+
+export function getImageFromPath(filePath: string): ImageMetadata | null {
+  const normalized = normalizePath(filePath);
+  return imageMap.get(normalized) || null;
 }
 
 /**
@@ -37,9 +70,10 @@ for (const [path, module] of Object.entries(images)) {
  * @returns ImageMetadata or null if not found
  */
 export function getImageFromWikilink(wikilink: string): ImageMetadata | null {
-  // Extract filename from wikilink syntax
   const match = wikilink.match(/^\[\[(.+?)\]\]$/);
-  const fileName = match ? match[1] : wikilink;
+  const rawValue = match ? match[1] : wikilink;
+  const rawPath = rawValue.split("|")[0]?.split("#")[0]?.trim();
+  if (!rawPath) return null;
 
-  return imageMap.get(fileName) || null;
+  return getImageFromPath(rawPath);
 }

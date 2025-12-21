@@ -24,6 +24,8 @@ export const getStaticPaths: GetStaticPaths = async () => {
     return [];
   }
 
+  const vaultName = config.vaultName || "vault";
+
   // Import all media files from content directory
   const allMediaFiles = import.meta.glob<{ default: string }>(
     "/src/content/**/*.{png,jpg,jpeg,gif,webp,svg,avif,mp4,webm,mp3,wav,ogg,pdf}",
@@ -31,7 +33,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
   );
 
   // Filter to only include files from the configured vault
-  const vaultPath = `/src/content/${config.vaultName}/`;
+  const vaultPath = `/src/content/${vaultName}/`;
   const mediaFiles: Record<string, () => Promise<{ default: string }>> = {};
 
   for (const [path, loader] of Object.entries(allMediaFiles)) {
@@ -40,21 +42,53 @@ export const getStaticPaths: GetStaticPaths = async () => {
     }
   }
 
-  const paths = await Promise.all(
-    Object.keys(mediaFiles).map(async (filePath) => {
-      // Use just the filename for the route (Obsidian-style resolution)
-      const filename = filePath.split("/").pop() || "";
-      const extension = filename.split(".").pop()?.toLowerCase() || "";
+  const entries = Object.keys(mediaFiles).map((filePath) => {
+    const relativePath = filePath.slice(vaultPath.length);
+    const filename = relativePath.split("/").pop() || "";
+    const extension = filename.split(".").pop()?.toLowerCase() || "";
 
-      return {
-        params: { path: filename },
+    return {
+      filePath,
+      relativePath,
+      filename,
+      contentType: CONTENT_TYPES[extension] || "application/octet-stream",
+    };
+  });
+
+  const filenameCounts = new Map<string, number>();
+  for (const entry of entries) {
+    filenameCounts.set(
+      entry.filename,
+      (filenameCounts.get(entry.filename) || 0) + 1,
+    );
+  }
+
+  const paths = entries.flatMap((entry) => {
+    const pathEntries = [
+      {
+        params: { path: entry.relativePath },
         props: {
-          filePath,
-          contentType: CONTENT_TYPES[extension] || "application/octet-stream",
+          filePath: entry.filePath,
+          contentType: entry.contentType,
         },
-      };
-    }),
-  );
+      },
+    ];
+
+    if (
+      entry.relativePath !== entry.filename &&
+      filenameCounts.get(entry.filename) === 1
+    ) {
+      pathEntries.push({
+        params: { path: entry.filename },
+        props: {
+          filePath: entry.filePath,
+          contentType: entry.contentType,
+        },
+      });
+    }
+
+    return pathEntries;
+  });
 
   return paths;
 };

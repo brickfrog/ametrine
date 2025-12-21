@@ -1,11 +1,12 @@
 import { getPublishedNotes } from "../../utils/filterNotes";
 import type { APIRoute } from "astro";
-import GithubSlugger from "github-slugger";
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { parse as parseYaml } from "yaml";
 import { config } from "../../config";
 import { logger } from "../../utils/logger";
+import { slugifyPath } from "../../utils/slugify";
+import { buildSlugLookup, extractWikilinkTargets } from "../../utils/wikilinks";
 
 export interface CanvasNode {
   id: string;
@@ -59,46 +60,9 @@ export interface ContentDetails {
 
 export type ContentIndexMap = Record<string, ContentDetails>;
 
-// Wikilink regex from our plugin
-const wikilinkRegex =
+// Wikilink regex for excerpt cleanup
+const WIKILINK_REGEX =
   /!?\[\[([^[\]|#\\]+)?(#+[^[\]|#\\]+)?(\\?\|[^[\]#]*)?\]\]/g;
-
-/**
- * Extract wikilink targets from markdown content and resolve to full slugs
- */
-function extractLinks(
-  content: string,
-  slugLookup: Map<string, string>,
-): string[] {
-  const links: string[] = [];
-
-  // Handle undefined or null content
-  if (!content) return links;
-
-  // Create fresh slugger to avoid state pollution
-  const slugger = new GithubSlugger();
-
-  // Find all wikilinks
-  const matches = content.matchAll(wikilinkRegex);
-
-  for (const match of matches) {
-    const [_full, rawFp] = match;
-    if (rawFp) {
-      // Split off anchor if present
-      const pageName = rawFp.split("#")[0].trim();
-      if (pageName) {
-        // Slugify the page name with fresh slugger
-        const slug = slugger.slug(pageName);
-
-        // Try to resolve to full slug using lookup
-        const fullSlug = slugLookup.get(slug) || slug;
-        links.push(fullSlug);
-      }
-    }
-  }
-
-  return [...new Set(links)]; // Dedupe
-}
 
 /**
  * Create a plain text excerpt from markdown content
@@ -118,7 +82,7 @@ function createExcerpt(content: string, maxLength: number = 300): string {
     .replace(/_(.+?)_/g, "$1") // Italic underscore
     .replace(/`(.+?)`/g, "$1") // Inline code
     .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1") // Links
-    .replace(wikilinkRegex, (_, fp) => fp || "") // Wikilinks
+    .replace(WIKILINK_REGEX, (_, fp) => fp || "") // Wikilinks
     .replace(/!\[([^\]]*)\]\([^)]+\)/g, "") // Images
     .replace(/^[-*+]\s+/gm, "") // List markers
     .replace(/^\d+\.\s+/gm, "") // Numbered lists
@@ -143,6 +107,7 @@ export async function buildContentIndex(): Promise<ContentIndexMap> {
   // Get all published notes from content collection
   const notes = await getPublishedNotes();
   const vaultName = config.vaultName || "vault";
+  const slugLookup = buildSlugLookup(notes.map((note) => note.slug));
 
   // Build content index (first pass - without links)
   const contentIndex: ContentIndexMap = {};
@@ -187,19 +152,19 @@ export async function buildContentIndex(): Promise<ContentIndexMap> {
       } else if (entry.isFile() && !entry.name.startsWith(".")) {
         // Handle base files
         if (entry.name.endsWith(".base")) {
-          const slug = relativePath.replace(/\.base$/, "").toLowerCase();
+          const slug = slugifyPath(relativePath.replace(/\.base$/, ""));
           const content = await readFile(fullPath, "utf-8");
           const baseData = parseYaml(content);
           const firstView = baseData.views?.[0];
           const firstViewSlug = firstView?.name
-            .toLowerCase()
-            .replace(/\s+/g, "-");
+            ? slugifyPath(firstView.name)
+            : undefined;
 
           contentIndex[slug] = {
             slug,
             title: entry.name.replace(/\.base$/, ""),
             filePath: `content/${vaultName}/${relativePath}`,
-            links: [`base/${slug}/${firstViewSlug}`],
+            links: firstViewSlug ? [`base/${slug}/${firstViewSlug}`] : [],
             tags: [],
             content,
             excerpt: `Base: ${entry.name.replace(/\.base$/, "")}`,
@@ -213,7 +178,7 @@ export async function buildContentIndex(): Promise<ContentIndexMap> {
           )
         ) {
           const extension = entry.name.split(".").pop()?.toUpperCase() || "";
-          const slug = relativePath.replace(/\.[^.]+$/, "").toLowerCase();
+          const slug = slugifyPath(relativePath.replace(/\.[^.]+$/, ""));
 
           contentIndex[slug] = {
             slug,
@@ -229,7 +194,7 @@ export async function buildContentIndex(): Promise<ContentIndexMap> {
         }
         // Handle canvas files
         else if (entry.name.endsWith(".canvas")) {
-          const slug = relativePath.replace(/\.canvas$/, "").toLowerCase();
+          const slug = slugifyPath(relativePath.replace(/\.canvas$/, ""));
           const content = await readFile(fullPath, "utf-8");
 
           try {
@@ -257,22 +222,6 @@ export async function buildContentIndex(): Promise<ContentIndexMap> {
   }
 
   await scanDirectory(vaultPath);
-
-  // Build slug lookup map: filename -> full slug
-  const slugLookup = new Map<string, string>();
-
-  for (const [slug, _entry] of Object.entries(contentIndex)) {
-    // Extract filename (last segment of slug)
-    const filename = slug.split("/").pop() || slug;
-
-    // If duplicate filename exists, skip (can't resolve unambiguously)
-    if (slugLookup.has(filename) && slugLookup.get(filename) !== slug) {
-      // Duplicate detected, remove from map to avoid incorrect resolution
-      slugLookup.delete(filename);
-    } else {
-      slugLookup.set(filename, slug);
-    }
-  }
 
   // Build set of all unique tags
   const allTags = new Set<string>();
@@ -309,7 +258,7 @@ export async function buildContentIndex(): Promise<ContentIndexMap> {
 
     // Add wikilink targets
     if (entry.content) {
-      const wikilinks = extractLinks(entry.content, slugLookup);
+      const wikilinks = extractWikilinkTargets(entry.content, slugLookup);
       wikilinks.forEach((link) => allLinks.add(link));
     }
 

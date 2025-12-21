@@ -5,8 +5,12 @@ import { join, relative, basename } from "node:path";
 import { load as yamlLoad } from "js-yaml";
 import { config } from "../config.ts";
 import { slugifyPath } from "../utils/slugify";
-import { buildSlugMap } from "../utils/slugMap";
+import { buildSlugMap, slugMap } from "../utils/slugMap";
 import { resolveDates } from "../utils/resolveDates";
+import {
+  extractWikilinkTargets,
+  resolveWikilinkTarget,
+} from "../utils/wikilinks";
 import {
   parseNotebook,
   extractFrontmatter,
@@ -26,7 +30,10 @@ function extractTransclusions(body: string): string[] {
   while ((match = regex.exec(body)) !== null) {
     const target = match[1]?.trim();
     if (target && !MEDIA_EXTENSIONS.test(target)) {
-      results.push(slugifyPath(target));
+      const resolved = resolveWikilinkTarget(target, slugMap);
+      if (resolved) {
+        results.push(resolved);
+      }
     }
   }
   return results;
@@ -95,22 +102,7 @@ async function processMarkdownFile(
 
     // Extract wikilinks from body and add to data.links if not already in frontmatter
     if (!data.links || (Array.isArray(data.links) && data.links.length === 0)) {
-      const wikilinkRegex =
-        /!?\[\[([^[\]|#\\]+)?(#+[^[\]|#\\]+)?(\\?\|[^[\]#]*)?\]\]/g;
-      const extractedLinks: string[] = [];
-      let match;
-      while ((match = wikilinkRegex.exec(body)) !== null) {
-        const rawFp = match[1];
-        if (rawFp) {
-          const pageName = rawFp.split("#")[0].trim();
-          if (pageName) {
-            // Convert to slugified path (handles both "Page Name" and "Folder/Page Name")
-            const slug = slugifyPath(pageName);
-            extractedLinks.push(slug);
-          }
-        }
-      }
-      data.links = [...new Set(extractedLinks)]; // Dedupe
+      data.links = extractWikilinkTargets(body, slugMap);
     }
 
     // Remove file:// and zotero:// links from body
@@ -202,7 +194,7 @@ async function processNotebookFile(
     }
 
     // Extract wikilinks from markdown cells
-    data.links = extractNotebookLinks(notebook);
+    data.links = extractNotebookLinks(notebook, slugMap);
 
     // Resolve dates from frontmatter > git > filesystem
     const resolvedDates = await resolveDates({
