@@ -4,6 +4,8 @@ interface Props {
   variant?: 'sidebar' | 'inline';
 }
 
+import { normalizeTag, tagToSlug } from '../utils/tags';
+
 const { tags, variant = 'sidebar' } = Astro.props;
 
 // Don't render if no tags
@@ -18,10 +20,10 @@ const isSidebar = variant === 'sidebar';
     <div class="flex flex-wrap gap-2">
       {tags.map((tag) => (
         <a
-          href={`${import.meta.env.BASE_URL}/tags/${tag}`}
+          href={`${import.meta.env.BASE_URL}/tags/${tagToSlug(tag)}`}
           class="px-3 py-2 text-xs rounded bg-theme-highlight text-theme-secondary hover:bg-theme-gray transition-colors"
         >
-          #{tag}
+          #{normalizeTag(tag)}
         </a>
       ))}
     </div>
@@ -30,10 +32,10 @@ const isSidebar = variant === 'sidebar';
   <div class="inline-tags flex flex-wrap gap-2 items-center">
     {tags.map((tag) => (
       <a
-        href={`${import.meta.env.BASE_URL}/tags/${tag}`}
+        href={`${import.meta.env.BASE_URL}/tags/${tagToSlug(tag)}`}
         class="px-3 py-2 text-xs rounded bg-theme-highlight text-theme-secondary hover:bg-theme-gray transition-colors"
       >
-        #{tag}
+        #{normalizeTag(tag)}
       </a>
     ))}
   </div>

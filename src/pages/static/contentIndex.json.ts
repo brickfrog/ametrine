@@ -7,6 +7,8 @@ import { config } from "../../config";
 import { logger } from "../../utils/logger";
 import { slugifyPath } from "../../utils/slugify";
 import { buildSlugLookup, extractWikilinkTargets } from "../../utils/wikilinks";
+import { tagToSlug } from "../../utils/tags";
+import { getMarkdownCellsContent, parseNotebook } from "../../utils/notebook";
 
 export interface CanvasNode {
   id: string;
@@ -103,7 +105,10 @@ function createExcerpt(content: string, maxLength: number = 300): string {
  * Build the complete content index from all vault content
  * This is exported so it can be used by both the API route and other components
  */
-export async function buildContentIndex(): Promise<ContentIndexMap> {
+export async function buildContentIndex(
+  options: { includeContent?: boolean } = {},
+): Promise<ContentIndexMap> {
+  const { includeContent = true } = options;
   // Get all published notes from content collection
   const notes = await getPublishedNotes();
   const vaultName = config.vaultName || "vault";
@@ -113,8 +118,23 @@ export async function buildContentIndex(): Promise<ContentIndexMap> {
   const contentIndex: ContentIndexMap = {};
 
   for (const note of notes) {
+    const isNotebook = note.data.type === "notebook";
+    let noteContent = note.body || "";
+
+    if (isNotebook && noteContent) {
+      try {
+        const notebook = parseNotebook(noteContent);
+        noteContent = getMarkdownCellsContent(notebook).join("\n");
+      } catch (error) {
+        logger.warn(
+          `Failed to parse notebook content for ${note.slug}:`,
+          error,
+        );
+      }
+    }
+
     // Create excerpt
-    const excerpt = createExcerpt(note.body || "");
+    const excerpt = createExcerpt(noteContent);
 
     contentIndex[note.slug] = {
       slug: note.slug,
@@ -122,7 +142,7 @@ export async function buildContentIndex(): Promise<ContentIndexMap> {
       filePath: `content/${vaultName}/${note.id}`,
       links: [], // Will populate in second pass
       tags: Array.isArray(note.data.tags) ? note.data.tags : [],
-      content: note.body || "",
+      content: includeContent ? noteContent : "",
       description: note.data.description,
       author: Array.isArray(note.data.author)
         ? note.data.author[0]
@@ -130,7 +150,7 @@ export async function buildContentIndex(): Promise<ContentIndexMap> {
       date: note.data.created?.toISOString(),
       updated: note.data.modified?.toISOString(),
       excerpt,
-      type: note.data.type === "notebook" ? "notebook" : "note",
+      type: isNotebook ? "notebook" : "note",
     };
   }
 
@@ -166,7 +186,7 @@ export async function buildContentIndex(): Promise<ContentIndexMap> {
             filePath: `content/${vaultName}/${relativePath}`,
             links: firstViewSlug ? [`base/${slug}/${firstViewSlug}`] : [],
             tags: [],
-            content,
+            content: includeContent ? content : "",
             excerpt: `Base: ${entry.name.replace(/\.base$/, "")}`,
             type: "base",
           };
@@ -208,7 +228,7 @@ export async function buildContentIndex(): Promise<ContentIndexMap> {
               filePath: `content/${vaultName}/${relativePath}`,
               links: [`canvas/${slug}`],
               tags: [],
-              content,
+              content: includeContent ? content : "",
               excerpt: `Canvas: ${nodeCount} nodes, ${edgeCount} edges`,
               type: "canvas",
               canvasData,
@@ -236,7 +256,7 @@ export async function buildContentIndex(): Promise<ContentIndexMap> {
 
   // Add tag nodes to contentIndex
   for (const tag of allTags) {
-    const tagSlug = `tags/${tag}`;
+    const tagSlug = `tags/${tagToSlug(tag)}`;
     contentIndex[tagSlug] = {
       slug: tagSlug,
       title: tag,
@@ -265,7 +285,7 @@ export async function buildContentIndex(): Promise<ContentIndexMap> {
     // Add connections from notes to their tags
     if (entry.tags) {
       for (const tag of entry.tags) {
-        const tagSlug = `tags/${tag}`;
+        const tagSlug = `tags/${tagToSlug(tag)}`;
         allLinks.add(tagSlug);
       }
     }
@@ -277,7 +297,7 @@ export async function buildContentIndex(): Promise<ContentIndexMap> {
 }
 
 export const GET: APIRoute = async () => {
-  const contentIndex = await buildContentIndex();
+  const contentIndex = await buildContentIndex({ includeContent: false });
 
   return new Response(JSON.stringify(contentIndex, null, 2), {
     headers: {

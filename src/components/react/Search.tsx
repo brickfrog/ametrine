@@ -4,7 +4,8 @@ import { createPortal } from "react-dom";
 import ReactMarkdown from "react-markdown";
 import { UI, TIMING } from "../../constants/spacing";
 import { logger } from "../../utils/logger";
-import { fetchContentIndex } from "../../utils/fetchContentIndex";
+import { normalizeTag } from "../../utils/tags";
+import { fetchSearchIndex } from "../../utils/fetchSearchIndex";
 
 export interface ContentDetails {
   slug: string;
@@ -85,7 +86,8 @@ export function Search() {
 
         // Use cache if fresh
         if (age < CACHE_TTL_MS && data?.length > 0) {
-          setSearchableNotes(data);
+          const hasPrecomputed = typeof data[0]?._contentLower === "string";
+          setSearchableNotes(hasPrecomputed ? data : preprocessNotes(data));
           return;
         }
       } catch {
@@ -94,21 +96,20 @@ export function Search() {
     }
 
     // Fetch using shared utility
-    fetchContentIndex()
+    fetchSearchIndex()
       .then((data: Record<string, ContentDetails>) => {
         const notes = Object.values(data);
-        const preprocessed = preprocessNotes(notes);
 
-        // Cache with timestamp
+        // Cache raw notes with timestamp (avoid duplicating full-text fields)
         localStorage.setItem(
           "search-notes-cache",
           JSON.stringify({
-            data: preprocessed,
+            data: notes,
             timestamp: Date.now(),
           }),
         );
 
-        setSearchableNotes(preprocessed);
+        setSearchableNotes(preprocessNotes(notes));
       })
       .catch((err) => logger.error("Failed to load content index:", err));
   }, []);
@@ -338,7 +339,7 @@ export function Search() {
                         key={tag}
                         className="text-xs px-2 py-1 rounded bg-theme-highlight text-theme-secondary"
                       >
-                        #{tag}
+                        #{normalizeTag(tag)}
                       </span>
                     ))}
                   </div>

@@ -17,6 +17,34 @@ interface PanelState {
   size?: { w: number; h: number };
 }
 
+function sanitizePreviewHtml(html: string): string {
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  const container = doc.body;
+
+  const forbidden = container.querySelectorAll(
+    "script, style, iframe, object, embed, link, meta, base",
+  );
+  forbidden.forEach((node) => node.remove());
+
+  container.querySelectorAll("*").forEach((node) => {
+    for (const attr of Array.from(node.attributes)) {
+      const name = attr.name.toLowerCase();
+      const value = attr.value.trim().toLowerCase();
+      if (name.startsWith("on")) {
+        node.removeAttribute(attr.name);
+      }
+      if (
+        (name === "href" || name === "src") &&
+        value.startsWith("javascript:")
+      ) {
+        node.removeAttribute(attr.name);
+      }
+    }
+  });
+
+  return container.innerHTML;
+}
+
 export function LinkPreviewManager() {
   const [contentIndex, setContentIndex] = useState<Record<
     string,
@@ -133,7 +161,7 @@ export function LinkPreviewManager() {
               // Extract article content
               const article = doc.querySelector("article");
               if (article) {
-                htmlContent = article.innerHTML;
+                htmlContent = sanitizePreviewHtml(article.innerHTML);
 
                 // Cache if enabled
                 if (config.popover?.cacheContent) {

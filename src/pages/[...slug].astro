@@ -17,6 +17,7 @@ import {
 } from '../utils/folders';
 import { config } from '../config';
 import { slugifyPath } from '../utils/slugify';
+import { normalizeTag, tagToSlug } from '../utils/tags';
 
 export async function getStaticPaths() {
   const notes = await getPublishedNotes();
@@ -173,10 +174,10 @@ function formatDate(date: Date | undefined) {
                           {note.data.tags.map((tag: string) => (
                             <li class="list-none">
                               <a
-                                href={`${import.meta.env.BASE_URL}/tags/${tag}`}
+                                href={`${import.meta.env.BASE_URL}/tags/${tagToSlug(tag)}`}
                                 class="px-2 py-1 text-xs rounded bg-theme-highlight text-theme-secondary hover:bg-theme-gray transition-colors"
                               >
-                                #{tag}
+                                #{normalizeTag(tag)}
                               </a>
                             </li>
                           ))}

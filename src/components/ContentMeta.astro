@@ -1,6 +1,7 @@
 ---
 import * as LucideIcons from 'lucide-react';
 import { config } from '../config';
+import { normalizeTag, tagToSlug } from '../utils/tags';
 
 interface Props {
   frontmatter: Record<string, any>;
@@ -208,10 +209,10 @@ if (allFieldsToDisplay.length === 0) {
         <div class="flex flex-wrap gap-2">
           {frontmatter.tags.map((tag: string) => (
             <a
-              href={`${import.meta.env.BASE_URL}/tags/${tag}`}
+            href={`${import.meta.env.BASE_URL}/tags/${tagToSlug(tag)}`}
               class="px-2 py-1 text-xs rounded bg-theme-highlight text-theme-secondary hover:bg-theme-gray transition-colors"
             >
-              #{tag}
+              #{normalizeTag(tag)}
             </a>
           ))}
         </div>

@@ -11,7 +11,7 @@ let cachedContentIndex: ContentIndexMap | null = null;
  */
 export async function getContentIndex(): Promise<ContentIndexMap> {
   if (!cachedContentIndex) {
-    cachedContentIndex = await buildContentIndex();
+    cachedContentIndex = await buildContentIndex({ includeContent: false });
   }
   return cachedContentIndex;
 }

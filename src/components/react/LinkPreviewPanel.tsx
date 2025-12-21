@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, memo } from "react";
 import { ExternalLink, Pin, Maximize, Minimize, X } from "lucide-react";
 import { config } from "../../config";
+import { normalizeTag, tagToSlug } from "../../utils/tags";
 import { LINK_PREVIEW } from "../../constants/spacing";
 
 export interface LinkPreviewData {
@@ -328,8 +329,10 @@ export const LinkPreviewPanel = memo(function LinkPreviewPanel({
                     {tags.slice(0, 5).map((tag, i) => (
                       <span key={i}>
                         {i > 0 && ", "}
-                        <a href={`${import.meta.env.BASE_URL}/tags/${tag}`}>
-                          {tag}
+                        <a
+                          href={`${import.meta.env.BASE_URL}/tags/${tagToSlug(tag)}`}
+                        >
+                          {normalizeTag(tag)}
                         </a>
                       </span>
                     ))}

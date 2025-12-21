@@ -1,6 +1,7 @@
 ---
 import { getPublishedNotes, type Note } from '../../utils/filterNotes';
 import ContentLayout from '../../layouts/ContentLayout.astro';
+import { normalizeTag, tagToSlug } from '../../utils/tags';
 
 export async function getStaticPaths() {
   const notes = await getPublishedNotes();
@@ -18,19 +19,31 @@ export async function getStaticPaths() {
     });
   });
 
-  // Generate paths for each tag
-  return Array.from(tagMap.entries()).map(([tag, notes]) => ({
-    params: { tag: tag },
-    props: { tag, notes },
+  // Generate paths for each tag (slugified)
+  const slugMap = new Map<string, { tag: string; notes: Note[] }>();
+  for (const [tag, tagNotes] of tagMap.entries()) {
+    const tagSlug = tagToSlug(tag);
+    const existing = slugMap.get(tagSlug);
+    if (existing) {
+      existing.notes.push(...tagNotes);
+    } else {
+      slugMap.set(tagSlug, { tag, notes: [...tagNotes] });
+    }
+  }
+
+  return Array.from(slugMap.entries()).map(([tagSlug, data]) => ({
+    params: { tag: tagSlug },
+    props: { tag: data.tag, tagSlug, notes: data.notes },
   }));
 }
 
 interface Props {
   tag: string;
+  tagSlug: string;
   notes: Note[];
 }
 
-const { tag, notes } = Astro.props;
+const { tag, tagSlug, notes } = Astro.props;
 
 // Sort notes by date (newest first) then alphabetically
 const sortedNotes = notes.sort((a, b) => {
@@ -61,11 +74,11 @@ function formatDate(date: Date | undefined) {
 }
 ---
 
-<ContentLayout title={`Tag: ${tag}`} description={`Notes tagged with "${tag}"`} slug={`tags/${tag}`}>
+<ContentLayout title={`Tag: ${normalizeTag(tag)}`} description={`Notes tagged with "${normalizeTag(tag)}"`} slug={`tags/${tagSlug}`}>
   <div class="space-y-6">
     <div class="border-b border-theme-gray pb-4">
       <div class="flex items-center gap-2 mb-2">
-        <span class="text-3xl font-bold font-header text-theme-dark">#{tag}</span>
+        <span class="text-3xl font-bold font-header text-theme-dark">#{normalizeTag(tag)}</span>
       </div>
       <p class="text-theme-darkgray">
         {notes.length} {notes.length === 1 ? 'note' : 'notes'} with this tag
@@ -99,10 +112,10 @@ function formatDate(date: Date | undefined) {
                   {note.data.tags.map((noteTag: string) => (
                     <li class="list-none">
                       <a
-                        href={`${import.meta.env.BASE_URL}/tags/${noteTag}`}
+                        href={`${import.meta.env.BASE_URL}/tags/${tagToSlug(noteTag)}`}
                         class="px-2 py-1 text-xs rounded bg-theme-highlight text-theme-secondary hover:bg-theme-gray transition-colors"
                       >
-                        #{noteTag}
+                        #{normalizeTag(noteTag)}
                       </a>
                     </li>
                   ))}

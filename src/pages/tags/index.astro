@@ -1,6 +1,7 @@
 ---
 import { getPublishedNotes } from '../../utils/filterNotes';
 import ContentLayout from '../../layouts/ContentLayout.astro';
+import { normalizeTag, tagToSlug } from '../../utils/tags';
 
 const notes = await getPublishedNotes();
 
@@ -31,12 +32,12 @@ const sortedTags = Array.from(tagMap.entries()).sort((a, b) =>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {sortedTags.map(([tag, count]) => (
         <a
-          href={`${import.meta.env.BASE_URL}/tags/${tag}`}
+          href={`${import.meta.env.BASE_URL}/tags/${tagToSlug(tag)}`}
           class="block p-4 rounded-lg border border-theme-gray hover:border-theme-secondary hover:bg-theme-highlight transition-all"
         >
           <div class="flex items-center justify-between">
             <span class="text-lg font-semibold font-header text-theme-dark">
-              #{tag}
+              #{normalizeTag(tag)}
             </span>
             <span class="text-sm text-theme-darkgray">
               {count} {count === 1 ? 'note' : 'notes'}

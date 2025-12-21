@@ -6,6 +6,7 @@ import {
   type ReactNode,
 } from "react";
 import { logger } from "../utils/logger";
+import { fetchSearchIndex } from "../utils/fetchSearchIndex";
 
 const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
 
@@ -52,11 +53,7 @@ export function ContentIndexProvider({ children }: { children: ReactNode }) {
     }
 
     // Fetch if no cache or cache expired
-    fetch(`${import.meta.env.BASE_URL}/static/contentIndex.json`)
-      .then((res) => {
-        if (!res.ok) throw new Error(`Failed to fetch: ${res.statusText}`);
-        return res.json();
-      })
+    fetchSearchIndex()
       .then((data: Record<string, ContentDetails>) => {
         const notes = Object.values(data);
         setAllNotes(notes);

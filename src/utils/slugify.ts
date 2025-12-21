@@ -27,10 +27,8 @@ export function resetSlugger(): void {
  * e.g., "My Folder/My Note" -> "my-folder/my-note"
  */
 export function slugifyPath(path: string): string {
-  // Create a fresh slugger for path segments to avoid state pollution
-  const pathSlugger = new GithubSlugger();
   return path
     .split("/")
-    .map((part) => pathSlugger.slug(part.trim()))
+    .map((part) => new GithubSlugger().slug(part.trim()))
     .join("/");
 }
