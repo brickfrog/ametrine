@@ -24,13 +24,8 @@ pnpm-debug.log*
 .idea/
 .vscode/
 
-# Workforce Assistant
-.agent-notes/
-.workspace/
-.serena/
-CLAUDE.md
-AGENT.md
-
+# Agent stuff (too specific)
+.serena
 # Obsidian
 **/.trash/
 **/workspace.json
